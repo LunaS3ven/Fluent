@@ -1820,8 +1820,20 @@ local aa = {
 
 
         local httpService = game:GetService("HttpService")
+        local function getGameScopedFolder(folder)
+            folder = tostring(folder or "FluentSettings")
+            local placeId = tostring(game.PlaceId or "unknown")
+
+            if folder:match("/" .. placeId .. "$") or folder:match("\\" .. placeId .. "$") then
+                return folder
+            end
+
+            return folder .. "/" .. placeId
+        end
+
         local SaveManager = {}
-        SaveManager.Folder = "FluentSettings"
+        SaveManager.BaseFolder = "FluentSettings"
+        SaveManager.Folder = getGameScopedFolder(SaveManager.BaseFolder)
         SaveManager.Ignore = {}
         SaveManager.Parser = {
             Toggle    = { Save=function(idx,o) return{type="Toggle",idx=idx,value=o.Value} end, Load=function(idx,d) if SaveManager.Options[idx] then SaveManager.Options[idx]:SetValue(d.value) end end },
@@ -1836,7 +1848,7 @@ local aa = {
         }
         function SaveManager:SetIgnoreIndexes(list) for _,k in next,list do self.Ignore[k]=true end end
         function SaveManager:IgnoreIndexes(list) self:SetIgnoreIndexes(list) end
-        function SaveManager:SetFolder(folder) self.Folder=folder; self:BuildFolderTree() end
+        function SaveManager:SetFolder(folder) self.BaseFolder=folder; self.Folder=getGameScopedFolder(folder); self:BuildFolderTree() end
         function SaveManager:BuildFolderTree()
             local paths={self.Folder, self.Folder.."/settings"}
             for _,p2 in ipairs(paths) do if not isfolder(p2) then makefolder(p2) end end
@@ -1988,9 +2000,10 @@ local aa = {
 
 
         local InterfaceManager = {}
-        InterfaceManager.Folder = "FluentSettings"
+        InterfaceManager.BaseFolder = "FluentSettings"
+        InterfaceManager.Folder = getGameScopedFolder(InterfaceManager.BaseFolder)
         InterfaceManager.Settings = { Theme="Blood Red", Acrylic=true, Transparency=true, Animated=true, MenuKeybind="LeftControl", Font="GothamSSm", DisableBG=false, Favorites={} }
-        function InterfaceManager:SetFolder(folder) self.Folder=folder; self:BuildFolderTree() end
+        function InterfaceManager:SetFolder(folder) self.BaseFolder=folder; self.Folder=getGameScopedFolder(folder); self:BuildFolderTree() end
         function InterfaceManager:SetLibrary(lib) self.Library=lib end
         function InterfaceManager:BuildFolderTree()
             local parts=self.Folder:split("/"); local paths={}
@@ -2210,13 +2223,14 @@ local aa = {
 
 
         local FloatingButtonManager = {}
-        FloatingButtonManager.Folder = "FloatingButtons"
+        FloatingButtonManager.BaseFolder = "FloatingButtons"
+        FloatingButtonManager.Folder = getGameScopedFolder(FloatingButtonManager.BaseFolder)
         FloatingButtonManager.Buttons = {}  -- {frame=, button=, applyShape=}
         FloatingButtonManager.Library = nil
         local function serUDim2(u) return{ScaleX=u.X.Scale,OffsetX=u.X.Offset,ScaleY=u.Y.Scale,OffsetY=u.Y.Offset} end
         local function desUDim2(t2) return UDim2.new(t2.ScaleX or 0,t2.OffsetX or 0,t2.ScaleY or 0,t2.OffsetY or 0) end
         function FloatingButtonManager:SetLibrary(lib) self.Library=lib end
-        function FloatingButtonManager:SetFolder(folder) self.Folder=folder; self:BuildFolderTree() end
+        function FloatingButtonManager:SetFolder(folder) self.BaseFolder=folder; self.Folder=getGameScopedFolder(folder); self:BuildFolderTree() end
         function FloatingButtonManager:SetIgnoreIndexes(list) end
         function FloatingButtonManager:BuildFolderTree()
             local paths={self.Folder,self.Folder.."/settings"}
