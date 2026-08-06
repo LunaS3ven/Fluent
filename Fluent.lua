@@ -5,7 +5,6 @@ local a, b = {
         {"MainModule"},
         {
             {18, "ModuleScript", {"Creator"}},
-            {28, "ModuleScript", {"Icons"}},
             {
                 47,
                 "ModuleScript",
@@ -22,6 +21,17 @@ local a, b = {
                     {56, "ModuleScript", {"Sapphire"}},
                     {57, "ModuleScript", {"Galaxy"}},
                     {58, "ModuleScript", {"Cosmic"}},
+                    {70, "ModuleScript", {"AMOLED"}},
+                    {71, "ModuleScript", {"Rose"}},
+                    {72, "ModuleScript", {"Neon Cyber"}},
+                    {73, "ModuleScript", {"Arctic Frost"}},
+                    {74, "ModuleScript", {"Cotton Candy"}},
+                    {75, "ModuleScript", {"Orange"}},
+                    {76, "ModuleScript", {"Cyanic"}},
+                    {77, "ModuleScript", {"Amber Glow"}},
+                    {78, "ModuleScript", {"Bloomings"}},
+                    {79, "ModuleScript", {"Crimson"}},
+                    {80, "ModuleScript", {"Gold"}},
                 }
             },
             {
@@ -113,6 +123,15 @@ do
     local _RunService = game:GetService("RunService")
     local _state = setmetatable({}, {__mode = "k"})
     Animation = {}
+    function Animation.Clear(root)
+        if not root then return end
+        local st = _state[root]
+        if st and st.conn then
+            pcall(function() st.conn:Disconnect() end)
+            st.conn = nil
+        end
+        _state[root] = nil
+    end
     function Animation.Apply(theme, root, shineEnabled)
         if not root then return end
         local st = _state[root]
@@ -190,7 +209,7 @@ local aa = {
         v(nw)
         t:Init(nw)
         local x = {
-            Version = "1.5.1",
+            Version = "1.5.7",
             Name = "FluentPro",
             OpenFrames = {},
             Options = {},
@@ -227,11 +246,96 @@ local aa = {
         function x.SetErrorHandler(y, z)
             x.ErrorHandler = z
         end
-        local function fallbackError(_ftitle, _fmsg)
+        local er = {}
+        er.Tips = {
+            {pattern = "attempt to index nil", hint = "Nil value accessed", tip = "Initialize variable before use"},
+            {pattern = "attempt to index a nil", hint = "Nil value indexed", tip = "Check if variable exists before indexing"},
+            {pattern = "attempt to call nil", hint = "Nil called as function", tip = "Define function before calling"},
+            {pattern = "attempt to call a nil", hint = "Missing function", tip = "Function may not be loaded or returned"},
+            {pattern = "attempt to index global", hint = "Global is nil", tip = "Declare global variable first"},
+            {pattern = "index a nil value", hint = "Nil index access", tip = "Use and/or operator to guard against nil"},
+            {pattern = "'end' expected", hint = "Missing 'end'", tip = "Close all blocks with 'end'"},
+            {pattern = "expected 'end'", hint = "'end' keyword missing", tip = "Count your if/for/while/function blocks"},
+            {pattern = "<eof>", hint = "Unexpected end of file", tip = "Check missing 'end', ')', ']', or '}'"},
+            {pattern = "unexpected symbol", hint = "Invalid syntax", tip = "Check code near error line for typos"},
+            {pattern = "unexpected symbol near '='", hint = "Invalid assignment", tip = "Check if you meant '==' for comparison"},
+            {pattern = "unexpected symbol near 'local'", hint = "Local misplaced", tip = "Local can only be at top level or block start"},
+            {pattern = "unexpected symbol near 'function'", hint = "Function syntax error", tip = "Check function declaration syntax"},
+            {pattern = "unexpected symbol near 'if'", hint = "If statement error", tip = "Ensure if has then and end"},
+            {pattern = "unexpected symbol near 'then'", hint = "Then misplaced", tip = "Then must follow condition"},
+            {pattern = "unexpected symbol near 'else'", hint = "Else without if", tip = "Else must be inside if block"},
+            {pattern = "unexpected symbol near '}'", hint = "Brace mismatch", tip = "Check opening braces"},
+            {pattern = "unexpected symbol near ']'", hint = "Bracket mismatch", tip = "Check opening brackets"},
+            {pattern = "unexpected symbol near ')'", hint = "Parenthesis mismatch", tip = "Check opening parentheses"},
+            {pattern = "attempt to perform arithmetic", hint = "Math on non-number", tip = "Use tonumber() for conversion"},
+            {pattern = "attempt to add", hint = "Addition error", tip = "Both operands must be numbers"},
+            {pattern = "attempt to subtract", hint = "Subtraction error", tip = "Both operands must be numbers"},
+            {pattern = "attempt to multiply", hint = "Multiplication error", tip = "Both operands must be numbers"},
+            {pattern = "attempt to divide", hint = "Division error", tip = "Both operands must be numbers"},
+            {pattern = "division by zero", hint = "Divide by zero", tip = "Check denominator is not zero"},
+            {pattern = "attempt to concatenate", hint = "Concat on non-string", tip = "Use tostring() before concatenation"},
+            {pattern = "attempt to get length", hint = "# on invalid type", tip = "Use # only on strings and tables"},
+            {pattern = "attempt to compare", hint = "Compare incompatible types", tip = "Ensure same type comparison"},
+            {pattern = "bad argument #1", hint = "First argument invalid", tip = "Check first parameter type"},
+            {pattern = "bad argument #2", hint = "Second argument invalid", tip = "Check second parameter type"},
+            {pattern = "bad argument #3", hint = "Third argument invalid", tip = "Check third parameter type"},
+            {pattern = "bad argument", hint = "Wrong argument type", tip = "Check function parameters"},
+            {pattern = "too many arguments", hint = "Excess arguments passed", tip = "Reduce number of arguments"},
+            {pattern = "too few arguments", hint = "Missing arguments", tip = "Provide all required parameters"},
+            {pattern = "table index is nil", hint = "Nil table key", tip = "Ensure key exists before use"},
+            {pattern = "invalid key", hint = "Invalid table key type", tip = "Use string or number keys only"},
+            {pattern = "unfinished string", hint = "Unclosed string", tip = "Close string with matching quotes"},
+            {pattern = "invalid escape", hint = "Invalid escape character", tip = "Use double backslash or valid escape"},
+            {pattern = "is not a valid member of", hint = "Invalid property", tip = "Property doesn't exist on this instance"},
+            {pattern = "is not a valid member", hint = "Property not found", tip = "Check instance property name"},
+            {pattern = "cannot assign property", hint = "Read-only property", tip = "Property cannot be changed"},
+            {pattern = "Parent must be a valid Instance", hint = "Nil parent", tip = "Create parent instance before assigning"},
+            {pattern = "Class mismatch", hint = "Wrong instance type", tip = "Expected specific instance class"},
+            {pattern = "attempt to yield", hint = "Yield not allowed", tip = "Avoid wait() in callbacks and metamethods"},
+            {pattern = "stack overflow", hint = "Infinite recursion", tip = "Add base case to recursive function"},
+            {pattern = "Request failed", hint = "HTTP request failed", tip = "Check URL and internet connection"},
+            {pattern = "Http request failed", hint = "HTTP error", tip = "Check URL, method, and headers"},
+            {pattern = "cannot request", hint = "HTTP not allowed", tip = "Enable HTTP requests in game settings"},
+            {pattern = "HTTP 404", hint = "Not found", tip = "URL may be invalid or moved"},
+            {pattern = "HTTP 403", hint = "Forbidden", tip = "Access denied to resource"},
+            {pattern = "HTTP 500", hint = "Server error", tip = "Server side issue, try again later"},
+            {pattern = "timeout", hint = "Request timeout", tip = "Server too slow, increase timeout or retry"},
+            {pattern = "invalid URL", hint = "Malformed URL", tip = "Check URL format (include http:// or https://)"},
+            {pattern = "cannot open file", hint = "File access failed", tip = "Check file path and permissions"},
+            {pattern = "cannot write file", hint = "Write failed", tip = "Ensure folder exists and has space"},
+            {pattern = "file not found", hint = "Missing file", tip = "Check file name and path"},
+            {pattern = "no such file", hint = "File doesn't exist", tip = "Create file before reading"},
+            {pattern = "is not a valid service", hint = "Service not found", tip = "Verify service name case sensitivity"},
+            {pattern = "WaitForChild timeout", hint = "Child never appeared", tip = "Increase timeout or check if child exists"},
+            {pattern = "invalid asset", hint = "Bad asset ID", tip = "Check if asset exists"},
+            {pattern = "teleport failed", hint = "Teleport error", tip = "Check place ID and permissions"},
+            {pattern = "expected number, got", hint = "Number required", tip = "Use tonumber() for conversion"},
+            {pattern = "expected string, got", hint = "String required", tip = "Use tostring() for conversion"},
+            {pattern = "expected table, got", hint = "Table required", tip = "Ensure value is a table"},
+            {pattern = "not a valid Enum", hint = "Invalid Enum", tip = "Check Enum spelling and existence"},
+        }
+        function er.FindHint(message)
+            if type(message) ~= "string" then return nil end
+            local lowerMsg = message:lower()
+            for _, entry in ipairs(er.Tips) do
+                if lowerMsg:find(entry.pattern:lower(), 1, true) then
+                    return entry
+                end
+            end
+            return nil
+        end
+        function er.BuildContent(msg)
+            local hint = er.FindHint(msg)
+            if hint then
+                return msg .. "\n[" .. hint.hint .. "] " .. hint.tip
+            end
+            return msg
+        end
+        function er.Fallback(title, msg)
             pcall(function()
                 local lp = game:GetService("Players").LocalPlayer
                 local sg = Instance.new("ScreenGui")
-                sg.Name = "BFErrorNotify"
+                sg.Name = "FluentProErrorNotify"
                 sg.ResetOnSpawn = false
                 sg.DisplayOrder = 99999
                 sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -256,7 +360,7 @@ local aa = {
                 t1.Size = UDim2.new(1, -20, 0, 18)
                 t1.Position = UDim2.new(0, 18, 0, 8)
                 t1.BackgroundTransparency = 1
-                t1.Text = "[BetterFluent] " .. tostring(_ftitle)
+                t1.Text = "[FluentPro] " .. tostring(title)
                 t1.TextColor3 = Color3.fromRGB(255, 80, 80)
                 t1.TextSize = 12
                 t1.Font = Enum.Font.GothamBold
@@ -265,7 +369,7 @@ local aa = {
                 t2.Size = UDim2.new(1, -20, 0, 38)
                 t2.Position = UDim2.new(0, 18, 0, 28)
                 t2.BackgroundTransparency = 1
-                t2.Text = tostring(_fmsg)
+                t2.Text = tostring(msg)
                 t2.TextColor3 = Color3.fromRGB(220, 185, 185)
                 t2.TextSize = 11
                 t2.Font = Enum.Font.Gotham
@@ -274,19 +378,25 @@ local aa = {
                 game:GetService("Debris"):AddItem(sg, 10)
             end)
         end
+        function er.Report(title, msg, duration)
+            local content = er.BuildContent(tostring(msg))
+            local ok = pcall(function()
+                x:CopyableNotify {Title = title, Content = content, Type = "Error", Duration = duration or 6}
+            end)
+            if not ok then er.Fallback(title, content) end
+        end
+        function x.NotifyError(y, title, message, duration)
+            if x.ErrorHandler then pcall(x.ErrorHandler, message, message) end
+            er.Report(title or "Error", message or "Unknown error", duration)
+        end
         function x.SafeCallback(y, z, ...)
             if not z then return end
-            local A, B = pcall(z, ...)
-            if not A then
-                local C, D = B:find ":%d+: "
-                local msg = D and B:sub(D + 1) or B
-                if x.ErrorHandler then pcall(x.ErrorHandler, msg, B) end
-                local notifyOk = pcall(function()
-                    x:Notify {Title = "Callback error", Content = msg, Type = "Error", Duration = 5}
-                end)
-                if not notifyOk then
-                    fallbackError("Callback error", msg)
-                end
+            local ok, err = pcall(z, ...)
+            if not ok then
+                local msg = tostring(err)
+                local lineInfo = msg:match("(:%d+:)")
+                if x.ErrorHandler then pcall(x.ErrorHandler, msg, err) end
+                er.Report("Callback error" .. (lineInfo and (" (" .. lineInfo:gsub(":", "") .. ")") or ""), msg)
             end
         end
         function x.Round(y, z, A)
@@ -325,6 +435,61 @@ local aa = {
             end
             return IconCache[prefix]
         end
+        function x.GetButtonGradient(z)
+            return x.ButtonGradients
+        end
+        function x.GetShine(z)
+            local thm = e(o.Themes)[x.Theme]
+            if not thm then return nil end
+            return {
+                Enabled = thm.ShineEnabled == true,
+                Shine = thm.Shine,
+                StrokeShine = thm.StrokeShine == true,
+                StrokeDark = thm.StrokeDark or thm.AcrylicBorder,
+                Accent = thm.Accent,
+            }
+        end
+        local CustomAssetCache = {}
+        function x.LoadCustomAsset(z, url)
+            if type(url) ~= "string" or url == "" then return nil end
+            if CustomAssetCache[url] then return CustomAssetCache[url] end
+            local ok, result = pcall(function()
+                if not (writefile and isfolder and makefolder and getcustomasset) then
+                    error("executor missing writefile/getcustomasset support")
+                end
+                local mm = x.MediaManager
+                local baseFolder = mm and mm.Folder
+                local dir = baseFolder and (baseFolder .. "/other") or ""
+                if dir ~= "" then
+                    if not isfolder(baseFolder) then makefolder(baseFolder) end
+                    if not isfolder(dir) then makefolder(dir) end
+                end
+                local ext = url:match("%.([%a%d]+)$") or "dat"
+                local safeName = url:gsub("[^%w]", "_")
+                local fname = safeName:sub(-80) .. "." .. ext
+                local fpath = dir ~= "" and (dir .. "/" .. fname) or fname
+                if not isfile(fpath) then
+                    local data = game:HttpGet(url, true)
+                    writefile(fpath, data)
+                end
+                return getcustomasset(fpath)
+            end)
+            if not ok then
+                warn("[CustomAsset] Failed to load '" .. tostring(url) .. "': " .. tostring(result))
+                return nil
+            end
+            CustomAssetCache[url] = result
+            return result
+        end
+        function x.LoadCustomFont(z, url, weight, style)
+            local assetId = x.LoadCustomAsset(z, url)
+            if not assetId then return nil end
+            local ok, fnt = pcall(function()
+                return Font.new(assetId, weight or Enum.FontWeight.Regular, style or Enum.FontStyle.Normal)
+            end)
+            if not ok then return nil end
+            return fnt
+        end
         function x.GetIcon(z, A)
             if A == nil or A == "" then return nil end
             local prefix, name = A:match("^(.-)%/(.+)$")
@@ -343,8 +508,6 @@ local aa = {
                 local lucide = LoadIconSource("lucide")
                 if lucide and lucide[A] then return lucide[A] end
                 if lucide and lucide["lucide-" .. A] then return lucide["lucide-" .. A] end
-                local legacy = e(o.Icons).assets
-                if legacy and legacy["lucide-" .. A] then return legacy["lucide-" .. A] end
                 return nil
             end
         end
@@ -511,7 +674,10 @@ local aa = {
                 local win = x.Window
                 if win and win.AllElements and result then
                     local frame = result.Frame or result
-                    local label = (type(D) == "string" and D) or (type(E) == "table" and (E.Title or "")) or (type(D) == "table" and (D.Title or "")) or ""
+                    local cfg = (type(E) == "table" and E) or (type(D) == "table" and D) or nil
+                    local title = (type(D) == "string" and D) or (cfg and cfg.Title) or ""
+                    local desc = (cfg and cfg.Description) or ""
+                    local label = (tostring(title) .. " " .. tostring(desc)):gsub("^%s+",""):gsub("%s+$","")
                     if frame and label ~= "" then
                         win.AllElements[frame] = tostring(label):lower()
                     end
@@ -527,7 +693,10 @@ local aa = {
                 result.Frame.LayoutOrder = C._elementCount
                 local win = x.Window
                 if win and win.AllElements then
-                    win.AllElements[result.Frame] = ""
+                    local label = ""
+                    local lbl = result.Frame:FindFirstChildWhichIsA("TextLabel", true)
+                    if lbl then label = tostring(lbl.Text or "") end
+                    win.AllElements[result.Frame] = label:lower()
                 end
             end
             return result
@@ -949,6 +1118,7 @@ local aa = {
                 AnchorPoint=Vector2.new(1,0.5),
                 Position=UDim2.new(1,-12,0.5,0),
                 BackgroundTransparency=0,
+                Active=true,
                 Parent=wrap,
                 ThemeTag={BackgroundColor3="CheckboxUnchecked"},
             })
@@ -982,7 +1152,7 @@ local aa = {
                 wrap:Destroy()
                 if idx then x.Options[idx] = nil end
             end
-            wrap.InputBegan:Connect(function(inp)
+            box.InputBegan:Connect(function(inp)
                 if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
                     h:SetValue(not h.Value)
                 end
@@ -1140,7 +1310,7 @@ local aa = {
                 TextTruncate=Enum.TextTruncate.AtEnd,
                 BackgroundTransparency=1,
                 AutoButtonColor=false,
-                Size=UDim2.new(1,-140,0,16),
+                Size=UDim2.new(1,-73,0,16),
                 Position=UDim2.new(0,62,0,9),
                 ThemeTag={TextColor3="Text"},
                 Parent=wrap,
@@ -1154,7 +1324,7 @@ local aa = {
                 TextTruncate=Enum.TextTruncate.AtEnd,
                 BackgroundTransparency=1,
                 AutoButtonColor=false,
-                Size=UDim2.new(1,-140,0,13),
+                Size=UDim2.new(1,-73,0,13),
                 Position=UDim2.new(0,62,0,27),
                 ThemeTag={TextColor3="SubText"},
                 Parent=wrap,
@@ -1168,29 +1338,11 @@ local aa = {
                     TextTransparency=0.3,
                     TextXAlignment=Enum.TextXAlignment.Left,
                     BackgroundTransparency=1,
-                    Size=UDim2.new(1,-140,0,12),
+                    Size=UDim2.new(1,-73,0,12),
                     Position=UDim2.new(0,62,0,42),
                     ThemeTag={TextColor3="SubText"},
                     Parent=wrap,
                 })
-            end
-
-            local copyBtn
-            if profileUrl then
-                copyBtn = u("TextButton",{
-                    Name="CopyLinkButton",
-                    Text="Copy",
-                    Size=UDim2.fromOffset(52,26),
-                    Position=UDim2.new(1,-11,0.5,0),
-                    AnchorPoint=Vector2.new(1,0.5),
-                    TextColor3=Color3.fromRGB(255,255,255),
-                    FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.SemiBold),
-                    TextSize=12,
-                    ThemeTag={BackgroundColor3="Element"},
-                    Parent=wrap,
-                })
-                u("UICorner",{CornerRadius=UDim.new(0,8),Parent=copyBtn})
-                u("UIStroke",{Transparency=0.4,Thickness=1,ThemeTag={Color="InElementBorder"},Parent=copyBtn})
             end
 
             local function _copy(text, label)
@@ -1200,9 +1352,6 @@ local aa = {
             end
             nameBtn.MouseButton1Click:Connect(function() _copy(displayName, "Display name") end)
             userBtn.MouseButton1Click:Connect(function() _copy(username, "Username") end)
-            if copyBtn then
-                copyBtn.MouseButton1Click:Connect(function() _copy(profileUrl, "Profile link") end)
-            end
 
             task.spawn(function()
                 local avatarSrc = cfg.Avatar
@@ -1582,16 +1731,39 @@ local aa = {
             end
             x.MinimizeKey = D.MinimizeKey
             x.UseAcrylic = D.Acrylic
+            x.ShineEnabled = not (D.Animated == false)
             if D.Acrylic then
                 r.init()
             end
+            if type(D.Search) == "table" then
+                local _sc = D.Search
+                D.SearchHighlight = _sc.Highlight
+                D.SearchHighlightColor = _sc.HighlightColor
+                D.SearchInHeader = (_sc.SearchInHeader == true) or D.SearchInHeader
+                D.Search = not (_sc.Search == false)
+            end
+            local _uiCfg = type(D.UserInfo) == "table" and D.UserInfo or {}
+            local _effUserInfoTop = _uiCfg.UserInfoTop
+            if _effUserInfoTop == nil then _effUserInfoTop = D.UserInfoTop end
+            local _effUserInfoTitle = _uiCfg.UserInfoTitle or D.UserInfoTitle
+            local _effUserInfoSubtitle = _uiCfg.UserInfoSubtitle or D.UserInfoSubtitle
+            local _effUserInfoColor = _uiCfg.UserInfoColor or D.UserInfoColor
+            local _effUserInfoIcons = _uiCfg.UserInfoIcons or D.UserInfoIcons
+            local _effAnonymous = D.Anonymous or _uiCfg.Anonymous
+            local _hasUserInfoCfg = (D.UserInfo ~= nil)
+            local _effUserInfoBottom = _hasUserInfoCfg and (_effUserInfoTop ~= true)
             local E =
                 e(s.Window) {
                     Parent = w, Size = D.Size, Title = D.Title, SubTitle = D.SubTitle, TabWidth = D.TabWidth,
-                    UserInfo = D.UserInfo, UserInfoTop = D.UserInfoTop,
-                    UserInfoTitle = D.UserInfoTitle, UserInfoSubtitle = D.UserInfoSubtitle,
-                    UserInfoColor = D.UserInfoColor,
+                    UserInfo = _effUserInfoBottom, UserInfoTop = _effUserInfoTop,
+                    UserInfoTitle = _effUserInfoTitle, UserInfoSubtitle = _effUserInfoSubtitle,
+                    UserInfoColor = _effUserInfoColor, UserInfoIcons = _effUserInfoIcons,
+                    Anonymous = _effAnonymous,
                     Search = D.Search,
+                    SearchInHeader = D.SearchInHeader,
+                    SearchHighlight = D.SearchHighlight,
+                    SearchHighlightColor = D.SearchHighlightColor,
+                    Tags = D.Tags,
                     TabLogo = D.Icons or D.TabLogo,
                     TitleIcon = D.TitleIcon,
                     Version = D.Version,
@@ -1664,6 +1836,13 @@ local aa = {
                 task.defer(function()
                     x.InterfaceManager:ApplyFont(D.Font)
                 end)
+            end
+            if x.InterfaceManager then
+                local IM = x.InterfaceManager
+                if D.Theme then IM.Settings.Theme = D.Theme end
+                if D.Acrylic ~= nil then IM.Settings.Acrylic = D.Acrylic end
+                if D.Animated ~= nil then IM.Settings.Animated = D.Animated end
+                if D.MinimizeKey then IM.Settings.MenuKeybind = D.MinimizeKey.Name end
             end
             return E
         end
@@ -1740,71 +1919,19 @@ local aa = {
             end
             x.WindowTransparent = D and true or false
         end
-        local errorHints = {
-            {"attempt to index nil",             "Did you forget to define a variable?"},
-            {"attempt to index a nil",            "Did you forget to define a variable?"},
-            {"attempt to call nil",               "Did you forget to define or return a function?"},
-            {"attempt to call a nil",             "Did you forget to define or return a function?"},
-            {"attempt to call a ",                "Did you forget to define or return this?"},
-            {"'end' expected",                    "Did you forget to close a block with 'end'?"},
-            {"expected 'end'",                    "Did you forget to close a block with 'end'?"},
-            {"<eof>",                             "Unexpected end — did you forget 'end' or ')'?"},
-            {"unexpected symbol",                 "Syntax error — check for typos near this symbol"},
-            {"attempt to perform arithmetic",     "Did you use a non-number value here?"},
-            {"attempt to concatenate",            "Did you forget to convert a value to string?"},
-            {"stack overflow",                    "Possible infinite recursion detected"},
-            {"attempt to get length",             "Did you use # on a nil or non-table value?"},
-            {"attempt to compare",                "Did you compare two incompatible types?"},
-            {"bad argument",                      "Wrong argument type passed to a function"},
-            {"attempt to yield",                  "Cannot yield in this callback context"},
-            {"no value",                          "Did you forget to return a value?"},
-            {"attempt to index",                  "Tried to index a non-table value"},
-        }
-        local function parseNotifyError(D)
-            if not D or (D.Type ~= "Error" and D.Type ~= "Warning") then return D end
-            local msg = tostring(D.Content or "") .. " " .. tostring(D.SubContent or "")
-            local line = tonumber(msg:match(":(%d+):")) or tonumber(msg:match("[Ll]ine%s+(%d+)"))
-            local hint
-            local ml = msg:lower()
-            for _, pair in ipairs(errorHints) do
-                if ml:find(pair[1], 1, true) then hint = pair[2]; break end
-            end
-            if not hint and not line then return D end
-            local smart
-            if hint and line then
-                smart = hint .. " (Line " .. line .. ")"
-            elseif hint then
-                smart = hint
-            else
-                smart = "Check your code (Line " .. line .. ")"
-            end
-            local nd = {}
-            for k, v in next, D do nd[k] = v end
-            local existing = (type(nd.SubContent) == "string" and nd.SubContent ~= "") and nd.SubContent or nil
-            nd.SubContent = existing and (smart .. "\n" .. existing) or smart
-            return nd
-        end
         function x.Notify(C, D)
-            return t:New(parseNotifyError(D))
+            return t:New(D)
+        end
+        function x.CopyableNotify(C, D)
+            D = D or {}
+            D.Copyable = true
+            return t:New(D)
         end
 
 
         local rgbConn = nil
         function x.StartRGBMode()
             if rgbConn then rgbConn:Disconnect(); rgbConn = nil end
-            local hue = 0
-            rgbConn = game:GetService("RunService").RenderStepped:Connect(function(dt)
-                if x.Theme ~= "RGB" then rgbConn:Disconnect(); rgbConn = nil; return end
-                hue = (hue + dt * 0.10) % 1
-                local col = Color3.fromHSV(hue, 1, 1)
-                local thm = e(o.Themes)["RGB"]
-                if thm then
-                    thm.Accent=col; thm.AcrylicBorder=col; thm.InElementBorder=col
-                    thm.DropdownBorder=col; thm.DropdownFrame=col; thm.DropdownOption=col
-                    thm.Tab=col; thm.TitleBarLine=col
-                    p.UpdateTheme()
-                end
-            end)
         end
         function x.StopRGBMode()
             if rgbConn then rgbConn:Disconnect(); rgbConn = nil end
@@ -1813,27 +1940,12 @@ local aa = {
         function x.SetTheme(C, D)
             x.StopRGBMode()
             baseST(C, D)
-            if D == "RGB" and x.Window and table.find(x.Themes, D) then
-                x:StartRGBMode()
-            end
         end
 
 
         local httpService = game:GetService("HttpService")
-        local function getGameScopedFolder(folder)
-            folder = tostring(folder or "FluentSettings")
-            local placeId = tostring(game.PlaceId or "unknown")
-
-            if folder:match("/" .. placeId .. "$") or folder:match("\\" .. placeId .. "$") then
-                return folder
-            end
-
-            return folder .. "/" .. placeId
-        end
-
         local SaveManager = {}
-        SaveManager.BaseFolder = "FluentSettings"
-        SaveManager.Folder = getGameScopedFolder(SaveManager.BaseFolder)
+        SaveManager.Folder = "FluentSettings"
         SaveManager.Ignore = {}
         SaveManager.Parser = {
             Toggle    = { Save=function(idx,o) return{type="Toggle",idx=idx,value=o.Value} end, Load=function(idx,d) if SaveManager.Options[idx] then SaveManager.Options[idx]:SetValue(d.value) end end },
@@ -1848,7 +1960,7 @@ local aa = {
         }
         function SaveManager:SetIgnoreIndexes(list) for _,k in next,list do self.Ignore[k]=true end end
         function SaveManager:IgnoreIndexes(list) self:SetIgnoreIndexes(list) end
-        function SaveManager:SetFolder(folder) self.BaseFolder=folder; self.Folder=getGameScopedFolder(folder); self:BuildFolderTree() end
+        function SaveManager:SetFolder(folder) self.Folder=folder; self:BuildFolderTree() end
         function SaveManager:BuildFolderTree()
             local paths={self.Folder, self.Folder.."/settings"}
             for _,p2 in ipairs(paths) do if not isfolder(p2) then makefolder(p2) end end
@@ -2000,10 +2112,9 @@ local aa = {
 
 
         local InterfaceManager = {}
-        InterfaceManager.BaseFolder = "FluentSettings"
-        InterfaceManager.Folder = getGameScopedFolder(InterfaceManager.BaseFolder)
+        InterfaceManager.Folder = "FluentSettings"
         InterfaceManager.Settings = { Theme="Blood Red", Acrylic=true, Transparency=true, Animated=true, MenuKeybind="LeftControl", Font="GothamSSm", DisableBG=false, Favorites={} }
-        function InterfaceManager:SetFolder(folder) self.BaseFolder=folder; self.Folder=getGameScopedFolder(folder); self:BuildFolderTree() end
+        function InterfaceManager:SetFolder(folder) self.Folder=folder; self:BuildFolderTree() end
         function InterfaceManager:SetLibrary(lib) self.Library=lib end
         function InterfaceManager:BuildFolderTree()
             local parts=self.Folder:split("/"); local paths={}
@@ -2097,19 +2208,41 @@ local aa = {
             LuckiestGuy = 1.2, IndieFlower = 1.3, TitilliumWeb = 1.05,
             Oswald = 1.05, Balthazar = 1.25, Jura = 1.1,
         }
+        function InterfaceManager:RegisterCustomFont(name, url, weight, style, scale)
+            if type(name) ~= "string" or name == "" then return false end
+            local lib = self.Library
+            local assetId = lib and lib.LoadCustomAsset and lib:LoadCustomAsset(url)
+            if not assetId then return false end
+            self.FontPaths[name] = assetId
+            if weight then self.FontWeights[name] = weight end
+            if style then self.FontStyles[name] = style end
+            self.FontSizeScale[name] = scale or 1.0
+            if not table.find(self.Fonts, name) then
+                table.insert(self.Fonts, name)
+            end
+            return true
+        end
         function InterfaceManager:ApplyFont(name)
             local path = self.FontPaths[name]
-            if not path then return end
+            if not path then
+                warn("[InterfaceManager] ApplyFont: no FontPaths entry for '" .. tostring(name) .. "'")
+                return
+            end
             local weight = self.FontWeights[name] or Enum.FontWeight.Regular
             local style  = self.FontStyles[name]  or Enum.FontStyle.Normal
-            local newFont = Font.new(path, weight, style)
+            local fontOk, newFont = pcall(Font.new, path, weight, style)
+            if not fontOk or not newFont then
+                warn("[InterfaceManager] ApplyFont: Font.new failed for '" .. tostring(name) .. "' (" .. tostring(path) .. "): " .. tostring(newFont))
+                return
+            end
             local scale = self.FontSizeScale[name] or 1.0
             if not self.Library then return end
+            local appliedCount = 0
             local function apply(inst, depth)
                 if depth > 12 then return end
                 for _, ch in ipairs(inst:GetChildren()) do
                     if ch:IsA("TextLabel") or ch:IsA("TextButton") or ch:IsA("TextBox") then
-                        pcall(function()
+                        local ok = pcall(function()
                             local baseSize = ch:GetAttribute("_baseTextSize")
                             if not baseSize then
                                 baseSize = ch.TextSize
@@ -2118,12 +2251,16 @@ local aa = {
                             ch.FontFace = newFont
                             ch.TextSize = baseSize * scale
                         end)
+                        if ok then appliedCount = appliedCount + 1 end
                     end
                     apply(ch, depth + 1)
                 end
             end
             for _, gui in ipairs({self.Library.GUI, self.Library.ScrollGUI, self.Library.PopupGUI}) do
                 if gui then apply(gui, 0) end
+            end
+            if appliedCount == 0 then
+                warn("[InterfaceManager] ApplyFont: '" .. tostring(name) .. "' applied to 0 text elements")
             end
             self.Settings.Font = name
             self:SaveSettings()
@@ -2194,10 +2331,11 @@ local aa = {
                     for _, fn in ipairs(Library._ManagerDropdownSyncs) do pcall(fn) end
                 end
             end})
-            section:AddToggle("DisableBGToggle",{Title="Disable Background Images",Description="Hides theme background images.",Icon="solar/eye-closed-bold",Default=Settings.DisableBG or false,Callback=function(Value)
+            section:AddToggle("DisableBGToggle",{Title="Disable Background",Description="Hides theme background images and videos.",Icon="solar/eye-closed-bold",Default=Settings.DisableBG or false,Callback=function(Value)
                 Settings.DisableBG=Value; InterfaceManager:SaveSettings()
-                local gui=Library and Library.Window and Library.Window.AcrylicPaint
-                if gui then local bg=gui.Frame:FindFirstChild("__ThemeBG"); if bg then bg.Visible=not Value end end
+                if Library and Library.Theme then
+                    pcall(function() Library:SetTheme(Library.Theme) end)
+                end
             end})
             if Library.UseAcrylic then
                 section:AddToggle("AcrylicToggle",{Title="Acrylic",Description="Requires graphic quality 8+.",Icon="solar/layers-bold",Default=Settings.Acrylic,Callback=function(Value)
@@ -2223,27 +2361,21 @@ local aa = {
 
 
         local FloatingButtonManager = {}
-        FloatingButtonManager.BaseFolder = "FloatingButtons"
-        FloatingButtonManager.Folder = getGameScopedFolder(FloatingButtonManager.BaseFolder)
-        FloatingButtonManager.Buttons = {}  -- {frame=, button=, applyShape=}
+        FloatingButtonManager.Folder = "FloatingButtons"
+        FloatingButtonManager.Buttons = {}
         FloatingButtonManager.Library = nil
         local function serUDim2(u) return{ScaleX=u.X.Scale,OffsetX=u.X.Offset,ScaleY=u.Y.Scale,OffsetY=u.Y.Offset} end
         local function desUDim2(t2) return UDim2.new(t2.ScaleX or 0,t2.OffsetX or 0,t2.ScaleY or 0,t2.OffsetY or 0) end
         function FloatingButtonManager:SetLibrary(lib) self.Library=lib end
-        function FloatingButtonManager:SetFolder(folder) self.BaseFolder=folder; self.Folder=getGameScopedFolder(folder); self:BuildFolderTree() end
+        function FloatingButtonManager:SetFolder(folder) self.Folder=folder; self:BuildFolderTree() end
         function FloatingButtonManager:SetIgnoreIndexes(list) end
         function FloatingButtonManager:BuildFolderTree()
             local paths={self.Folder,self.Folder.."/settings"}
             for _,p2 in ipairs(paths) do if not isfolder(p2) then makefolder(p2) end end
         end
         FloatingButtonManager:BuildFolderTree()
-        -- AddButton(id, frameOrButton, locked, isCircle, applyShapeCallback, frame)
-        -- frameOrButton: the draggable Frame (preferred) or TextButton
-        -- applyShapeCallback: optional function(isCircle) to restore shape on load
-        -- frame: optional explicit Frame if frameOrButton is a TextButton child
         function FloatingButtonManager:AddButton(id, frameOrButton, locked, isCircle, applyShapeCallback, frame)
             local targetFrame = frame or frameOrButton
-            -- auto-detect: if frameOrButton is TextButton, use its Parent as frame
             if frameOrButton:IsA("TextButton") and not frame then
                 local p = frameOrButton.Parent
                 if p and p:IsA("Frame") then targetFrame = p end
@@ -2260,7 +2392,7 @@ local aa = {
             local path=self.Folder.."/settings/"..name..".json"
             local data={}
             for id,entry in pairs(self.Buttons) do
-                local f = entry.frame or entry  -- backwards compat: entry may be a Frame directly
+                local f = entry.frame or entry
                 data[id]={
                     size     = serUDim2(f.Size),
                     position = serUDim2(f.Position),
@@ -2281,12 +2413,11 @@ local aa = {
             for id,saved in pairs(dec) do
                 local entry=self.Buttons[id]
                 if entry then
-                    local f = entry.frame or entry  -- backwards compat
+                    local f = entry.frame or entry
                     if saved.position then f.Position = desUDim2(saved.position) end
                     if saved.size     then f.Size     = desUDim2(saved.size)     end
                     f:SetAttribute("Locked",   saved.locked   or false)
                     f:SetAttribute("IsCircle", saved.isCircle or false)
-                    -- call applyShape callback if provided so shape is restored correctly
                     if entry.applyShape then
                         task.defer(function()
                             pcall(entry.applyShape, saved.isCircle or false)
@@ -2416,13 +2547,22 @@ local aa = {
         x.FloatingButtonManager = FloatingButtonManager
 
         local _MM = {}
-        _MM.Folder = "BetterFluentCache"
+        _MM.Folder = nil
 
         function _MM:SetFolder(f)
             self.Folder = f
         end
 
+        function _MM:_dir(sub)
+            return self.Folder and (self.Folder.."/"..sub) or ""
+        end
+
+        function _MM:_join(dir, name)
+            return dir ~= "" and (dir.."/"..name) or name
+        end
+
         function _MM:_init(sub)
+            if not self.Folder then return end
             pcall(function()
                 if not isfolder(self.Folder) then makefolder(self.Folder) end
                 local p = self.Folder.."/"..sub
@@ -2443,27 +2583,16 @@ local aa = {
             if src:match("^%d+$") then return "rbxassetid://"..src end
             if not src:match("^https?://") then return "" end
             self:_init(sub)
-            local dir = self.Folder.."/"..sub
+            local dir = self:_dir(sub)
             local cleanPath = src:match("^[^?#]+") or src
             local ext = (cleanPath:match("%.([^%.%/]+)$") or defExt):lower()
             if not exts[ext] then ext = defExt end
-            local hs = game:GetService("HttpService")
-            local mapPath = dir.."/_map.json"
-            local map = {}
-            pcall(function()
-                if isfile(mapPath) then
-                    local ok,d = pcall(hs.JSONDecode, hs, readfile(mapPath))
-                    if ok and type(d)=="table" then map=d end
-                end
-            end)
-            local key = tostring(#src).."_"..src:sub(1,40):gsub("[^%w]","")
-            if map[key] then
-                local cp = dir.."/"..map[key]
-                if isfile(cp) then
-                    local ok,a = pcall(getcustomasset, cp)
-                    if ok and a and a~="" then return a end
-                end
-                map[key] = nil
+            local key = src:gsub("[^%w]", "_"):sub(-90)
+            local fname = key .. "." .. ext
+            local path = self:_join(dir, fname)
+            if isfile(path) then
+                local ok, a = pcall(getcustomasset, path)
+                if ok and a and a ~= "" then return a end
             end
             if noDownload then return nil end
             local body = nil
@@ -2474,19 +2603,18 @@ local aa = {
             end)
             if not (dlOk and body) then return "" end
             local isFtyp = #body >= 8 and body:sub(5,8) == "ftyp"
-            local fname = self:_rname(isFtyp and "ogg" or ext)
-            local path = dir.."/"..fname
+            if isFtyp and ext ~= "ogg" then
+                fname = key .. ".ogg"
+                path = self:_join(dir, fname)
+            end
+            if isfile(path) then
+                local ok, a = pcall(getcustomasset, path)
+                if ok and a and a ~= "" then return a end
+            end
             writefile(path, body)
             if isfile(path) then
                 local ok2,a = pcall(getcustomasset, path)
-                if ok2 and a and a~="" then
-                    map[key] = fname
-                    pcall(function()
-                        local ok3,enc = pcall(hs.JSONEncode, hs, map)
-                        if ok3 then writefile(mapPath, enc) end
-                    end)
-                    return a
-                end
+                if ok2 and a and a~="" then return a end
             end
             return ""
         end
@@ -2500,27 +2628,14 @@ local aa = {
             if not ({webm=1,mp4=1,ogg=1,mov=1})[ext] then ext="webm" end
             if ext == "mp4" or ext == "mov" then ext = "webm" end
             self:_init("videos")
-            local dir = self.Folder.."/videos"
-            local mapPath = dir.."/_map.json"
-            local hs = game:GetService("HttpService")
-            local map = {}
-            pcall(function()
-                if isfile(mapPath) then
-                    local ok,d = pcall(hs.JSONDecode, hs, readfile(mapPath))
-                    if ok and type(d)=="table" then map=d end
-                end
-            end)
-            local key = tostring(#src).."_"..src:sub(1,40):gsub("[^%w]","")
-            if map[key] then
-                local cp = dir.."/"..map[key]
-                if isfile(cp) then
-                    local ok,a = pcall(getcustomasset, cp)
-                    if ok and a and a~="" then return a end
-                end
-                map[key] = nil
+            local dir = self:_dir("videos")
+            local key = src:gsub("[^%w]", "_"):sub(-90)
+            local fname = key .. "." .. ext
+            local path  = self:_join(dir, fname)
+            if isfile(path) then
+                local ok, a = pcall(getcustomasset, path)
+                if ok and a and a ~= "" then return a end
             end
-            local fname = self:_rname(ext)
-            local path  = dir.."/"..fname
             local body  = nil
             local reqOk = pcall(function()
                 local req = (syn and syn.request) or http_request or request
@@ -2529,19 +2644,17 @@ local aa = {
                     local peek = r.Body:sub(1,15):lower()
                     if peek:find("<!doctype") or peek:find("<html") then return end
                     body = r.Body
-                    writefile(path, body)
                 end
             end)
-            if reqOk and body and isfile(path) then
+            if not (reqOk and body) then return "" end
+            if isfile(path) then
+                local ok, a = pcall(getcustomasset, path)
+                if ok and a and a ~= "" then return a end
+            end
+            writefile(path, body)
+            if isfile(path) then
                 local ok2,a = pcall(getcustomasset, path)
-                if ok2 and a and a~="" then
-                    map[key] = fname
-                    pcall(function()
-                        local ok3,enc = pcall(hs.JSONEncode, hs, map)
-                        if ok3 then writefile(mapPath, enc) end
-                    end)
-                    return a
-                end
+                if ok2 and a and a~="" then return a end
             end
             return ""
         end
@@ -2554,11 +2667,20 @@ local aa = {
         function x.RegisterCustomTheme(C, D, E)
             if type(D) ~= "string" or type(E) ~= "table" then return false end
             E.Name = D
+            if not E.Tier then E.Tier = "CustomTheme" end
             if not E.ThemeAccentColors and E.Accent then E.ThemeAccentColors = {E.Accent} end
             if E.Background == nil then E.Background = nil end
             if E.BackgroundTransparency == nil then E.BackgroundTransparency = 0 end
             if type(E.ElementBorderThickness) ~= "number" then E.ElementBorderThickness = 1 end
             if type(E.DropdownBorderThickness) ~= "number" then E.DropdownBorderThickness = 1 end
+            local baseTheme = e(o.Themes)["Ash Gray"]
+            if type(baseTheme) == "table" then
+                for key, val in next, baseTheme do
+                    if key ~= "Name" and key ~= "Tier" and E[key] == nil then
+                        E[key] = val
+                    end
+                end
+            end
             e(o.Themes)[D] = E
             local found = false
             for _, v in ipairs(x.Themes) do if v == D then found = true; break end end
@@ -2681,16 +2803,17 @@ local aa = {
         return function(m)
             local n, o, p = {}, l(m)
             local q = h.New("Frame", {BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1)})
+            local _dirty = false
             h.AddSignal(
                 q:GetPropertyChangedSignal "AbsolutePosition",
                 function()
-                    o(q)
+                    _dirty = true
                 end
             )
             h.AddSignal(
                 q:GetPropertyChangedSignal "AbsoluteSize",
                 function()
-                    o(q)
+                    _dirty = true
                 end
             )
             n.AddParent = function(r)
@@ -2706,7 +2829,10 @@ local aa = {
             end
             local _hbConn = game:GetService("RunService").Heartbeat:Connect(function()
                 if q and q.Parent then
-                    o(q)
+                    if _dirty then
+                        _dirty = false
+                        o(q)
+                    end
                 end
             end)
             q.AncestryChanged:Connect(function()
@@ -2725,6 +2851,21 @@ local aa = {
         local j = h.New
         return function(k)
             local l = {}
+            if k and k.Light then
+                l.Frame = j(
+                    "Frame",
+                    {
+                        Size = UDim2.fromScale(1, 1),
+                        Name = "Background",
+                        ThemeTag = {BackgroundColor3 = "AcrylicMain", BackgroundTransparency = "ElementTransparency"},
+                    },
+                    {
+                        j("UICorner", {CornerRadius = UDim.new(0, 10)}),
+                        j("UIStroke", {Transparency = 0.5, Thickness = 1, ThemeTag = {Color = "AcrylicBorder"}}),
+                    }
+                )
+                return l
+            end
             l.Frame =
                 j(
                 "Frame",
@@ -3333,7 +3474,6 @@ local aa = {
             end
             q:SetTitle(m)
             q:SetDesc(n)
-            -- IconColor is applied in _addElementToSection via E.IconColor check
             if p then
                 local r, s, t =
                     h.Themes,
@@ -3408,7 +3548,13 @@ local aa = {
             q.Duration = q.Duration or nil
             q.Buttons = q.Buttons or {}
             local r = {Closed = false}
-            r.AcrylicPaint = k.AcrylicPaint({NoBlur = true})
+            local _acrylicOn = e(h).UseAcrylic
+            r.AcrylicPaint = k.AcrylicPaint(not _acrylicOn and {Light = true} or nil)
+            r.AcrylicPaint.Frame.Size = UDim2.fromScale(1, 1)
+            if not _acrylicOn then
+                j.OverrideTag(r.AcrylicPaint.Frame, {BackgroundColor3 = "AcrylicMain"})
+                r.AcrylicPaint.Frame.BackgroundTransparency = e(h).WindowTransparent and 0.35 or 0
+            end
             r.Title =
                 n(
                 "TextLabel",
@@ -3540,7 +3686,10 @@ local aa = {
             local notifyBg = j.GetThemeProperty(_notifyType.."NotifyBackground")
             local stripe = n("Frame",{Size=UDim2.new(0,3,1,-16),Position=UDim2.new(0,6,0,8),BackgroundColor3=stripeCol,BorderSizePixel=0,ZIndex=10})
             n("UICorner",{CornerRadius=UDim.new(1,0),Parent=stripe})
-            local notifRootChildren = {r.AcrylicPaint.Frame, r.Title, r.CloseButton, notifCopyBtn, r.LabelHolder, stripe}
+            local notifRootChildren = {r.AcrylicPaint.Frame, r.Title, r.CloseButton, r.LabelHolder, stripe}
+            if q.Copyable then
+                table.insert(notifRootChildren, notifCopyBtn)
+            end
             if notifyBg then
                 local bgTint = n("Frame",{
                     Size = UDim2.new(1, 0, 1, 0),
@@ -3569,10 +3718,11 @@ local aa = {
                 {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), Position = UDim2.fromScale(1, 0)},
                 notifRootChildren
             )
-            if Animation and Animation.Apply and j.Library then
+            if Animation and Animation.Apply then
                 pcall(function()
-                    local thm = e(h.Themes)[j.Library.Theme]
-                    Animation.Apply(thm, r.AcrylicPaint.Frame, j.Library.ShineEnabled)
+                    local Lib = e(h)
+                    local thm = e(h.Themes)[Lib.Theme]
+                    Animation.Apply(thm, r.AcrylicPaint.Frame, Lib.ShineEnabled)
                 end)
             end
             if q.Content == "" then
@@ -3603,6 +3753,9 @@ local aa = {
             function r.Close(t)
                 if not r.Closed then
                     r.Closed = true
+                    if Animation and Animation.Clear and r.AcrylicPaint then
+                        pcall(function() Animation.Clear(r.AcrylicPaint.Frame) end)
+                    end
                     task.spawn(
                         function()
                             s:setGoal {Scale = l(1, {frequency = 5}), Offset = l(60, {frequency = 5})}
@@ -3633,7 +3786,7 @@ local aa = {
         local h = d.Parent.Parent
         local i = e(h.Creator)
         local j = i.New
-        return function(k, iconKey, l)
+        return function(k, iconKey, l, favoriteable, favKey)
             if type(iconKey) ~= "string" then l = iconKey; iconKey = nil end
             local m = {}
             m.Layout = j("UIListLayout", {Padding = UDim.new(0, 5), SortOrder = Enum.SortOrder.LayoutOrder})
@@ -3669,7 +3822,54 @@ local aa = {
                 end)
             end
             local titleOffX = iconKey and 22 or 0
-            table.insert(secHeaderChildren, j("TextLabel", {RichText=true,Text=k,TextTransparency=0,FontFace=Font.new("rbxassetid://12187365364",Enum.FontWeight.SemiBold,Enum.FontStyle.Normal),TextSize=18,TextXAlignment="Left",TextYAlignment="Center",Size=UDim2.new(1,-16,0,18),Position=UDim2.fromOffset(titleOffX,2),ThemeTag={TextColor3="Text"}}))
+            local titleRightPad = favoriteable and 34 or 16
+            table.insert(secHeaderChildren, j("TextLabel", {RichText=true,Text=k,TextTransparency=0,FontFace=Font.new("rbxassetid://12187365364",Enum.FontWeight.SemiBold,Enum.FontStyle.Normal),TextSize=18,TextXAlignment="Left",TextYAlignment="Center",Size=UDim2.new(1,-titleRightPad,0,18),Position=UDim2.fromOffset(titleOffX,2),ThemeTag={TextColor3="Text"}}))
+            if favoriteable then
+                local _secFavStar = j("TextButton", {
+                    Size = UDim2.fromOffset(18, 18),
+                    Position = UDim2.new(1, -18, 0, 0),
+                    BackgroundTransparency = 1,
+                    Text = "",
+                    ZIndex = 3,
+                })
+                local _secFavIco = j("ImageLabel", {
+                    Size = UDim2.fromScale(1, 1),
+                    BackgroundTransparency = 1,
+                    ZIndex = 4,
+                    Parent = _secFavStar,
+                })
+                local function _setSecFavImage(active)
+                    local iconName = active and "lucide/bookmark-check" or "lucide/bookmark"
+                    local lib2 = e(h)
+                    local ic = lib2 and lib2.GetIcon and lib2:GetIcon(iconName)
+                    if ic and type(ic) == "table" then
+                        _secFavIco.Image = ic.Image or ""
+                        _secFavIco.ImageRectOffset = ic.ImageRectOffset or Vector2.new()
+                        _secFavIco.ImageRectSize = ic.ImageRectSize or Vector2.new()
+                    elseif ic then
+                        _secFavIco.Image = tostring(ic)
+                    else
+                        _secFavIco.Image = active and "rbxassetid://10747363809" or "rbxassetid://10747364139"
+                    end
+                    if active then
+                        _secFavIco.ImageColor3 = Color3.fromRGB(255, 210, 0)
+                        _secFavIco.ImageTransparency = 0
+                    else
+                        _secFavIco.ImageColor3 = Color3.fromRGB(255, 255, 255)
+                        _secFavIco.ImageTransparency = 0.35
+                    end
+                end
+                local _secIm = e(h).InterfaceManager
+                if _secIm then _setSecFavImage(_secIm:IsFavorite(favKey)) end
+                i.AddSignal(_secFavStar.MouseButton1Click, function()
+                    local im = e(h).InterfaceManager
+                    if not im then return end
+                    local nowFav = im:IsFavorite(favKey)
+                    im:SetFavorite(favKey, not nowFav)
+                    _setSecFavImage(not nowFav)
+                end)
+                table.insert(secHeaderChildren, _secFavStar)
+            end
             table.insert(secHeaderChildren, m.Container)
             m.Root =
                 j(
@@ -3733,17 +3933,19 @@ local aa = {
                 end
             end)
         end
-        function o.New(p, q, r, s)
+        function o.New(p, q, r, s, favoriteable)
             local t, u = e(h), o.Window
             local v = t.Elements
             o.TabCount = o.TabCount + 1
-            local w, x = o.TabCount, {Selected = false, Name = q, Type = "Tab", _origOrder = o.TabCount}
+            o.ListOrderCounter = (o.ListOrderCounter or 0) + 1
+            local w, x = o.TabCount, {Selected = false, Name = q, Type = "Tab", _origOrder = o.ListOrderCounter}
             if t:GetIcon(r) then
                 r = t:GetIcon(r)
             end
             if r == "" or nil then
                 r = nil
             end
+            x.Icon = r
             x.Frame =
                 k(
                 "TextButton",
@@ -3778,19 +3980,23 @@ local aa = {
                             ThemeTag = {TextColor3 = "Text"}
                         }
                     ),
-                    k(
-                        "ImageLabel",
-                        {
-                            AnchorPoint = Vector2.new(0, 0.5),
-                            Size = UDim2.fromOffset(16, 16),
-                            Position = UDim2.new(0, 8, 0.5, 0),
-                            BackgroundTransparency = 1,
-                            Image = r and (type(r) == "table" and r.Image or r) or nil,
-                            ImageRectOffset = (r and type(r) == "table") and r.ImageRectOffset or Vector2.new(0,0),
-                            ImageRectSize = (r and type(r) == "table") and r.ImageRectSize or Vector2.new(0,0),
-                            ThemeTag = {ImageColor3 = "Text"}
-                        }
-                    )
+                    (function()
+                        local _tabIco = k(
+                            "ImageLabel",
+                            {
+                                AnchorPoint = Vector2.new(0, 0.5),
+                                Size = UDim2.fromOffset(16, 16),
+                                Position = UDim2.new(0, 8, 0.5, 0),
+                                BackgroundTransparency = 1,
+                                Image = r and (type(r) == "table" and r.Image or r) or nil,
+                                ImageRectOffset = (r and type(r) == "table") and r.ImageRectOffset or Vector2.new(0,0),
+                                ImageRectSize = (r and type(r) == "table") and r.ImageRectSize or Vector2.new(0,0),
+                                ThemeTag = {ImageColor3 = "Text"}
+                            }
+                        )
+                        _tabIco:SetAttribute("IsThemeIcon", true)
+                        return _tabIco
+                    end)()
                 }
             )
             local y = k("UIListLayout", {Padding = UDim.new(0, 5), SortOrder = Enum.SortOrder.LayoutOrder})
@@ -3857,7 +4063,6 @@ local aa = {
                             task.defer(_teardown)
                             return
                         end
-                        -- Hide if window is minimized/hidden or if frame left DataModel
                         local win = _libCheck.Window
                         if win and win.Minimized then sbHolder.Visible = false; return end
                         if not sf or not sf.Parent or not sf:IsDescendantOf(game) then
@@ -3890,18 +4095,16 @@ local aa = {
                 local function _teardown()
                     if not _alive then return end
                     _alive = false
-                    -- Immediately hide first (synchronous) so it never appears after close
                     pcall(function() sbHolder.Visible = false end)
                     for _, conn in ipairs(_conns) do
                         pcall(function() conn:Disconnect() end)
                     end
                     table.clear(_conns)
-                    -- Deferred destroy to avoid issues with batch-destroy ordering
                     task.defer(function()
                         pcall(function() sbHolder:Destroy() end)
                     end)
                 end
-                local _rsName = "FluentProSB_" .. tostring(sf):gsub("[^%w]", "")
+                local _rsName = "FluentScrollbar_" .. tostring(sf):gsub("[^%w]", "")
                 game:GetService("RunService"):BindToRenderStep(_rsName, Enum.RenderPriority.Last.Value, updateScrollbar)
                 table.insert(_conns, {Disconnect = function()
                     pcall(function() game:GetService("RunService"):UnbindFromRenderStep(_rsName) end)
@@ -3912,11 +4115,6 @@ local aa = {
                 table.insert(_conns, sf.Changed:Connect(function(p)
                     if p == "CanvasSize" then updateScrollbar() end
                 end))
-                -- Listen on the TOP-LEVEL GUI ScreenGui.Destroying for reliable teardown.
-                -- sf.Destroying doesn't fire for descendants (only the directly-destroyed instance).
-                -- AncestryChanged can have timing race conditions on batch-destroy.
-                -- GUI.Destroying is the authoritative event: when x.GUI:Destroy() is called,
-                -- this fires synchronously before any child is actually removed.
                 local _lib = e(h)
                 if _lib and _lib.GUI then
                     table.insert(_conns, _lib.GUI.Destroying:Connect(_teardown))
@@ -4003,6 +4201,7 @@ local aa = {
                 end
             )
             local _lib = t
+            if favoriteable then
             local _favStar = k("TextButton", {
                 Size = UDim2.fromOffset(20, 20),
                 Position = UDim2.new(1, -6, 0.5, 0),
@@ -4056,14 +4255,16 @@ local aa = {
                 _updateFavIcon(not nowFav)
                 o:ReapplyFavoriteOrder()
             end)
+            end
             o.Containers[w] = x.ContainerFrame
             o.Tabs[w] = x
             x.Container = x.ContainerFrame
             x.ScrollFrame = x.Container
-            function x.AddSection(z, A, iconKey)
+            function x.AddSection(z, A, iconKey, favoriteable)
                 x._elementCount = (x._elementCount or 0) + 1
                 local _order = x._elementCount
-                local B, C = {Type = "Section"}, e(n.Section)(A, iconKey, x.Container)
+                local favKey = tostring(x.Name) .. "_Section_" .. tostring(A)
+                local B, C = {Type = "Section"}, e(n.Section)(A, iconKey, x.Container, favoriteable == true, favKey)
                 B.Container = C.Container
                 B.ScrollFrame = x.Container
                 C.Root.LayoutOrder = _order
@@ -4071,8 +4272,6 @@ local aa = {
                 return B
             end
             function x.AddCollapsibleSection(z, A, iconKey, openState)
-                -- Accept the same calling convention as AddSection: (Title, Icon).
-                -- Also accept a config table for backward compatibility: { Title=, Icon=, Open= }.
                 local cfg = {}
                 if type(A) == "table" then
                     cfg = A
@@ -4102,7 +4301,6 @@ local aa = {
                     Parent = x.Container,
                 })
 
-                -- Header row: matches AddSection's heading style exactly (font, size, icon placement)
                 local header2 = k("TextButton", {
                     Size = UDim2.new(1, 0, 0, 26),
                     BackgroundTransparency = 1,
@@ -4151,7 +4349,6 @@ local aa = {
                     Parent = header2,
                 })
 
-                -- Chevron on the right, rotates to indicate open/closed state
                 local arrowIco2 = k("ImageLabel", {
                     Name = "_SecChevron",
                     Size = UDim2.fromOffset(16, 16),
@@ -4176,7 +4373,6 @@ local aa = {
                     end
                 end
 
-                -- Content area for nested elements, collapsible
                 local contentBg2 = k("Frame", {
                     Size = UDim2.new(1, 0, 0, 0),
                     Position = UDim2.fromOffset(0, 26),
@@ -4275,7 +4471,27 @@ local aa = {
             o.Tabs[q].SetTransparency(0.89)
             o.Tabs[q].Selected = true
             r.TabDisplay.Text = o.Tabs[q].Name or ""
+            if r.TabDisplayIcon then
+                local iconVal = o.Tabs[q].Icon
+                if iconVal then
+                    if type(iconVal) == "table" then
+                        r.TabDisplayIcon.Image = iconVal.Image or ""
+                        r.TabDisplayIcon.ImageRectOffset = iconVal.ImageRectOffset or Vector2.new()
+                        r.TabDisplayIcon.ImageRectSize = iconVal.ImageRectSize or Vector2.new()
+                    else
+                        r.TabDisplayIcon.Image = tostring(iconVal)
+                    end
+                    r.TabDisplayIcon.Visible = true
+                    r.TabDisplay.Position = UDim2.fromOffset(r.TabDisplayIcon.Position.X.Offset + 32, 56)
+                else
+                    r.TabDisplayIcon.Visible = false
+                    r.TabDisplay.Position = UDim2.fromOffset(r.TabDisplayIcon.Position.X.Offset, 56)
+                end
+            end
             local tabPos = o:GetCurrentTabPos()
+            if r.RefreshSearchFilter then
+                task.defer(r.RefreshSearchFilter)
+            end
             if tabPos then
                 if r.SelectorFrame then r.SelectorFrame.Visible = true end
                 r.SelectorPosMotor:setGoal(l(tabPos, {frequency = 6}))
@@ -4497,6 +4713,8 @@ local aa = {
                     end
                     return s
                 end
+            local _rightReserved = 114
+            if n.SearchInHeader then _rightReserved = _rightReserved + 180 end
             o.Frame =
                 l(
                 "Frame",
@@ -4504,68 +4722,100 @@ local aa = {
                 {
                     l(
                         "Frame",
-                        {Size = UDim2.new(1, -16, 1, 0), Position = UDim2.new(0, 16, 0, 0), BackgroundTransparency = 1},
+                        {
+                            Size = UDim2.new(1, -16 - _rightReserved - 8, 1, 0),
+                            Position = UDim2.new(0, 16, 0, 0),
+                            BackgroundTransparency = 1,
+                            ClipsDescendants = true,
+                        },
                         {
                             l(
                                 "UIListLayout",
                                 {
-                                    Padding = UDim.new(0, 5),
+                                    Padding = UDim.new(0, 7),
                                     FillDirection = Enum.FillDirection.Horizontal,
                                     VerticalAlignment = Enum.VerticalAlignment.Center,
                                     SortOrder = Enum.SortOrder.LayoutOrder
                                 }
                             ),
+                            (function()
+                                local _titleIco = l(
+                                    "ImageLabel",
+                                    {
+                                        Name = "TitleIcon",
+                                        Image = "",
+                                        Size = UDim2.fromOffset(16, 16),
+                                        BackgroundTransparency = 1,
+                                        Visible = n.Icon ~= nil,
+                                        LayoutOrder = 0,
+                                        ThemeTag = {ImageColor3 = "Text"}
+                                    }
+                                )
+                                _titleIco:SetAttribute("IsThemeIcon", true)
+                                return _titleIco
+                            end)(),
                             l(
-                                "ImageLabel",
+                                "Frame",
                                 {
-                                    Name = "TitleIcon",
-                                    Image = "",
-                                    Size = UDim2.fromOffset(16, 16),
-                                    BackgroundTransparency = 1,
-                                    Visible = n.Icon ~= nil,
-                                    LayoutOrder = 0,
-                                    ThemeTag = {ImageColor3 = "Text"}
-                                }
-                            ),
-                            l(
-                                "TextLabel",
-                                {
-                                    RichText = true,
-                                    Text = n.Title,
-                                    FontFace = Font.new(
-                                        "rbxasset://fonts/families/GothamSSm.json",
-                                        Enum.FontWeight.Regular,
-                                        Enum.FontStyle.Normal
-                                    ),
-                                    TextSize = 12,
-                                    TextXAlignment = "Left",
-                                    TextYAlignment = "Center",
-                                    Size = UDim2.fromScale(0, 1),
+                                    Name = "TitleTextStack",
+                                    Size = UDim2.new(0, 0, 1, 0),
                                     AutomaticSize = Enum.AutomaticSize.X,
                                     BackgroundTransparency = 1,
                                     LayoutOrder = 1,
-                                    ThemeTag = {TextColor3 = "Text"}
-                                }
-                            ),
-                            l(
-                                "TextLabel",
+                                },
                                 {
-                                    RichText = true,
-                                    Text = n.SubTitle,
-                                    TextTransparency = 0.4,
-                                    FontFace = Font.new(
-                                        "rbxasset://fonts/families/GothamSSm.json",
-                                        Enum.FontWeight.Regular,
-                                        Enum.FontStyle.Normal
+                                    l(
+                                        "UIListLayout",
+                                        {
+                                            FillDirection = Enum.FillDirection.Vertical,
+                                            VerticalAlignment = Enum.VerticalAlignment.Center,
+                                            SortOrder = Enum.SortOrder.LayoutOrder,
+                                        }
                                     ),
-                                    TextSize = 12,
-                                    TextXAlignment = "Left",
-                                    TextYAlignment = "Center",
-                                    Size = UDim2.fromScale(0, 1),
-                                    AutomaticSize = Enum.AutomaticSize.X,
-                                    BackgroundTransparency = 1,
-                                    LayoutOrder = 2,
-                                    ThemeTag = {TextColor3 = "Text"}
+                                    l(
+                                        "TextLabel",
+                                        {
+                                            Name = "Title",
+                                            RichText = true,
+                                            Text = n.Title,
+                                            FontFace = Font.new(
+                                                "rbxasset://fonts/families/GothamSSm.json",
+                                                Enum.FontWeight.Regular,
+                                                Enum.FontStyle.Normal
+                                            ),
+                                            TextSize = 12,
+                                            TextXAlignment = "Left",
+                                            TextYAlignment = "Center",
+                                            Size = UDim2.new(0, 0, 0, 15),
+                                            AutomaticSize = Enum.AutomaticSize.X,
+                                            BackgroundTransparency = 1,
+                                            LayoutOrder = 0,
+                                            ThemeTag = {TextColor3 = "Text"}
+                                        }
+                                    ),
+                                    l(
+                                        "TextLabel",
+                                        {
+                                            Name = "SubTitle",
+                                            RichText = true,
+                                            Text = n.SubTitle,
+                                            TextTransparency = 0.4,
+                                            Visible = n.SubTitle ~= nil and n.SubTitle ~= "",
+                                            FontFace = Font.new(
+                                                "rbxasset://fonts/families/GothamSSm.json",
+                                                Enum.FontWeight.Regular,
+                                                Enum.FontStyle.Normal
+                                            ),
+                                            TextSize = 10,
+                                            TextXAlignment = "Left",
+                                            TextYAlignment = "Center",
+                                            Size = UDim2.new(0, 0, 0, 13),
+                                            AutomaticSize = Enum.AutomaticSize.X,
+                                            BackgroundTransparency = 1,
+                                            LayoutOrder = 1,
+                                            ThemeTag = {TextColor3 = "Text"}
+                                        }
+                                    ),
                                 }
                             ),
                             l(
@@ -4576,8 +4826,8 @@ local aa = {
                                     Size = UDim2.new(0, 0, 0, 16),
                                     BackgroundColor3 = Color3.fromRGB(45, 165, 90),
                                     BackgroundTransparency = 0,
-                                    LayoutOrder = 3,
-                                    Visible = (n.Version ~= nil and n.Version ~= "") or (p.Version ~= nil and p.Version ~= ""),
+                                    LayoutOrder = 2,
+                                    Visible = n.Version ~= nil and n.Version ~= "",
                                 },
                                 {
                                     l("UICorner", {CornerRadius = UDim.new(1, 0)}),
@@ -4587,7 +4837,7 @@ local aa = {
                                         {
                                             Name = "VersionText",
                                             RichText = true,
-                                            Text = tostring(n.Version or p.Version or ""),
+                                            Text = tostring(n.Version or ""),
                                             TextColor3 = Color3.fromRGB(255, 255, 255),
                                             FontFace = Font.new(
                                                 "rbxasset://fonts/families/GothamSSm.json",
@@ -4603,7 +4853,29 @@ local aa = {
                                         }
                                     )
                                 }
-                            )
+                            ),
+                            l(
+                                "Frame",
+                                {
+                                    Name = "TagsHolder",
+                                    AutomaticSize = Enum.AutomaticSize.X,
+                                    Size = UDim2.new(0, 0, 0, 16),
+                                    BackgroundTransparency = 1,
+                                    LayoutOrder = 3,
+                                    Visible = type(n.Tags) == "table" and #n.Tags > 0,
+                                },
+                                {
+                                    l(
+                                        "UIListLayout",
+                                        {
+                                            Padding = UDim.new(0, 5),
+                                            FillDirection = Enum.FillDirection.Horizontal,
+                                            VerticalAlignment = Enum.VerticalAlignment.Center,
+                                            SortOrder = Enum.SortOrder.LayoutOrder,
+                                        }
+                                    ),
+                                }
+                            ),
                         }
                     ),
                     l(
@@ -4617,6 +4889,50 @@ local aa = {
                     )
                 }
             )
+            if type(n.Tags) == "table" and #n.Tags > 0 then
+                local tagsHolder = o.Frame:FindFirstChild("TagsHolder", true)
+                if tagsHolder then
+                    for tagIdx, tagDef in ipairs(n.Tags) do
+                        if type(tagDef) == "table" and tagDef.Text then
+                            l(
+                                "Frame",
+                                {
+                                    Name = "Tag" .. tostring(tagIdx),
+                                    AutomaticSize = Enum.AutomaticSize.X,
+                                    Size = UDim2.new(0, 0, 0, 16),
+                                    BackgroundColor3 = tagDef.Color or Color3.fromRGB(45, 165, 90),
+                                    BackgroundTransparency = 0,
+                                    LayoutOrder = tagIdx,
+                                    Parent = tagsHolder,
+                                },
+                                {
+                                    l("UICorner", {CornerRadius = UDim.new(1, 0)}),
+                                    l("UIPadding", {PaddingLeft = UDim.new(0, 7), PaddingRight = UDim.new(0, 7)}),
+                                    l(
+                                        "TextLabel",
+                                        {
+                                            RichText = true,
+                                            Text = tostring(tagDef.Text),
+                                            TextColor3 = tagDef.TextColor or Color3.fromRGB(255, 255, 255),
+                                            FontFace = Font.new(
+                                                "rbxasset://fonts/families/GothamSSm.json",
+                                                Enum.FontWeight.SemiBold,
+                                                Enum.FontStyle.Normal
+                                            ),
+                                            TextSize = 10,
+                                            TextXAlignment = "Center",
+                                            TextYAlignment = "Center",
+                                            Size = UDim2.new(0, 0, 1, 0),
+                                            AutomaticSize = Enum.AutomaticSize.X,
+                                            BackgroundTransparency = 1,
+                                        }
+                                    )
+                                }
+                            )
+                        end
+                    end
+                end
+            end
             if n.Icon then
                 local titleIco = o.Frame:FindFirstChild("TitleIcon", true)
                 if titleIco then
@@ -4867,7 +5183,12 @@ local aa = {
                 local h = 58
                 local realDisplayName = t.UserInfoTitle or lp.DisplayName
                 local realUsername    = t.UserInfoSubtitle or ("@"..lp.Name)
-                local anonActive = false
+                local anoCfg = type(t.Anonymous) == "table" and t.Anonymous or {}
+                local showAno = anoCfg.ShowAno
+                if showAno == nil then showAno = true end
+                local anoTitle = anoCfg.AnoUserInfoTitle or "Anonymous"
+                local anoSubtitle = anoCfg.AnoUserInfoSubTitle or "@•••••••"
+                local anonActive = anoCfg.Default == true
 
                 local panel = s("Frame",{
                     Name="UserInfoTop",
@@ -4879,6 +5200,7 @@ local aa = {
                 },{
                     mkCorner(8), mkStroke(0.55),
                     s("ImageLabel",{
+                        Name="AvatarIcon",
                         Size=UDim2.fromOffset(36,36),
                         Position=UDim2.new(0,7,0.5,0), AnchorPoint=Vector2.new(0,0.5),
                         BackgroundTransparency=0.5, Image=av,
@@ -4887,7 +5209,7 @@ local aa = {
                     s("TextLabel",{
                         Name="DisplayName",
                         FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.SemiBold),
-                        Text=realDisplayName,
+                        Text=anonActive and anoTitle or realDisplayName,
                         TextSize=12, TextXAlignment=Enum.TextXAlignment.Left,
                         TextTruncate=Enum.TextTruncate.AtEnd,
                         BackgroundTransparency=1,
@@ -4897,7 +5219,7 @@ local aa = {
                     s("TextLabel",{
                         Name="Username",
                         FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json"),
-                        Text=realUsername,
+                        Text=anonActive and anoSubtitle or realUsername,
                         TextSize=10, TextXAlignment=Enum.TextXAlignment.Left,
                         TextTruncate=Enum.TextTruncate.AtEnd,
                         BackgroundTransparency=1,
@@ -4908,49 +5230,82 @@ local aa = {
                         BackgroundTransparency=0.7,ThemeTag={BackgroundColor3="TitleBarLine"}}),
                 })
 
-                local eyeBtn = s("TextButton",{
-                    Name="AnonToggle",
-                    Size=UDim2.fromOffset(22,22),
-                    Position=UDim2.new(1,-4,0,4), AnchorPoint=Vector2.new(1,0),
-                    BackgroundTransparency=0.7, Text="",
-                    Parent=panel,
-                    ThemeTag={BackgroundColor3="Tab"},
-                },{
-                    s("UICorner",{CornerRadius=UDim.new(0,5)}),
-                    s("UIStroke",{Transparency=0.5,Thickness=1,ThemeTag={Color="InElementBorder"}}),
-                    s("ImageLabel",{
-                        Name="EyeIcon",
-                        Size=UDim2.fromOffset(13,13),
-                        Position=UDim2.fromScale(0.5,0.5), AnchorPoint=Vector2.new(0.5,0.5),
-                        BackgroundTransparency=1,
-                        ScaleType=Enum.ScaleType.Fit,
-                        ThemeTag={ImageColor3="SubText"},
-                    }),
-                })
-                do
-                    local eyeImg = eyeBtn:FindFirstChild("EyeIcon")
-                    if eyeImg then
-                        local icOpen = u.GetIcon(u, "solar/eye-bold")
-                        local icClosed = u.GetIcon(u, "solar/eye-closed-bold")
-                        local function setEyeIcon(active)
-                            local ic = active and icClosed or icOpen
-                            if ic and type(ic) == "table" then
-                                eyeImg.Image = ic.Image or ""
-                                eyeImg.ImageRectOffset = ic.ImageRectOffset or Vector2.new()
-                                eyeImg.ImageRectSize   = ic.ImageRectSize   or Vector2.new()
-                            elseif ic then
-                                eyeImg.Image = tostring(ic)
+                local avatarImg = panel:FindFirstChild("AvatarIcon")
+                local function resolveIconAsset(src, targetImg)
+                    if type(src) ~= "string" or src == "" then return end
+                    if src:match("^rbxassetid://") or src:match("^rbxasset://") then
+                        targetImg.Image = src
+                    elseif src:match("^%d+$") then
+                        targetImg.Image = "rbxassetid://" .. src
+                    elseif src:match("^https?://") then
+                        task.spawn(function()
+                            local resolved = x.MediaManager and x.MediaManager:Image(src)
+                            if resolved and resolved ~= "" and targetImg.Parent then
+                                targetImg.Image = resolved
                             end
-                        end
-                        setEyeIcon(false)
-                        local dnLbl = panel:FindFirstChild("DisplayName")
-                        local unLbl = panel:FindFirstChild("Username")
-                        m.AddSignal(eyeBtn.MouseButton1Click, function()
-                            anonActive = not anonActive
-                            if dnLbl then dnLbl.Text = anonActive and "Anonymous" or realDisplayName end
-                            if unLbl then unLbl.Text = anonActive and "@•••••••" or realUsername end
-                            setEyeIcon(anonActive)
                         end)
+                    end
+                end
+                if t.UserInfoIcons and avatarImg then
+                    resolveIconAsset(t.UserInfoIcons, avatarImg)
+                end
+
+                if showAno then
+                    local eyeBtn = s("TextButton",{
+                        Name="AnonToggle",
+                        Size=UDim2.fromOffset(22,22),
+                        Position=UDim2.new(1,-4,0,4), AnchorPoint=Vector2.new(1,0),
+                        BackgroundTransparency=0.7, Text="",
+                        Parent=panel,
+                        ThemeTag={BackgroundColor3="Tab"},
+                    },{
+                        s("UICorner",{CornerRadius=UDim.new(0,5)}),
+                        s("UIStroke",{Transparency=0.5,Thickness=1,ThemeTag={Color="InElementBorder"}}),
+                        s("ImageLabel",{
+                            Name="EyeIcon",
+                            Size=UDim2.fromOffset(13,13),
+                            Position=UDim2.fromScale(0.5,0.5), AnchorPoint=Vector2.new(0.5,0.5),
+                            BackgroundTransparency=1,
+                            ScaleType=Enum.ScaleType.Fit,
+                            ThemeTag={ImageColor3="SubText"},
+                        }),
+                    })
+                    do
+                        local eyeImg = eyeBtn:FindFirstChild("EyeIcon")
+                        if eyeImg then
+                            local icOpen = u.GetIcon(u, "solar/eye-bold")
+                            local icClosed = u.GetIcon(u, "solar/eye-closed-bold")
+                            local function setEyeIcon(active)
+                                local ic = active and icClosed or icOpen
+                                if ic and type(ic) == "table" then
+                                    eyeImg.Image = ic.Image or ""
+                                    eyeImg.ImageRectOffset = ic.ImageRectOffset or Vector2.new()
+                                    eyeImg.ImageRectSize   = ic.ImageRectSize   or Vector2.new()
+                                elseif ic then
+                                    eyeImg.Image = tostring(ic)
+                                end
+                            end
+                            setEyeIcon(anonActive)
+                            local dnLbl = panel:FindFirstChild("DisplayName")
+                            local unLbl = panel:FindFirstChild("Username")
+                            local function applyAnoIcon(active)
+                                if not avatarImg then return end
+                                if active and anoCfg.Icons then
+                                    resolveIconAsset(anoCfg.Icons, avatarImg)
+                                elseif not active then
+                                    avatarImg.Image = av
+                                    if t.UserInfoIcons then resolveIconAsset(t.UserInfoIcons, avatarImg) end
+                                end
+                            end
+                            applyAnoIcon(anonActive)
+                            m.AddSignal(eyeBtn.MouseButton1Click, function()
+                                anonActive = not anonActive
+                                if dnLbl then dnLbl.Text = anonActive and anoTitle or realDisplayName end
+                                if unLbl then unLbl.Text = anonActive and anoSubtitle or realUsername end
+                                setEyeIcon(anonActive)
+                                applyAnoIcon(anonActive)
+                            end)
+                        end
                     end
                 end
 
@@ -4973,9 +5328,12 @@ local aa = {
 
 
             local showSearch = not (t.Search == false)
+            local searchInHeader = t.SearchInHeader == true
             local searchH = 30
             local searchBox = nil
+            local searchBarFrame = nil
             if showSearch then
+                pcall(function()
                 local sb = s("Frame",{
                     Name="SearchBar",
                     Size=UDim2.new(1,-2,0,searchH),
@@ -5003,8 +5361,14 @@ local aa = {
                     ThemeTag={TextColor3="Text",PlaceholderColor3="SubText"},
                     Parent=sb,
                 })
-                topOffset = topOffset + searchH + 4
-                table.insert(sidebarChildren, sb)
+                searchBarFrame = sb
+                if searchInHeader then
+                    sb.Visible = false
+                else
+                    topOffset = topOffset + searchH + 4
+                    table.insert(sidebarChildren, sb)
+                end
+                end)
             end
 
             v._tabTopOffset = topOffset
@@ -5021,7 +5385,12 @@ local aa = {
                 botOffset = h2 + 4
                 local realDN2 = t.UserInfoTitle or t.UserInfoTitleBottom or lp2.DisplayName
                 local realUN2 = t.UserInfoSubtitle or t.UserInfoSubtitleBottom or ("@"..lp2.Name)
-                local anonActive2 = false
+                local anoCfg2 = type(t.Anonymous) == "table" and t.Anonymous or {}
+                local showAno2 = anoCfg2.ShowAno
+                if showAno2 == nil then showAno2 = true end
+                local anoTitle2 = anoCfg2.AnoUserInfoTitle or "Anonymous"
+                local anoSubtitle2 = anoCfg2.AnoUserInfoSubTitle or "@•••••••"
+                local anonActive2 = anoCfg2.Default == true
                 local bot = s("Frame",{
                     Name="UserInfo",
                     Size=UDim2.new(1,0,0,h2),
@@ -5034,6 +5403,7 @@ local aa = {
                     s("Frame",{Size=UDim2.new(1,-10,0,1),Position=UDim2.new(0,5,0,0),
                         BackgroundTransparency=0.7,ThemeTag={BackgroundColor3="TitleBarLine"}}),
                     s("ImageLabel",{
+                        Name="AvatarIcon2",
                         Size=UDim2.fromOffset(34,34),
                         Position=UDim2.new(0,7,0.5,0), AnchorPoint=Vector2.new(0,0.5),
                         BackgroundTransparency=0.5, Image=av2,
@@ -5042,7 +5412,7 @@ local aa = {
                     s("TextLabel",{
                         Name="DisplayName",
                         FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.SemiBold),
-                        Text=realDN2,
+                        Text=anonActive2 and anoTitle2 or realDN2,
                         TextSize=12, TextXAlignment=Enum.TextXAlignment.Left,
                         TextTruncate=Enum.TextTruncate.AtEnd,
                         BackgroundTransparency=1,
@@ -5052,7 +5422,7 @@ local aa = {
                     s("TextLabel",{
                         Name="Username",
                         FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json"),
-                        Text=realUN2,
+                        Text=anonActive2 and anoSubtitle2 or realUN2,
                         TextSize=10, TextXAlignment=Enum.TextXAlignment.Left,
                         TextTruncate=Enum.TextTruncate.AtEnd,
                         BackgroundTransparency=1,
@@ -5060,6 +5430,28 @@ local aa = {
                         ThemeTag={TextColor3="SubText"},
                     }),
                 })
+                local avatarImg2 = bot:FindFirstChild("AvatarIcon2")
+                local function resolveIconAsset2(src, targetImg)
+                    if type(src) ~= "string" or src == "" then return end
+                    if src:match("^rbxassetid://") or src:match("^rbxasset://") then
+                        targetImg.Image = src
+                    elseif src:match("^%d+$") then
+                        targetImg.Image = "rbxassetid://" .. src
+                    elseif src:match("^https?://") then
+                        task.spawn(function()
+                            local resolved = x.MediaManager and x.MediaManager:Image(src)
+                            if resolved and resolved ~= "" and targetImg.Parent then
+                                targetImg.Image = resolved
+                            end
+                        end)
+                    end
+                end
+                if t.UserInfoIcons and avatarImg2 then
+                    resolveIconAsset2(t.UserInfoIcons, avatarImg2)
+                end
+                if anonActive2 and anoCfg2.Icons and avatarImg2 then
+                    resolveIconAsset2(anoCfg2.Icons, avatarImg2)
+                end
                 local eyeBtn2 = s("TextButton",{
                     Name="AnonToggle",
                     Size=UDim2.fromOffset(22,22),
@@ -5167,13 +5559,22 @@ local aa = {
                 v.SearchBox = searchBox
                 
 
+                local function findSectionContainer(sec)
+                    for _, ch in pairs(sec:GetChildren()) do
+                        if ch:IsA("Frame") and ch:FindFirstChildWhichIsA("UIListLayout") then
+                            return ch
+                        end
+                    end
+                    return nil
+                end
+
                 local function scrollToFirstVisible()
                     task.wait(0.05)
-                    for _, cf in pairs(v.ContainerHolder and v.ContainerHolder:GetChildren() or {}) do
+                    for _, cf in pairs(v.ContainerClip and v.ContainerClip:GetChildren() or {}) do
                         if cf:IsA("ScrollingFrame") then
                             for _, sec in pairs(cf:GetChildren()) do
-                                if sec:IsA("Frame") and sec.Visible then
-                                    local cont = sec:FindFirstChild("Container")
+                                if sec:IsA("Frame") and sec.Visible and findSectionContainer(sec) then
+                                    local cont = findSectionContainer(sec)
                                     if cont then
                                         for _, ch in pairs(cont:GetChildren()) do
                                             if not ch:IsA("UIListLayout") and not ch:IsA("UIPadding") and ch.Visible then
@@ -5185,49 +5586,88 @@ local aa = {
                                             end
                                         end
                                     end
+                                elseif sec:IsA("GuiObject") and sec.Visible then
+                                    local yPos = sec.AbsolutePosition.Y - cf.AbsolutePosition.Y
+                                    if yPos > 0 then
+                                        cf.CanvasPosition = Vector2.new(0, math.max(0, yPos - 20))
+                                    end
+                                    return
                                 end
                             end
                         end
                     end
                 end
                 
-                searchBox:GetPropertyChangedSignal("Text"):Connect(function()
+                local function getSearchableText(obj, depth)
+                    depth = depth or 0
+                    if depth > 6 then return "" end
+                    local parts = {}
+                    local ok = pcall(function()
+                        for _, d in ipairs(obj:GetChildren()) do
+                            if d:IsA("TextLabel") or d:IsA("TextButton") or d:IsA("TextBox") then
+                                if d.Text and d.Text ~= "" then
+                                    table.insert(parts, d.Text)
+                                end
+                            end
+                            if d:IsA("GuiObject") then
+                                local sub = getSearchableText(d, depth + 1)
+                                if sub ~= "" then table.insert(parts, sub) end
+                            end
+                        end
+                    end)
+                    if not ok then return "" end
+                    return table.concat(parts, " ")
+                end
+
+                local highlightedObjs = {}
+                local function clearHighlight(obj)
+                    local hl = obj:FindFirstChild("_SearchHighlight")
+                    if hl then hl:Destroy() end
+                end
+                local function clearAllHighlights()
+                    for obj in pairs(highlightedObjs) do
+                        if obj and obj.Parent then clearHighlight(obj) end
+                    end
+                    highlightedObjs = {}
+                end
+                local _hlEnabled = not (t.SearchHighlight == false)
+                local _hlColor = t.SearchHighlightColor or Color3.fromRGB(255, 255, 255)
+                local function highlightMatch(obj)
+                    if not _hlEnabled then return end
+                    if obj:FindFirstChild("_SearchHighlight") then return end
+                    local hl = Instance.new("UIStroke")
+                    hl.Name = "_SearchHighlight"
+                    hl.Thickness = 1.5
+                    hl.Color = _hlColor
+                    hl.Transparency = 0.15
+                    hl.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+                    hl.Parent = obj
+                    highlightedObjs[obj] = true
+                end
+
+                local function applySearchFilter()
                     local q = (searchBox.Text or ""):lower():gsub("^%s+",""):gsub("%s+$","")
                     local blank = q == ""
-                    
+
                     for _, tabBtn in pairs(v.TabListContainer:GetChildren()) do
-                        if tabBtn:IsA("TextButton") then
-                            local txt = ""
-                            local txtLbl = tabBtn:FindFirstChildWhichIsA("TextLabel")
-                            if txtLbl then txt = txtLbl.Text end
-                            tabBtn.Visible = blank or txt:lower():find(q, 1, true) ~= nil
-                        end
+                        if tabBtn:IsA("TextButton") then tabBtn.Visible = true end
                     end
-                    
 
-                    for el, label in pairs(allElements) do
-                        if el and el.Parent then
-                            el.Visible = blank or label:lower():find(q, 1, true) ~= nil
-                        end
-                    end
-                    
-
-                    task.delay(0.03, function()
-                        for _, cf in pairs(v.ContainerHolder and v.ContainerHolder:GetChildren() or {}) do
+                    if blank then
+                        clearAllHighlights()
+                        for _, cf in pairs(v.ContainerClip and v.ContainerClip:GetChildren() or {}) do
                             if cf:IsA("ScrollingFrame") then
                                 for _, sec in pairs(cf:GetChildren()) do
                                     if sec:IsA("Frame") then
-                                        local cont = sec:FindFirstChild("Container")
+                                        sec.Visible = true
+                                        local cont = findSectionContainer(sec)
                                         if cont then
-                                            local any = false
                                             for _, ch in pairs(cont:GetChildren()) do
-                                                if not ch:IsA("UIListLayout") and not ch:IsA("UIPadding") and ch.Visible then
-                                                    any = true
-                                                    break
-                                                end
+                                                if ch:IsA("GuiObject") then ch.Visible = true end
                                             end
-                                            sec.Visible = blank or any
                                         end
+                                    elseif sec:IsA("GuiObject") then
+                                        sec.Visible = true
                                     end
                                 end
                                 local layout = cf:FindFirstChildWhichIsA("UIListLayout")
@@ -5236,12 +5676,54 @@ local aa = {
                                 end
                             end
                         end
-                        if not blank then
-                            scrollToFirstVisible()
+                        return
+                    end
+
+                    task.delay(0.01, function()
+                        clearAllHighlights()
+                        for _, cf in pairs(v.ContainerClip and v.ContainerClip:GetChildren() or {}) do
+                            if cf:IsA("ScrollingFrame") then
+                                for _, sec in pairs(cf:GetChildren()) do
+                                    if sec:IsA("Frame") and findSectionContainer(sec) then
+                                        local secLbl = sec:FindFirstChildWhichIsA("TextLabel", true)
+                                        local secTxt = secLbl and secLbl.Text or ""
+                                        local secNameMatches = secTxt:lower():find(q, 1, true) ~= nil
+
+                                        local cont = findSectionContainer(sec)
+                                        local anyElementVisible = false
+                                        if cont then
+                                            for _, ch in pairs(cont:GetChildren()) do
+                                                if ch:IsA("GuiObject") then
+                                                    local text = getSearchableText(ch):lower()
+                                                    local elMatches = text:find(q, 1, true) ~= nil
+                                                    ch.Visible = secNameMatches or elMatches
+                                                    if elMatches then highlightMatch(ch) end
+                                                    if ch.Visible then anyElementVisible = true end
+                                                end
+                                            end
+                                        end
+                                        sec.Visible = secNameMatches or anyElementVisible
+                                    elseif sec:IsA("GuiObject") then
+                                        local text = getSearchableText(sec):lower()
+                                        local elMatches = text:find(q, 1, true) ~= nil
+                                        sec.Visible = elMatches
+                                        if elMatches then highlightMatch(sec) end
+                                    end
+                                end
+
+                                local layout = cf:FindFirstChildWhichIsA("UIListLayout")
+                                if layout then
+                                    cf.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
+                                end
+                            end
                         end
+
+                        scrollToFirstVisible()
                     end)
-                end)
-                
+                end
+
+                v.RefreshSearchFilter = applySearchFilter
+                searchBox:GetPropertyChangedSignal("Text"):Connect(applySearchFilter)
 
                 game:GetService("UserInputService").InputBegan:Connect(function(inp, gp)
                     if gp then return end
@@ -5262,6 +5744,18 @@ local aa = {
                     ClipsDescendants = true
                 },
                 sidebarChildren
+            )
+            v.TabDisplayIcon =
+                s(
+                "ImageLabel",
+                {
+                    Name = "TabDisplayIcon",
+                    Size = UDim2.fromOffset(24, 24),
+                    Position = UDim2.fromOffset(t.TabWidth + 26, 60),
+                    BackgroundTransparency = 1,
+                    Visible = false,
+                    ThemeTag = {ImageColor3 = "Text"}
+                }
             )
             v.TabDisplay =
                 s(
@@ -5305,9 +5799,19 @@ local aa = {
                 s(
                 "Frame",
                 {BackgroundTransparency = 1, Size = v.Size, Position = v.Position, Parent = t.Parent},
-                {v.AcrylicPaint.Frame, v.TabDisplay, v.ContainerHolder, F, E}
+                {v.AcrylicPaint.Frame, v.TabDisplayIcon, v.TabDisplay, v.ContainerHolder, F, E}
             )
-            v.TitleBar = e(d.Parent.TitleBar) {Title = t.Title, SubTitle = t.SubTitle, Parent = v.Root, Window = v, Icon = t.TitleIcon, Version = t.Version}
+            v.TitleBar = e(d.Parent.TitleBar) {Title = t.Title, SubTitle = t.SubTitle, Parent = v.Root, Window = v, Icon = t.TitleIcon, Version = t.Version, Tags = t.Tags, SearchInHeader = searchInHeader}
+            if searchInHeader and searchBarFrame then
+                pcall(function()
+                    searchBarFrame.AnchorPoint = Vector2.new(1, 0)
+                    searchBarFrame.Size = UDim2.new(0, 170, 0, 28)
+                    searchBarFrame.Position = UDim2.new(1, -124, 0, 7)
+                    searchBarFrame.ZIndex = 3
+                    searchBarFrame.Parent = v.TitleBar.Frame
+                    searchBarFrame.Visible = true
+                end)
+            end
             if e(k).UseAcrylic then
                 v.AcrylicPaint.AddParent(v.Root)
             end
@@ -5320,12 +5824,12 @@ local aa = {
             v.ContainerPosMotor = l.SingleMotor.new(94)
             G:onStep(
                 function(I)
-                    v.Root.Size = UDim2.new(0, I.X, 0, I.Y)
+                    v.Root.Size = UDim2.new(0, math.round(I.X), 0, math.round(I.Y))
                 end
             )
             H:onStep(
                 function(I)
-                    v.Root.Position = UDim2.new(0, I.X, 0, I.Y)
+                    v.Root.Position = UDim2.new(0, math.round(I.X), 0, math.round(I.Y))
                 end
             )
             local I, J = 0, 0
@@ -5359,9 +5863,10 @@ local aa = {
             )
             local K, L
             v.Maximize = function(M, N, O)
+                local wasMaximized = v.Maximized
                 v.Maximized = M
                 v.TitleBar.MaxButton.Frame.Icon.Image = M and o.Restore or o.Max
-                if M then
+                if M and not wasMaximized then
                     K = v.Size.X.Offset
                     L = v.Size.Y.Offset
                 end
@@ -5591,7 +6096,7 @@ local aa = {
                 end)
             end
             function v.AddTab(O, P)
-                local _tab = N:New(P.Title, P.Icon, v.TabListContainer)
+                local _tab = N:New(P.Title, P.Icon, v.TabListContainer, P.Favoriteable == true)
                 N:ReapplyFavoriteOrder()
                 if N.TabCount == 1 then
                     task.defer(function()
@@ -5599,6 +6104,50 @@ local aa = {
                     end)
                 end
                 return _tab
+            end
+            function v.AddTabDivider(O)
+                N.ListOrderCounter = (N.ListOrderCounter or 0) + 1
+                local d = s("Frame", {
+                    Size = UDim2.new(1, -20, 0, 9),
+                    BackgroundTransparency = 1,
+                    LayoutOrder = N.ListOrderCounter,
+                    Parent = v.TabListContainer,
+                }, {
+                    s("Frame", {
+                        Size = UDim2.new(1, 0, 0, 1),
+                        Position = UDim2.fromScale(0, 0.5),
+                        ThemeTag = {BackgroundColor3 = "ElementBorder"},
+                    }),
+                })
+                return d
+            end
+            function v.AddTabSpace(O, height)
+                N.ListOrderCounter = (N.ListOrderCounter or 0) + 1
+                local sp = s("Frame", {
+                    Size = UDim2.new(1, 0, 0, tonumber(height) or 8),
+                    BackgroundTransparency = 1,
+                    LayoutOrder = N.ListOrderCounter,
+                    Parent = v.TabListContainer,
+                })
+                return sp
+            end
+            function v.AddTabLabel(O, text)
+                N.ListOrderCounter = (N.ListOrderCounter or 0) + 1
+                local lbl = s("TextLabel", {
+                    Name = "TabGroupLabel",
+                    Text = tostring(text or ""),
+                    RichText = true,
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+                    TextSize = 12,
+                    TextTransparency = 0.35,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Size = UDim2.new(1, -8, 0, 20),
+                    BackgroundTransparency = 1,
+                    LayoutOrder = N.ListOrderCounter,
+                    Parent = v.TabListContainer,
+                    ThemeTag = {TextColor3 = "SubText"},
+                })
+                return lbl
             end
             function v.SelectTab(O, P)
                 local idx = tonumber(P) or 1
@@ -5712,8 +6261,6 @@ local aa = {
                 return t[m]
             end
             if _noInheritFallbackKeys[m] then
-                -- Capability flags like ShineEnabled must never silently inherit from the
-                -- fallback theme. A theme that doesn't define this key simply doesn't support it.
                 return false
             end
             local fallback = i["Ash Gray"]
@@ -5738,13 +6285,69 @@ local aa = {
                         x._RefreshOpenDropdownShine()
                     end
                 end)
-                if thm and thm.ButtonGradient then x.ButtonGradients = thm.ButtonGradient end
+                if thm and thm.ButtonGradient then
+                    x.ButtonGradients = thm.ButtonGradient
+                elseif thm and thm.Accent then
+                    local baseColor = thm.Accent
+                    local h2, s2, v2 = Color3.toHSV(baseColor)
+                    local darker = Color3.fromHSV(h2, s2, math.max(v2 * 0.45, 0))
+                    x.ButtonGradients = {
+                        Background = ColorSequence.new({
+                            ColorSequenceKeypoint.new(0, darker),
+                            ColorSequenceKeypoint.new(1, baseColor),
+                        }),
+                        Stroke = ColorSequence.new({
+                            ColorSequenceKeypoint.new(0, baseColor),
+                            ColorSequenceKeypoint.new(0.5, darker),
+                            ColorSequenceKeypoint.new(1, baseColor),
+                        }),
+                    }
+                end
                 local acrylicFrame = x.Window.AcrylicPaint.Frame
                 local bgParent = acrylicFrame
                 if bgParent then
                     local bgImg = bgParent:FindFirstChild("__ThemeBG")
+                    local bgVid = bgParent:FindFirstChild("__ThemeBGVideo")
                     local bgVal = thm and thm.Background
-                    if bgVal and tostring(bgVal) ~= "" then
+                    local bgValStr = bgVal and tostring(bgVal) or ""
+                    local bgExt = bgValStr:match("%.(%a+)%??[^/]*$")
+                    local isVideoUrl = bgValStr:match("^https?://") and bgExt and ({webm=1,mp4=1,mov=1,ogg=1})[bgExt:lower()] ~= nil
+
+                    x._bgGeneration = (x._bgGeneration or 0) + 1
+                    local myGeneration = x._bgGeneration
+
+                    if bgValStr ~= "" and isVideoUrl then
+                        if bgImg then bgImg.Visible = false end
+                        if not bgVid then
+                            bgVid = Instance.new("VideoFrame")
+                            bgVid.Name = "__ThemeBGVideo"
+                            bgVid.Size = UDim2.fromScale(1,1)
+                            bgVid.BackgroundTransparency = 1
+                            bgVid.ZIndex = 0
+                            bgVid.Looped = true
+                            bgVid.Volume = 0
+                            local bgVidCorner = Instance.new("UICorner")
+                            bgVidCorner.CornerRadius = UDim.new(0, 10)
+                            bgVidCorner.Parent = bgVid
+                            bgVid.Parent = bgParent
+                        end
+                        if bgVid:GetAttribute("_srcUrl") ~= bgValStr then
+                            bgVid:SetAttribute("_srcUrl", bgValStr)
+                            task.spawn(function()
+                                local custom = x.MediaManager and x.MediaManager:Video(bgValStr)
+                                if custom and custom ~= "" and bgVid.Parent and x._bgGeneration == myGeneration then
+                                    bgVid.Video = custom
+                                    bgVid.Looped = true
+                                    bgVid.Playing = true
+                                end
+                            end)
+                        end
+                        bgVid.Looped = true
+                        bgVid.Playing = true
+                        local im = x.InterfaceManager
+                        bgVid.Visible = not (im and im.Settings and im.Settings.DisableBG)
+                    elseif bgValStr ~= "" then
+                        if bgVid then bgVid.Playing = false; bgVid.Visible = false end
                         if not bgImg then
                             bgImg = Instance.new("ImageLabel")
                             bgImg.Name = "__ThemeBG"
@@ -5752,14 +6355,35 @@ local aa = {
                             bgImg.BackgroundTransparency = 1
                             bgImg.ScaleType = Enum.ScaleType.Crop
                             bgImg.ZIndex = 0
+                            local bgImgCorner = Instance.new("UICorner")
+                            bgImgCorner.CornerRadius = UDim.new(0, 10)
+                            bgImgCorner.Parent = bgImg
                             bgImg.Parent = bgParent
                         end
-                        bgImg.Image = tostring(bgVal)
+                        if bgImg:GetAttribute("_srcUrl") ~= bgValStr then
+                            bgImg:SetAttribute("_srcUrl", bgValStr)
+                            bgImg.Image = bgValStr
+                            if not bgValStr:match("^rbxassetid://") and not bgValStr:match("^rbxasset://") and not bgValStr:match("^http://www.roblox.com/") and bgValStr:match("^https?://") then
+                                task.spawn(function()
+                                    local custom = x.MediaManager and x.MediaManager:Image(bgValStr)
+                                    if custom and custom ~= "" and bgImg.Parent and x._bgGeneration == myGeneration then
+                                        bgImg.Image = custom
+                                    end
+                                end)
+                            end
+                        end
                         bgImg.ImageTransparency = thm.BackgroundTransparency or 0
-                        local im=x.InterfaceManager
+                        if thm.BackgroundImagesRectPosition then
+                            bgImg.ImageRectOffset = thm.BackgroundImagesRectPosition
+                        end
+                        if thm.BackgroundImagesRectSize then
+                            bgImg.ImageRectSize = thm.BackgroundImagesRectSize
+                        end
+                        local im = x.InterfaceManager
                         bgImg.Visible = not (im and im.Settings and im.Settings.DisableBG)
-                    elseif bgImg then
-                        bgImg.Visible = false
+                    else
+                        if bgImg then bgImg.Visible = false end
+                        if bgVid then bgVid.Playing = false; bgVid.Visible = false end
                     end
                 end
             end
@@ -6156,35 +6780,36 @@ local aa = {
                             }
                         )
                     end
-                    local prevColor = Color3.fromHSV(D, E, F)
-                    local oldH, oldS, oldV = D, E, F
-                    local blendEnabled = false
-                    M.BackgroundColor3 = prevColor
-                    O.BackgroundColor3 = prevColor
-                    local prevLbl = s("TextLabel", {
-                        Text = "#" .. prevColor:ToHex(), TextSize = 9,
+                    local currentColor = Color3.fromHSV(D, E, F)
+                    M.BackgroundColor3 = currentColor
+                    O.BackgroundColor3 = currentColor
+
+                    local currentLbl = s("TextLabel", {
+                        Text = "#" .. currentColor:ToHex(), TextSize = 9,
                         FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
-                        Position = UDim2.fromOffset(20, 256),
-                        Size = UDim2.fromOffset(80, 14),
+                        Position = UDim2.fromOffset(112, 256),
+                        Size = UDim2.fromOffset(88, 14),
                         BackgroundTransparency = 1,
                         Parent = C.Root,
-                        ThemeTag = {TextColor3 = "Accent"},
+                        TextColor3 = currentColor,
                         TextXAlignment = Enum.TextXAlignment.Left,
                     })
                     local oldLbl = s("TextLabel", {
-                        Text = "#" .. prevColor:ToHex(), TextSize = 9,
+                        Text = "#" .. currentColor:ToHex(),
+                        TextSize = 9,
                         FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-                        Position = UDim2.fromOffset(112, 256),
-                        Size = UDim2.fromOffset(80, 14),
+                        Position = UDim2.fromOffset(20, 256),
+                        Size = UDim2.fromOffset(88, 14),
                         BackgroundTransparency = 1,
                         Parent = C.Root,
-                        ThemeTag = {TextColor3 = "SubText"},
+                        TextColor3 = currentColor,
                         TextXAlignment = Enum.TextXAlignment.Left,
                     })
+
                     local oldRevertBtn = s("TextButton", {
                         Text = "",
-                        Position = UDim2.fromOffset(112, 220),
-                        Size = UDim2.fromOffset(88, 24),
+                        Position = N.Position,
+                        Size = N.Size,
                         BackgroundTransparency = 1,
                         Parent = C.Root,
                         ZIndex = 5,
@@ -6195,7 +6820,8 @@ local aa = {
                         T.Position = UDim2.new(0, -1, D, -6)
                         K.Position = UDim2.new(E, 0, 1 - F, 0)
                         O.BackgroundColor3 = c1
-                        prevLbl.Text = "#" .. c1:ToHex()
+                        oldLbl.Text = "#" .. c1:ToHex()
+                        oldLbl.TextColor3 = c1
                         V.Input.Text = "#" .. c1:ToHex()
                         W.Input.Text = math.floor(c1.r * 255)
                         X.Input.Text = math.floor(c1.g * 255)
@@ -6326,7 +6952,7 @@ local aa = {
                     end
                     ac()
                     p.AddSignal(oldRevertBtn.MouseButton1Click, function()
-                        D, E, F = oldH, oldS, oldV
+                        D, E, F = Color3.toHSV(currentColor)
                         ac()
                     end)
                     C:Button(
@@ -6443,13 +7069,7 @@ local aa = {
         end
         g.__index = g
         g.__type = "Dropdown"
-        -- Shared across all dropdown instances: tracks which side (left/right) of the window
-        -- is currently occupied by an open OutsideWindow dropdown, so a second one opening
-        -- at the same time automatically goes to the other side instead of overlapping.
         local _outsideSideOwner = {left = nil, right = nil, top = nil, bottom = nil}
-        -- Shared registry of currently open dropdowns, so the global "Animated Window" toggle
-        -- can immediately re-apply or clear shine on dropdowns that are already open, instead
-        -- of waiting for the user to close and reopen them.
         local _openDropdowns = setmetatable({}, {__mode = "k"})
         local function _registerShineRefresh(lib)
             if lib and not lib._RefreshOpenDropdownShine then
@@ -6476,6 +7096,7 @@ local aa = {
                 ac(f.Element)(j.Title, j.Description, h.Container, false)
             _registerShineRefresh(h.Library)
             m.DescLabel.Size = UDim2.new(1, -170, 0, 14)
+            m.TitleLabel.Size = UDim2.new(1, -170, 0, 14)
             l.SetTitle = m.SetTitle
             l.SetDesc = m.SetDesc
             l.Frame = m.Frame
@@ -6539,7 +7160,15 @@ local aa = {
                 ),
                 e("UIListLayout", {Padding = UDim.new(0, 3)})
 
-            local ddShowSearch = not (j.NoSearch == true or j.Search == false)
+            local function _fitDropdownWidth()
+                local avail = m.Frame.AbsoluteSize.X - 20
+                local w = math.clamp(avail * 0.5, 80, 160)
+                p.Size = UDim2.fromOffset(w, 30)
+            end
+            _fitDropdownWidth()
+            m.Frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(_fitDropdownWidth)
+
+            local ddShowSearch = (j.Search == true) and not (j.NoSearch == true)
             local ddSearchBox = ddShowSearch and e("TextBox", {
                 FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
                 TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left,
@@ -6586,7 +7215,19 @@ local aa = {
             if _ddBgImg ~= "" then
                 _ddBgChild = e("ImageLabel",{BackgroundTransparency=1,Image=_ddBgImg,ScaleType=Enum.ScaleType.Stretch,Size=UDim2.fromScale(1,1),ImageTransparency=_ddBgTransp,ZIndex=0})
             else
-                _ddBgChild = e("ImageLabel",{BackgroundTransparency=1,Image="http://www.roblox.com/asset/?id=5554236805",ScaleType=Enum.ScaleType.Slice,SliceCenter=Rect.new(23,23,277,277),Size=UDim2.fromScale(1,1)+UDim2.fromOffset(30,30),Position=UDim2.fromOffset(-15,-15),ImageColor3=Color3.fromRGB(0,0,0),ImageTransparency=0.1,Visible=false})
+                local _themeBgVal, _themeBgTransp
+                pcall(function()
+                    local _thm = e(h.Themes)[h.Library.Theme]
+                    if _thm and _thm.Background and tostring(_thm.Background) ~= "" then
+                        _themeBgVal = tostring(_thm.Background)
+                        _themeBgTransp = _thm.BackgroundTransparency or 0
+                    end
+                end)
+                if ((j.OutsideWindow or j.DropdownOutsideWindow) == true) and _themeBgVal then
+                    _ddBgChild = e("ImageLabel",{BackgroundTransparency=1,Image=_themeBgVal,ScaleType=Enum.ScaleType.Crop,Size=UDim2.fromScale(1,1),ImageTransparency=_themeBgTransp,ZIndex=0})
+                else
+                    _ddBgChild = e("ImageLabel",{BackgroundTransparency=1,Image="http://www.roblox.com/asset/?id=5554236805",ScaleType=Enum.ScaleType.Slice,SliceCenter=Rect.new(23,23,277,277),Size=UDim2.fromScale(1,1)+UDim2.fromOffset(30,30),Position=UDim2.fromOffset(-15,-15),ImageColor3=Color3.fromRGB(0,0,0),ImageTransparency=0.1,Visible=false})
+                end
             end
             local _ddBorderThickness = tonumber(c.GetThemeProperty("DropdownBorderThickness")) or 1
             local ddStroke = e("UIStroke", {ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Thickness = _ddBorderThickness, ThemeTag = {Color = "DropdownBorder"}})
@@ -6600,8 +7241,6 @@ local aa = {
                 e("UICorner", {CornerRadius = UDim.new(0, 7)}),
                 e("UIGradient", {Rotation = 90, ThemeTag = {Color = "AcrylicGradient"}}),
             })
-            -- Same background, color, border and animated treatment regardless of OutsideWindow.
-            -- OutsideWindow only changes WHERE the dropdown is placed, never how it looks.
             local uChildren = {t, e("UICorner", {CornerRadius = UDim.new(0, 7)}),
                 ddStroke,
                 ddGradient,
@@ -6609,10 +7248,8 @@ local aa = {
             }
             if ddSearchBox then table.insert(uChildren, 1, ddSearchBox) end
             local u = e("Frame", {Size = UDim2.fromScale(1, 0.6), ThemeTag = {BackgroundColor3 = "DropdownHolder"}}, uChildren)
-            local _isManagerDD = j.IsManagerDropdown == true
+            local _isManagerDD = j.IsManagerDropdown == true or j.ThemedDropdown == true
             if _isManagerDD then
-                -- Manager-built dropdowns (theme list, font list, config list, layouts list) mirror
-                -- the window's own Transparency setting live, instead of having independent transparency.
                 local function _syncManagerTransparency()
                     local baseTransp = c.GetThemeProperty("DropdownTransparency") or 0
                     u.BackgroundTransparency = h.Library.WindowTransparent and math.max(baseTransp, 0.35) or baseTransp
@@ -6622,7 +7259,7 @@ local aa = {
                 table.insert(h.Library._ManagerDropdownSyncs, _syncManagerTransparency)
             end
             local _isOutsideDD = (j.OutsideWindow or j.DropdownOutsideWindow) == true
-            local _isManagerDDAnim = j.IsManagerDropdown == true
+            local _isManagerDDAnim = j.IsManagerDropdown == true or j.ThemedDropdown == true
             local _themeSupportsShineInit = c.GetThemeProperty("ShineEnabled") == true
             local _initialAnimated = _themeSupportsShineInit and (
                 (_isManagerDDAnim and (h.Library.ShineEnabled == true)) or (j.Animated == true)
@@ -6645,8 +7282,6 @@ local aa = {
             end
             local w, x = function()
                     if j.OutsideWindow or j.DropdownOutsideWindow then
-                        -- Side popup: appear around the window (right, left, top or bottom),
-                        -- automatically picking a free slot when multiple are open at once.
                         local winFrame = _winFrame()
                         local winLeft   = winFrame and winFrame.AbsolutePosition.X or 0
                         local winTop    = winFrame and winFrame.AbsolutePosition.Y or 0
@@ -6664,14 +7299,12 @@ local aa = {
                         local slotOrder = {"right", "left", "bottom", "top"}
                         local fits = {right = rightFits, left = leftFits, top = topFits, bottom = bottomFits}
                         local side = nil
-                        -- Prefer a slot that's completely free
                         for _, s2 in ipairs(slotOrder) do
                             if fits[s2] and (_outsideSideOwner[s2] == nil or _outsideSideOwner[s2] == l) then
                                 side = s2
                                 break
                             end
                         end
-                        -- Nothing fully free: fall back to whatever slot fits, preferring "right"
                         if not side then
                             for _, s2 in ipairs(slotOrder) do
                                 if fits[s2] then side = s2; break end
@@ -6698,18 +7331,13 @@ local aa = {
                             popX = math.max(8, math.min(winCenterX - popW / 2, ai.ViewportSize.X - popW - 8))
                         elseif side == "bottom" then
                             popY = bottomFits and (winBottom + 8) or math.max(winBottom + 2, ai.ViewportSize.Y - popH - 8)
-                            -- Slight diagonal offset from the window's left edge, distinguishing it from a centred top/bottom popup
                             popX = math.max(8, math.min(winLeft + 24, ai.ViewportSize.X - popW - 8))
-                        else -- right
+                        else
                             popX = rightFits and (winRight + 8) or math.max(winRight + 2, ai.ViewportSize.X - popW - 8)
                             if #l.Values > 10 then popY = winTop else
                                 popY = math.max(8, math.min(p.AbsolutePosition.Y + p.AbsoluteSize.Y / 2 - popH / 2, ai.ViewportSize.Y - popH - 8))
                             end
                         end
-                        -- Final safety net: if the computed position still spatially overlaps the
-                        -- window's own bounds (e.g. on very small screens), nudge it to the nearest
-                        -- non-overlapping edge so dropdowns can never sit on top of and block the
-                        -- title bar or any other part of the window from receiving input.
                         if winFrame then
                             local popRight, popBottom = popX + popW, popY + popH
                             local overlapsWindow = popX < winRight and popRight > winLeft and popY < winBottom and popBottom > winTop
@@ -6723,10 +7351,8 @@ local aa = {
                         end
                         v.Position = UDim2.fromOffset(popX, popY)
                     else
-                        -- Normal popup: appear below the button, aligned to button left
                         local popX = p.AbsolutePosition.X
                         local popY = p.AbsolutePosition.Y + p.AbsoluteSize.Y + 4
-                        -- Flip above if not enough space below
                         if popY + v.AbsoluteSize.Y > ai.ViewportSize.Y - 8 then
                             popY = p.AbsolutePosition.Y - v.AbsoluteSize.Y - 4
                         end
@@ -6742,7 +7368,6 @@ local aa = {
                         local winH = winFrame and winFrame.AbsoluteSize.Y or ai.ViewportSize.Y
                         local isSideSlot = (l._outsideSide == "left" or l._outsideSide == "right" or l._outsideSide == nil)
                         if #l.Values > 10 and isSideSlot then
-                            -- Side-panel mode: dropdown is the same size as the window
                             v.Size = UDim2.fromOffset(x, winH)
                         else
                             maxH = math.max(minH, winH - 16)
@@ -6795,13 +7420,12 @@ local aa = {
             l._refreshShine = function()
                 local themeSupportsShine = c.GetThemeProperty("ShineEnabled") == true
                 local shouldAnimate
-                if j.IsManagerDropdown then
+                if j.IsManagerDropdown or j.ThemedDropdown then
                     shouldAnimate = themeSupportsShine and h.Library.ShineEnabled == true
                 else
                     shouldAnimate = themeSupportsShine and j.Animated == true
                 end
                 ddGradient.Visible = shouldAnimate
-                -- Directly set color without calling AddThemeObject (avoids UpdateTheme recursion)
                 if shouldAnimate then
                     local acrylicBorder = c.GetThemeProperty("AcrylicBorder")
                     if acrylicBorder then ddStroke.Color = acrylicBorder end
@@ -7091,13 +7715,11 @@ local aa = {
                 else
                     x = x + 30
                 end
-                -- fallback: use button width if TextBounds not ready yet
                 if x < 60 then
                     x = p.AbsoluteSize.X > 0 and p.AbsoluteSize.X or 170
                 end
                 z()
                 task.defer(function()
-                    -- re-measure after render
                     local mx = 0
                     for J2, K2 in next, D do
                         local lbl2 = J2:FindFirstChild("ButtonLabel")
@@ -7212,10 +7834,18 @@ local aa = {
             h.SetTitle = i.SetTitle
             h.SetDesc = i.SetDesc
             h.Frame = i.Frame
+            i.TitleLabel.Size = UDim2.new(1, -170, 0, 14)
+            i.DescLabel.Size = UDim2.new(1, -170, 0, 14)
             local j = ac(aj.Textbox)(i.Frame, true)
             j.Frame.Position = UDim2.new(1, -10, 0.5, 0)
             j.Frame.AnchorPoint = Vector2.new(1, 0.5)
-            j.Frame.Size = UDim2.fromOffset(160, 30)
+            local function _fitInputWidth()
+                local avail = i.Frame.AbsoluteSize.X - 20
+                local w = math.clamp(avail * 0.5, 70, 160)
+                j.Frame.Size = UDim2.fromOffset(w, 30)
+            end
+            _fitInputWidth()
+            i.Frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(_fitInputWidth)
             j.Input.Text = f.Default or ""
             j.Input.PlaceholderText = f.Placeholder or ""
             local k = j.Input
@@ -7831,7 +8461,8 @@ local aa = {
                 return ""
             end
             local syncResolved = resolveSync(src)
-            local hasVideo = syncResolved ~= ""
+            local isCustomUrl = syncResolved == "" and type(src) == "string" and src:match("^https?://") ~= nil
+            local hasVideo = syncResolved ~= "" or isCustomUrl
             local u = ac(af.Creator).New
             local function applyIcon(imgLabel, iconName)
                 local ic = d.Library and d.Library:GetIcon(iconName)
@@ -7871,25 +8502,33 @@ local aa = {
                 vid.Looped=looped; vid.Volume=vol; vid.ZIndex=1
                 vid:SetAttribute("BFVolume",vol); vid:SetAttribute("BFAutoPlay",auto)
                 u("UICorner",{CornerRadius=UDim.new(0,radius),Parent=vid})
-                vid.Video = syncResolved; vid.Parent=wrap
+                if syncResolved ~= "" then
+                    vid.Video = syncResolved
+                elseif isCustomUrl then
+                    task.spawn(function()
+                        local lib = d.Library
+                        local custom = lib and lib.MediaManager and lib.MediaManager:Video(src)
+                        if custom and custom ~= "" and vid.Parent then
+                            vid.Video = custom
+                        end
+                    end)
+                end
+                vid.Parent=wrap
             end
             local placeholder = u("Frame",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Visible=not hasVideo,ZIndex=2,Parent=wrap})
             local phImg = u("ImageLabel",{Size=UDim2.fromOffset(32,32),Position=UDim2.new(0.5,0,0.5,-14),AnchorPoint=Vector2.new(0.5,0.5),BackgroundTransparency=1,ImageTransparency=0.4,ZIndex=3,Parent=placeholder,ThemeTag={ImageColor3="SubText"}})
             applyIcon(phImg, "solar/videocamera-record-bold")
-            u("TextLabel",{Size=UDim2.new(1,0,0,16),Position=UDim2.new(0,0,0.5,20),AnchorPoint=Vector2.new(0,0),BackgroundTransparency=1,Text="rbxassetid:// required",TextSize=11,Font=Enum.Font.GothamMedium,TextTransparency=0.5,ZIndex=3,Parent=placeholder,ThemeTag={TextColor3="SubText"}})
+            u("TextLabel",{Size=UDim2.new(1,0,0,16),Position=UDim2.new(0,0,0.5,20),AnchorPoint=Vector2.new(0,0),BackgroundTransparency=1,Text="rbxassetid:// or video URL required",TextSize=11,Font=Enum.Font.GothamMedium,TextTransparency=0.5,ZIndex=3,Parent=placeholder,ThemeTag={TextColor3="SubText"}})
             if not hasVideo then
                 local mod={Frame=wrap,Type="Video",VideoFrame=nil}
                 function mod:Destroy() wrap:Destroy() end
                 return mod
             end
-            -- Overlay controls (hidden by default, shown on video click)
             local overlay = Instance.new("CanvasGroup")
             overlay.Size=UDim2.new(1,0,0,54); overlay.Position=UDim2.new(0,0,1,0); overlay.AnchorPoint=Vector2.new(0,1)
             overlay.BackgroundTransparency=1; overlay.GroupTransparency=1; overlay.ZIndex=5; overlay.Parent=wrap
-            -- Gradient background on overlay
             local gradFr = u("Frame",{Size=UDim2.fromScale(1,1),BackgroundColor3=Color3.fromRGB(0,0,0),BackgroundTransparency=0,BorderSizePixel=0,ZIndex=5,Parent=overlay})
             u("UIGradient",{Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0.3),NumberSequenceKeypoint.new(1,1)}),Rotation=90,Parent=gradFr})
-            -- Seek row (top part of overlay)
             local seekRow = u("Frame",{Size=UDim2.new(1,-12,0,16),Position=UDim2.new(0,6,0,4),BackgroundTransparency=1,ZIndex=6,Parent=overlay})
             local timeCur = u("TextLabel",{Size=UDim2.fromOffset(36,16),BackgroundTransparency=1,Text="0:00",TextSize=10,Font=Enum.Font.GothamMedium,TextColor3=Color3.fromRGB(220,220,220),ZIndex=7,Parent=seekRow})
             local seekContainer = u("Frame",{Size=UDim2.new(1,-84,0,16),Position=UDim2.fromOffset(40,0),BackgroundTransparency=1,ZIndex=6,Parent=seekRow})
@@ -7900,7 +8539,6 @@ local aa = {
             local seekKnob = u("Frame",{Size=UDim2.fromOffset(12,12),Position=UDim2.new(0,0,0.5,0),AnchorPoint=Vector2.new(0.5,0.5),BackgroundColor3=Color3.fromRGB(255,255,255),BorderSizePixel=0,ZIndex=9,Parent=seekRail})
             u("UICorner",{CornerRadius=UDim.new(1,0),Parent=seekKnob})
             local timeDur = u("TextLabel",{Size=UDim2.fromOffset(36,16),Position=UDim2.new(1,-36,0,0),BackgroundTransparency=1,Text="0:00",TextSize=10,Font=Enum.Font.GothamMedium,TextColor3=Color3.fromRGB(160,160,170),ZIndex=7,Parent=seekRow})
-            -- Controls row (bottom part of overlay)
             local ctrlRow = u("Frame",{Size=UDim2.new(1,-12,0,26),Position=UDim2.new(0,6,0,24),BackgroundTransparency=1,ZIndex=6,Parent=overlay})
             local function ctrlBtn2(iconName, size, cb)
                 local btn=u("TextButton",{Size=UDim2.fromOffset(size or 22,22),BackgroundTransparency=1,Text="",ZIndex=7,AutoButtonColor=false,Parent=ctrlRow})
@@ -7916,7 +8554,6 @@ local aa = {
             applyIcon(volIco,"solar/volume-loud-bold")
             local volLbl=u("TextLabel",{Size=UDim2.fromOffset(32,22),Position=UDim2.fromOffset(84,0),BackgroundTransparency=1,Text=tostring(math.floor(vol*100)).."%",TextSize=10,Font=Enum.Font.Gotham,ZIndex=7,Parent=ctrlRow,ThemeTag={TextColor3="SubText"}})
             u("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal,VerticalAlignment=Enum.VerticalAlignment.Center,Padding=UDim.new(0,2),Parent=ctrlRow})
-            -- show/hide overlay
             local ctrlVisible=false; local fadeTimer=0; local fadingOut=false
             local function showOverlay()
                 ctrlVisible=true; fadingOut=false; fadeTimer=3
@@ -7926,12 +8563,10 @@ local aa = {
                 ctrlVisible=false; fadingOut=true
                 ts2:Create(overlay,TweenInfo.new(0.3,Enum.EasingStyle.Sine),{GroupTransparency=1}):Play()
             end
-            -- Click video OR overlay to toggle/reset
             local vidClickBtn=u("TextButton",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Text="",ZIndex=4,AutoButtonColor=false,Parent=wrap})
             vidClickBtn.MouseButton1Click:Connect(function()
                 if ctrlVisible then fadeTimer=3 else showOverlay() end
             end)
-            -- Clicking overlay buttons resets timer
             local function resetFade() fadeTimer=3; fadingOut=false end
             playBtn.MouseButton1Click:Connect(function()
                 pcall(function() vid:Play() end); playing=true
@@ -7947,7 +8582,6 @@ local aa = {
             end)
             pauseBtn.Visible=auto
             playBtn.Visible=not auto
-            -- Seek
             local seeking=false
             local function vidSeek(posX)
                 resetFade()
@@ -7972,12 +8606,10 @@ local aa = {
             local function fmtT(s) s=math.max(0,math.floor(s or 0)); return string.format("%d:%02d",math.floor(s/60),s%60) end
             local hbConn=rs2.Heartbeat:Connect(function(dt)
                 if not wrap.Parent then return end
-                -- Auto-hide timer
                 if ctrlVisible then
                     fadeTimer=fadeTimer-dt
                     if fadeTimer<=0 and not seeking then hideOverlay() end
                 end
-                -- Seek bar update
                 if not vid then return end
                 local dur=vid.TimeLength or 0
                 local pos=0; pcall(function() pos=vid.TimePosition end)
@@ -8565,831 +9197,6 @@ local aa = {
         return c
     end,
 
-    [28] = function() --[[ Icons ]]
-        local aa, ab, ac, ad, ae = b(28)
-        return {
-            assets = {
-                ["lucide-accessibility"] = "rbxassetid://10709751939",
-                ["lucide-activity"] = "rbxassetid://10709752035",
-                ["lucide-air-vent"] = "rbxassetid://10709752131",
-                ["lucide-airplay"] = "rbxassetid://10709752254",
-                ["lucide-alarm-check"] = "rbxassetid://10709752405",
-                ["lucide-alarm-clock"] = "rbxassetid://10709752630",
-                ["lucide-alarm-clock-off"] = "rbxassetid://10709752508",
-                ["lucide-alarm-minus"] = "rbxassetid://10709752732",
-                ["lucide-alarm-plus"] = "rbxassetid://10709752825",
-                ["lucide-album"] = "rbxassetid://10709752906",
-                ["lucide-alert-circle"] = "rbxassetid://10709752996",
-                ["lucide-alert-octagon"] = "rbxassetid://10709753064",
-                ["lucide-alert-triangle"] = "rbxassetid://10709753149",
-                ["lucide-align-center"] = "rbxassetid://10709753570",
-                ["lucide-align-center-horizontal"] = "rbxassetid://10709753272",
-                ["lucide-align-center-vertical"] = "rbxassetid://10709753421",
-                ["lucide-align-end-horizontal"] = "rbxassetid://10709753692",
-                ["lucide-align-end-vertical"] = "rbxassetid://10709753808",
-                ["lucide-align-horizontal-distribute-center"] = "rbxassetid://10747779791",
-                ["lucide-align-horizontal-distribute-end"] = "rbxassetid://10747784534",
-                ["lucide-align-horizontal-distribute-start"] = "rbxassetid://10709754118",
-                ["lucide-align-horizontal-justify-center"] = "rbxassetid://10709754204",
-                ["lucide-align-horizontal-justify-end"] = "rbxassetid://10709754317",
-                ["lucide-align-horizontal-justify-start"] = "rbxassetid://10709754436",
-                ["lucide-align-horizontal-space-around"] = "rbxassetid://10709754590",
-                ["lucide-align-horizontal-space-between"] = "rbxassetid://10709754749",
-                ["lucide-align-justify"] = "rbxassetid://10709759610",
-                ["lucide-align-left"] = "rbxassetid://10709759764",
-                ["lucide-align-right"] = "rbxassetid://10709759895",
-                ["lucide-align-start-horizontal"] = "rbxassetid://10709760051",
-                ["lucide-align-start-vertical"] = "rbxassetid://10709760244",
-                ["lucide-align-vertical-distribute-center"] = "rbxassetid://10709760351",
-                ["lucide-align-vertical-distribute-end"] = "rbxassetid://10709760434",
-                ["lucide-align-vertical-distribute-start"] = "rbxassetid://10709760612",
-                ["lucide-align-vertical-justify-center"] = "rbxassetid://10709760814",
-                ["lucide-align-vertical-justify-end"] = "rbxassetid://10709761003",
-                ["lucide-align-vertical-justify-start"] = "rbxassetid://10709761176",
-                ["lucide-align-vertical-space-around"] = "rbxassetid://10709761324",
-                ["lucide-align-vertical-space-between"] = "rbxassetid://10709761434",
-                ["lucide-anchor"] = "rbxassetid://10709761530",
-                ["lucide-angry"] = "rbxassetid://10709761629",
-                ["lucide-annoyed"] = "rbxassetid://10709761722",
-                ["lucide-aperture"] = "rbxassetid://10709761813",
-                ["lucide-apple"] = "rbxassetid://10709761889",
-                ["lucide-archive"] = "rbxassetid://10709762233",
-                ["lucide-archive-restore"] = "rbxassetid://10709762058",
-                ["lucide-armchair"] = "rbxassetid://10709762327",
-                ["lucide-arrow-big-down"] = "rbxassetid://10747796644",
-                ["lucide-arrow-big-left"] = "rbxassetid://10709762574",
-                ["lucide-arrow-big-right"] = "rbxassetid://10709762727",
-                ["lucide-arrow-big-up"] = "rbxassetid://10709762879",
-                ["lucide-arrow-down"] = "rbxassetid://10709767827",
-                ["lucide-arrow-down-circle"] = "rbxassetid://10709763034",
-                ["lucide-arrow-down-left"] = "rbxassetid://10709767656",
-                ["lucide-arrow-down-right"] = "rbxassetid://10709767750",
-                ["lucide-arrow-left"] = "rbxassetid://10709768114",
-                ["lucide-arrow-left-circle"] = "rbxassetid://10709767936",
-                ["lucide-arrow-left-right"] = "rbxassetid://10709768019",
-                ["lucide-arrow-right"] = "rbxassetid://10709768347",
-                ["lucide-arrow-right-circle"] = "rbxassetid://10709768226",
-                ["lucide-arrow-up"] = "rbxassetid://10709768939",
-                ["lucide-arrow-up-circle"] = "rbxassetid://10709768432",
-                ["lucide-arrow-up-down"] = "rbxassetid://10709768538",
-                ["lucide-arrow-up-left"] = "rbxassetid://10709768661",
-                ["lucide-arrow-up-right"] = "rbxassetid://10709768787",
-                ["lucide-asterisk"] = "rbxassetid://10709769095",
-                ["lucide-at-sign"] = "rbxassetid://10709769286",
-                ["lucide-award"] = "rbxassetid://10709769406",
-                ["lucide-axe"] = "rbxassetid://10709769508",
-                ["lucide-axis-3d"] = "rbxassetid://10709769598",
-                ["lucide-baby"] = "rbxassetid://10709769732",
-                ["lucide-backpack"] = "rbxassetid://10709769841",
-                ["lucide-baggage-claim"] = "rbxassetid://10709769935",
-                ["lucide-banana"] = "rbxassetid://10709770005",
-                ["lucide-banknote"] = "rbxassetid://10709770178",
-                ["lucide-bar-chart"] = "rbxassetid://10709773755",
-                ["lucide-bar-chart-2"] = "rbxassetid://10709770317",
-                ["lucide-bar-chart-3"] = "rbxassetid://10709770431",
-                ["lucide-bar-chart-4"] = "rbxassetid://10709770560",
-                ["lucide-bar-chart-horizontal"] = "rbxassetid://10709773669",
-                ["lucide-barcode"] = "rbxassetid://10747360675",
-                ["lucide-baseline"] = "rbxassetid://10709773863",
-                ["lucide-bath"] = "rbxassetid://10709773963",
-                ["lucide-battery"] = "rbxassetid://10709774640",
-                ["lucide-battery-charging"] = "rbxassetid://10709774068",
-                ["lucide-battery-full"] = "rbxassetid://10709774206",
-                ["lucide-battery-low"] = "rbxassetid://10709774370",
-                ["lucide-battery-medium"] = "rbxassetid://10709774513",
-                ["lucide-beaker"] = "rbxassetid://10709774756",
-                ["lucide-bed"] = "rbxassetid://10709775036",
-                ["lucide-bed-double"] = "rbxassetid://10709774864",
-                ["lucide-bed-single"] = "rbxassetid://10709774968",
-                ["lucide-beer"] = "rbxassetid://10709775167",
-                ["lucide-bell"] = "rbxassetid://10709775704",
-                ["lucide-bell-minus"] = "rbxassetid://10709775241",
-                ["lucide-bell-off"] = "rbxassetid://10709775320",
-                ["lucide-bell-plus"] = "rbxassetid://10709775448",
-                ["lucide-bell-ring"] = "rbxassetid://10709775560",
-                ["lucide-bike"] = "rbxassetid://10709775894",
-                ["lucide-binary"] = "rbxassetid://10709776050",
-                ["lucide-bitcoin"] = "rbxassetid://10709776126",
-                ["lucide-bluetooth"] = "rbxassetid://10709776655",
-                ["lucide-bluetooth-connected"] = "rbxassetid://10709776240",
-                ["lucide-bluetooth-off"] = "rbxassetid://10709776344",
-                ["lucide-bluetooth-searching"] = "rbxassetid://10709776501",
-                ["lucide-bold"] = "rbxassetid://10747813908",
-                ["lucide-bomb"] = "rbxassetid://10709781460",
-                ["lucide-bone"] = "rbxassetid://10709781605",
-                ["lucide-book"] = "rbxassetid://10709781824",
-                ["lucide-book-open"] = "rbxassetid://10709781717",
-                ["lucide-bookmark"] = "rbxassetid://10709782154",
-                ["lucide-bookmark-minus"] = "rbxassetid://10709781919",
-                ["lucide-bookmark-plus"] = "rbxassetid://10709782044",
-                ["lucide-bot"] = "rbxassetid://10709782230",
-                ["lucide-box"] = "rbxassetid://10709782497",
-                ["lucide-box-select"] = "rbxassetid://10709782342",
-                ["lucide-boxes"] = "rbxassetid://10709782582",
-                ["lucide-briefcase"] = "rbxassetid://10709782662",
-                ["lucide-brush"] = "rbxassetid://10709782758",
-                ["lucide-bug"] = "rbxassetid://10709782845",
-                ["lucide-building"] = "rbxassetid://10709783051",
-                ["lucide-building-2"] = "rbxassetid://10709782939",
-                ["lucide-bus"] = "rbxassetid://10709783137",
-                ["lucide-cake"] = "rbxassetid://10709783217",
-                ["lucide-calculator"] = "rbxassetid://10709783311",
-                ["lucide-calendar"] = "rbxassetid://10709789505",
-                ["lucide-calendar-check"] = "rbxassetid://10709783474",
-                ["lucide-calendar-check-2"] = "rbxassetid://10709783392",
-                ["lucide-calendar-clock"] = "rbxassetid://10709783577",
-                ["lucide-calendar-days"] = "rbxassetid://10709783673",
-                ["lucide-calendar-heart"] = "rbxassetid://10709783835",
-                ["lucide-calendar-minus"] = "rbxassetid://10709783959",
-                ["lucide-calendar-off"] = "rbxassetid://10709788784",
-                ["lucide-calendar-plus"] = "rbxassetid://10709788937",
-                ["lucide-calendar-range"] = "rbxassetid://10709789053",
-                ["lucide-calendar-search"] = "rbxassetid://10709789200",
-                ["lucide-calendar-x"] = "rbxassetid://10709789407",
-                ["lucide-calendar-x-2"] = "rbxassetid://10709789329",
-                ["lucide-camera"] = "rbxassetid://10709789686",
-                ["lucide-camera-off"] = "rbxassetid://10747822677",
-                ["lucide-car"] = "rbxassetid://10709789810",
-                ["lucide-carrot"] = "rbxassetid://10709789960",
-                ["lucide-cast"] = "rbxassetid://10709790097",
-                ["lucide-charge"] = "rbxassetid://10709790202",
-                ["lucide-check"] = "rbxassetid://10709790644",
-                ["lucide-check-circle"] = "rbxassetid://10709790387",
-                ["lucide-check-circle-2"] = "rbxassetid://10709790298",
-                ["lucide-check-square"] = "rbxassetid://10709790537",
-                ["lucide-chef-hat"] = "rbxassetid://10709790757",
-                ["lucide-cherry"] = "rbxassetid://10709790875",
-                ["lucide-chevron-down"] = "rbxassetid://10709790948",
-                ["lucide-chevron-first"] = "rbxassetid://10709791015",
-                ["lucide-chevron-last"] = "rbxassetid://10709791130",
-                ["lucide-chevron-left"] = "rbxassetid://10709791281",
-                ["lucide-chevron-right"] = "rbxassetid://10709791437",
-                ["lucide-chevron-up"] = "rbxassetid://10709791523",
-                ["lucide-chevrons-down"] = "rbxassetid://10709796864",
-                ["lucide-chevrons-down-up"] = "rbxassetid://10709791632",
-                ["lucide-chevrons-left"] = "rbxassetid://10709797151",
-                ["lucide-chevrons-left-right"] = "rbxassetid://10709797006",
-                ["lucide-chevrons-right"] = "rbxassetid://10709797382",
-                ["lucide-chevrons-right-left"] = "rbxassetid://10709797274",
-                ["lucide-chevrons-up"] = "rbxassetid://10709797622",
-                ["lucide-chevrons-up-down"] = "rbxassetid://10709797508",
-                ["lucide-chrome"] = "rbxassetid://10709797725",
-                ["lucide-circle"] = "rbxassetid://10709798174",
-                ["lucide-circle-dot"] = "rbxassetid://10709797837",
-                ["lucide-circle-ellipsis"] = "rbxassetid://10709797985",
-                ["lucide-circle-slashed"] = "rbxassetid://10709798100",
-                ["lucide-citrus"] = "rbxassetid://10709798276",
-                ["lucide-clapperboard"] = "rbxassetid://10709798350",
-                ["lucide-clipboard"] = "rbxassetid://10709799288",
-                ["lucide-clipboard-check"] = "rbxassetid://10709798443",
-                ["lucide-clipboard-copy"] = "rbxassetid://10709798574",
-                ["lucide-clipboard-edit"] = "rbxassetid://10709798682",
-                ["lucide-clipboard-list"] = "rbxassetid://10709798792",
-                ["lucide-clipboard-signature"] = "rbxassetid://10709798890",
-                ["lucide-clipboard-type"] = "rbxassetid://10709798999",
-                ["lucide-clipboard-x"] = "rbxassetid://10709799124",
-                ["lucide-clock"] = "rbxassetid://10709805144",
-                ["lucide-clock-1"] = "rbxassetid://10709799535",
-                ["lucide-clock-10"] = "rbxassetid://10709799718",
-                ["lucide-clock-11"] = "rbxassetid://10709799818",
-                ["lucide-clock-12"] = "rbxassetid://10709799962",
-                ["lucide-clock-2"] = "rbxassetid://10709803876",
-                ["lucide-clock-3"] = "rbxassetid://10709803989",
-                ["lucide-clock-4"] = "rbxassetid://10709804164",
-                ["lucide-clock-5"] = "rbxassetid://10709804291",
-                ["lucide-clock-6"] = "rbxassetid://10709804435",
-                ["lucide-clock-7"] = "rbxassetid://10709804599",
-                ["lucide-clock-8"] = "rbxassetid://10709804784",
-                ["lucide-clock-9"] = "rbxassetid://10709804996",
-                ["lucide-cloud"] = "rbxassetid://10709806740",
-                ["lucide-cloud-cog"] = "rbxassetid://10709805262",
-                ["lucide-cloud-drizzle"] = "rbxassetid://10709805371",
-                ["lucide-cloud-fog"] = "rbxassetid://10709805477",
-                ["lucide-cloud-hail"] = "rbxassetid://10709805596",
-                ["lucide-cloud-lightning"] = "rbxassetid://10709805727",
-                ["lucide-cloud-moon"] = "rbxassetid://10709805942",
-                ["lucide-cloud-moon-rain"] = "rbxassetid://10709805838",
-                ["lucide-cloud-off"] = "rbxassetid://10709806060",
-                ["lucide-cloud-rain"] = "rbxassetid://10709806277",
-                ["lucide-cloud-rain-wind"] = "rbxassetid://10709806166",
-                ["lucide-cloud-snow"] = "rbxassetid://10709806374",
-                ["lucide-cloud-sun"] = "rbxassetid://10709806631",
-                ["lucide-cloud-sun-rain"] = "rbxassetid://10709806475",
-                ["lucide-cloudy"] = "rbxassetid://10709806859",
-                ["lucide-clover"] = "rbxassetid://10709806995",
-                ["lucide-code"] = "rbxassetid://10709810463",
-                ["lucide-code-2"] = "rbxassetid://10709807111",
-                ["lucide-codepen"] = "rbxassetid://10709810534",
-                ["lucide-codesandbox"] = "rbxassetid://10709810676",
-                ["lucide-coffee"] = "rbxassetid://10709810814",
-                ["lucide-cog"] = "rbxassetid://10709810948",
-                ["lucide-coins"] = "rbxassetid://10709811110",
-                ["lucide-columns"] = "rbxassetid://10709811261",
-                ["lucide-command"] = "rbxassetid://10709811365",
-                ["lucide-compass"] = "rbxassetid://10709811445",
-                ["lucide-component"] = "rbxassetid://10709811595",
-                ["lucide-concierge-bell"] = "rbxassetid://10709811706",
-                ["lucide-connection"] = "rbxassetid://10747361219",
-                ["lucide-contact"] = "rbxassetid://10709811834",
-                ["lucide-contrast"] = "rbxassetid://10709811939",
-                ["lucide-cookie"] = "rbxassetid://10709812067",
-                ["lucide-copy"] = "rbxassetid://10709812159",
-                ["lucide-copyleft"] = "rbxassetid://10709812251",
-                ["lucide-copyright"] = "rbxassetid://10709812311",
-                ["lucide-corner-down-left"] = "rbxassetid://10709812396",
-                ["lucide-corner-down-right"] = "rbxassetid://10709812485",
-                ["lucide-corner-left-down"] = "rbxassetid://10709812632",
-                ["lucide-corner-left-up"] = "rbxassetid://10709812784",
-                ["lucide-corner-right-down"] = "rbxassetid://10709812939",
-                ["lucide-corner-right-up"] = "rbxassetid://10709813094",
-                ["lucide-corner-up-left"] = "rbxassetid://10709813185",
-                ["lucide-corner-up-right"] = "rbxassetid://10709813281",
-                ["lucide-cpu"] = "rbxassetid://10709813383",
-                ["lucide-croissant"] = "rbxassetid://10709818125",
-                ["lucide-crop"] = "rbxassetid://10709818245",
-                ["lucide-cross"] = "rbxassetid://10709818399",
-                ["lucide-crosshair"] = "rbxassetid://10709818534",
-                ["lucide-crown"] = "rbxassetid://10709818626",
-                ["lucide-cup-soda"] = "rbxassetid://10709818763",
-                ["lucide-curly-braces"] = "rbxassetid://10709818847",
-                ["lucide-currency"] = "rbxassetid://10709818931",
-                ["lucide-database"] = "rbxassetid://10709818996",
-                ["lucide-delete"] = "rbxassetid://10709819059",
-                ["lucide-diamond"] = "rbxassetid://10709819149",
-                ["lucide-dice-1"] = "rbxassetid://10709819266",
-                ["lucide-dice-2"] = "rbxassetid://10709819361",
-                ["lucide-dice-3"] = "rbxassetid://10709819508",
-                ["lucide-dice-4"] = "rbxassetid://10709819670",
-                ["lucide-dice-5"] = "rbxassetid://10709819801",
-                ["lucide-dice-6"] = "rbxassetid://10709819896",
-                ["lucide-dices"] = "rbxassetid://10723343321",
-                ["lucide-diff"] = "rbxassetid://10723343416",
-                ["lucide-disc"] = "rbxassetid://10723343537",
-                ["lucide-divide"] = "rbxassetid://10723343805",
-                ["lucide-divide-circle"] = "rbxassetid://10723343636",
-                ["lucide-divide-square"] = "rbxassetid://10723343737",
-                ["lucide-dollar-sign"] = "rbxassetid://10723343958",
-                ["lucide-download"] = "rbxassetid://10723344270",
-                ["lucide-download-cloud"] = "rbxassetid://10723344088",
-                ["lucide-droplet"] = "rbxassetid://10723344432",
-                ["lucide-droplets"] = "rbxassetid://10734883356",
-                ["lucide-drumstick"] = "rbxassetid://10723344737",
-                ["lucide-edit"] = "rbxassetid://10734883598",
-                ["lucide-edit-2"] = "rbxassetid://10723344885",
-                ["lucide-edit-3"] = "rbxassetid://10723345088",
-                ["lucide-egg"] = "rbxassetid://10723345518",
-                ["lucide-egg-fried"] = "rbxassetid://10723345347",
-                ["lucide-electricity"] = "rbxassetid://10723345749",
-                ["lucide-electricity-off"] = "rbxassetid://10723345643",
-                ["lucide-equal"] = "rbxassetid://10723345990",
-                ["lucide-equal-not"] = "rbxassetid://10723345866",
-                ["lucide-eraser"] = "rbxassetid://10723346158",
-                ["lucide-euro"] = "rbxassetid://10723346372",
-                ["lucide-expand"] = "rbxassetid://10723346553",
-                ["lucide-external-link"] = "rbxassetid://10723346684",
-                ["lucide-eye"] = "rbxassetid://10723346959",
-                ["lucide-eye-off"] = "rbxassetid://10723346871",
-                ["lucide-factory"] = "rbxassetid://10723347051",
-                ["lucide-fan"] = "rbxassetid://10723354359",
-                ["lucide-fast-forward"] = "rbxassetid://10723354521",
-                ["lucide-feather"] = "rbxassetid://10723354671",
-                ["lucide-figma"] = "rbxassetid://10723354801",
-                ["lucide-file"] = "rbxassetid://10723374641",
-                ["lucide-file-archive"] = "rbxassetid://10723354921",
-                ["lucide-file-audio"] = "rbxassetid://10723355148",
-                ["lucide-file-audio-2"] = "rbxassetid://10723355026",
-                ["lucide-file-axis-3d"] = "rbxassetid://10723355272",
-                ["lucide-file-badge"] = "rbxassetid://10723355622",
-                ["lucide-file-badge-2"] = "rbxassetid://10723355451",
-                ["lucide-file-bar-chart"] = "rbxassetid://10723355887",
-                ["lucide-file-bar-chart-2"] = "rbxassetid://10723355746",
-                ["lucide-file-box"] = "rbxassetid://10723355989",
-                ["lucide-file-check"] = "rbxassetid://10723356210",
-                ["lucide-file-check-2"] = "rbxassetid://10723356100",
-                ["lucide-file-clock"] = "rbxassetid://10723356329",
-                ["lucide-file-code"] = "rbxassetid://10723356507",
-                ["lucide-file-cog"] = "rbxassetid://10723356830",
-                ["lucide-file-cog-2"] = "rbxassetid://10723356676",
-                ["lucide-file-diff"] = "rbxassetid://10723357039",
-                ["lucide-file-digit"] = "rbxassetid://10723357151",
-                ["lucide-file-down"] = "rbxassetid://10723357322",
-                ["lucide-file-edit"] = "rbxassetid://10723357495",
-                ["lucide-file-heart"] = "rbxassetid://10723357637",
-                ["lucide-file-image"] = "rbxassetid://10723357790",
-                ["lucide-file-input"] = "rbxassetid://10723357933",
-                ["lucide-file-json"] = "rbxassetid://10723364435",
-                ["lucide-file-json-2"] = "rbxassetid://10723364361",
-                ["lucide-file-key"] = "rbxassetid://10723364605",
-                ["lucide-file-key-2"] = "rbxassetid://10723364515",
-                ["lucide-file-line-chart"] = "rbxassetid://10723364725",
-                ["lucide-file-lock"] = "rbxassetid://10723364957",
-                ["lucide-file-lock-2"] = "rbxassetid://10723364861",
-                ["lucide-file-minus"] = "rbxassetid://10723365254",
-                ["lucide-file-minus-2"] = "rbxassetid://10723365086",
-                ["lucide-file-output"] = "rbxassetid://10723365457",
-                ["lucide-file-pie-chart"] = "rbxassetid://10723365598",
-                ["lucide-file-plus"] = "rbxassetid://10723365877",
-                ["lucide-file-plus-2"] = "rbxassetid://10723365766",
-                ["lucide-file-question"] = "rbxassetid://10723365987",
-                ["lucide-file-scan"] = "rbxassetid://10723366167",
-                ["lucide-file-search"] = "rbxassetid://10723366550",
-                ["lucide-file-search-2"] = "rbxassetid://10723366340",
-                ["lucide-file-signature"] = "rbxassetid://10723366741",
-                ["lucide-file-spreadsheet"] = "rbxassetid://10723366962",
-                ["lucide-file-symlink"] = "rbxassetid://10723367098",
-                ["lucide-file-terminal"] = "rbxassetid://10723367244",
-                ["lucide-file-text"] = "rbxassetid://10723367380",
-                ["lucide-file-type"] = "rbxassetid://10723367606",
-                ["lucide-file-type-2"] = "rbxassetid://10723367509",
-                ["lucide-file-up"] = "rbxassetid://10723367734",
-                ["lucide-file-video"] = "rbxassetid://10723373884",
-                ["lucide-file-video-2"] = "rbxassetid://10723367834",
-                ["lucide-file-volume"] = "rbxassetid://10723374172",
-                ["lucide-file-volume-2"] = "rbxassetid://10723374030",
-                ["lucide-file-warning"] = "rbxassetid://10723374276",
-                ["lucide-file-x"] = "rbxassetid://10723374544",
-                ["lucide-file-x-2"] = "rbxassetid://10723374378",
-                ["lucide-files"] = "rbxassetid://10723374759",
-                ["lucide-film"] = "rbxassetid://10723374981",
-                ["lucide-filter"] = "rbxassetid://10723375128",
-                ["lucide-fingerprint"] = "rbxassetid://10723375250",
-                ["lucide-flag"] = "rbxassetid://10723375890",
-                ["lucide-flag-off"] = "rbxassetid://10723375443",
-                ["lucide-flag-triangle-left"] = "rbxassetid://10723375608",
-                ["lucide-flag-triangle-right"] = "rbxassetid://10723375727",
-                ["lucide-flame"] = "rbxassetid://10723376114",
-                ["lucide-flashlight"] = "rbxassetid://10723376471",
-                ["lucide-flashlight-off"] = "rbxassetid://10723376365",
-                ["lucide-flask-conical"] = "rbxassetid://10734883986",
-                ["lucide-flask-round"] = "rbxassetid://10723376614",
-                ["lucide-flip-horizontal"] = "rbxassetid://10723376884",
-                ["lucide-flip-horizontal-2"] = "rbxassetid://10723376745",
-                ["lucide-flip-vertical"] = "rbxassetid://10723377138",
-                ["lucide-flip-vertical-2"] = "rbxassetid://10723377026",
-                ["lucide-flower"] = "rbxassetid://10747830374",
-                ["lucide-flower-2"] = "rbxassetid://10723377305",
-                ["lucide-focus"] = "rbxassetid://10723377537",
-                ["lucide-folder"] = "rbxassetid://10723387563",
-                ["lucide-folder-archive"] = "rbxassetid://10723384478",
-                ["lucide-folder-check"] = "rbxassetid://10723384605",
-                ["lucide-folder-clock"] = "rbxassetid://10723384731",
-                ["lucide-folder-closed"] = "rbxassetid://10723384893",
-                ["lucide-folder-cog"] = "rbxassetid://10723385213",
-                ["lucide-folder-cog-2"] = "rbxassetid://10723385036",
-                ["lucide-folder-down"] = "rbxassetid://10723385338",
-                ["lucide-folder-edit"] = "rbxassetid://10723385445",
-                ["lucide-folder-heart"] = "rbxassetid://10723385545",
-                ["lucide-folder-input"] = "rbxassetid://10723385721",
-                ["lucide-folder-key"] = "rbxassetid://10723385848",
-                ["lucide-folder-lock"] = "rbxassetid://10723386005",
-                ["lucide-folder-minus"] = "rbxassetid://10723386127",
-                ["lucide-folder-open"] = "rbxassetid://10723386277",
-                ["lucide-folder-output"] = "rbxassetid://10723386386",
-                ["lucide-folder-plus"] = "rbxassetid://10723386531",
-                ["lucide-folder-search"] = "rbxassetid://10723386787",
-                ["lucide-folder-search-2"] = "rbxassetid://10723386674",
-                ["lucide-folder-symlink"] = "rbxassetid://10723386930",
-                ["lucide-folder-tree"] = "rbxassetid://10723387085",
-                ["lucide-folder-up"] = "rbxassetid://10723387265",
-                ["lucide-folder-x"] = "rbxassetid://10723387448",
-                ["lucide-folders"] = "rbxassetid://10723387721",
-                ["lucide-form-input"] = "rbxassetid://10723387841",
-                ["lucide-forward"] = "rbxassetid://10723388016",
-                ["lucide-frame"] = "rbxassetid://10723394389",
-                ["lucide-framer"] = "rbxassetid://10723394565",
-                ["lucide-frown"] = "rbxassetid://10723394681",
-                ["lucide-fuel"] = "rbxassetid://10723394846",
-                ["lucide-function-square"] = "rbxassetid://10723395041",
-                ["lucide-gamepad"] = "rbxassetid://10723395457",
-                ["lucide-gamepad-2"] = "rbxassetid://10723395215",
-                ["lucide-gauge"] = "rbxassetid://10723395708",
-                ["lucide-gavel"] = "rbxassetid://10723395896",
-                ["lucide-gem"] = "rbxassetid://10723396000",
-                ["lucide-ghost"] = "rbxassetid://10723396107",
-                ["lucide-gift"] = "rbxassetid://10723396402",
-                ["lucide-gift-card"] = "rbxassetid://10723396225",
-                ["lucide-git-branch"] = "rbxassetid://10723396676",
-                ["lucide-git-branch-plus"] = "rbxassetid://10723396542",
-                ["lucide-git-commit"] = "rbxassetid://10723396812",
-                ["lucide-git-compare"] = "rbxassetid://10723396954",
-                ["lucide-git-fork"] = "rbxassetid://10723397049",
-                ["lucide-git-merge"] = "rbxassetid://10723397165",
-                ["lucide-git-pull-request"] = "rbxassetid://10723397431",
-                ["lucide-git-pull-request-closed"] = "rbxassetid://10723397268",
-                ["lucide-git-pull-request-draft"] = "rbxassetid://10734884302",
-                ["lucide-glass"] = "rbxassetid://10723397788",
-                ["lucide-glass-2"] = "rbxassetid://10723397529",
-                ["lucide-glass-water"] = "rbxassetid://10723397678",
-                ["lucide-glasses"] = "rbxassetid://10723397895",
-                ["lucide-globe"] = "rbxassetid://10723404337",
-                ["lucide-globe-2"] = "rbxassetid://10723398002",
-                ["lucide-grab"] = "rbxassetid://10723404472",
-                ["lucide-graduation-cap"] = "rbxassetid://10723404691",
-                ["lucide-grape"] = "rbxassetid://10723404822",
-                ["lucide-grid"] = "rbxassetid://10723404936",
-                ["lucide-grip-horizontal"] = "rbxassetid://10723405089",
-                ["lucide-grip-vertical"] = "rbxassetid://10723405236",
-                ["lucide-hammer"] = "rbxassetid://10723405360",
-                ["lucide-hand"] = "rbxassetid://10723405649",
-                ["lucide-hand-metal"] = "rbxassetid://10723405508",
-                ["lucide-hard-drive"] = "rbxassetid://10723405749",
-                ["lucide-hard-hat"] = "rbxassetid://10723405859",
-                ["lucide-hash"] = "rbxassetid://10723405975",
-                ["lucide-haze"] = "rbxassetid://10723406078",
-                ["lucide-headphones"] = "rbxassetid://10723406165",
-                ["lucide-heart"] = "rbxassetid://10723406885",
-                ["lucide-heart-crack"] = "rbxassetid://10723406299",
-                ["lucide-heart-handshake"] = "rbxassetid://10723406480",
-                ["lucide-heart-off"] = "rbxassetid://10723406662",
-                ["lucide-heart-pulse"] = "rbxassetid://10723406795",
-                ["lucide-help-circle"] = "rbxassetid://10723406988",
-                ["lucide-hexagon"] = "rbxassetid://10723407092",
-                ["lucide-highlighter"] = "rbxassetid://10723407192",
-                ["lucide-history"] = "rbxassetid://10723407335",
-                ["lucide-home"] = "rbxassetid://10723407389",
-                ["lucide-hourglass"] = "rbxassetid://10723407498",
-                ["lucide-ice-cream"] = "rbxassetid://10723414308",
-                ["lucide-image"] = "rbxassetid://10723415040",
-                ["lucide-image-minus"] = "rbxassetid://10723414487",
-                ["lucide-image-off"] = "rbxassetid://10723414677",
-                ["lucide-image-plus"] = "rbxassetid://10723414827",
-                ["lucide-import"] = "rbxassetid://10723415205",
-                ["lucide-inbox"] = "rbxassetid://10723415335",
-                ["lucide-indent"] = "rbxassetid://10723415494",
-                ["lucide-indian-rupee"] = "rbxassetid://10723415642",
-                ["lucide-infinity"] = "rbxassetid://10723415766",
-                ["lucide-info"] = "rbxassetid://10723415903",
-                ["lucide-inspect"] = "rbxassetid://10723416057",
-                ["lucide-italic"] = "rbxassetid://10723416195",
-                ["lucide-japanese-yen"] = "rbxassetid://10723416363",
-                ["lucide-joystick"] = "rbxassetid://10723416527",
-                ["lucide-key"] = "rbxassetid://10723416652",
-                ["lucide-keyboard"] = "rbxassetid://10723416765",
-                ["lucide-lamp"] = "rbxassetid://10723417513",
-                ["lucide-lamp-ceiling"] = "rbxassetid://10723416922",
-                ["lucide-lamp-desk"] = "rbxassetid://10723417016",
-                ["lucide-lamp-floor"] = "rbxassetid://10723417131",
-                ["lucide-lamp-wall-down"] = "rbxassetid://10723417240",
-                ["lucide-lamp-wall-up"] = "rbxassetid://10723417356",
-                ["lucide-landmark"] = "rbxassetid://10723417608",
-                ["lucide-languages"] = "rbxassetid://10723417703",
-                ["lucide-laptop"] = "rbxassetid://10723423881",
-                ["lucide-laptop-2"] = "rbxassetid://10723417797",
-                ["lucide-lasso"] = "rbxassetid://10723424235",
-                ["lucide-lasso-select"] = "rbxassetid://10723424058",
-                ["lucide-laugh"] = "rbxassetid://10723424372",
-                ["lucide-layers"] = "rbxassetid://10723424505",
-                ["lucide-layout"] = "rbxassetid://10723425376",
-                ["lucide-layout-dashboard"] = "rbxassetid://10723424646",
-                ["lucide-layout-grid"] = "rbxassetid://10723424838",
-                ["lucide-layout-list"] = "rbxassetid://10723424963",
-                ["lucide-layout-template"] = "rbxassetid://10723425187",
-                ["lucide-leaf"] = "rbxassetid://10723425539",
-                ["lucide-library"] = "rbxassetid://10723425615",
-                ["lucide-life-buoy"] = "rbxassetid://10723425685",
-                ["lucide-lightbulb"] = "rbxassetid://10723425852",
-                ["lucide-lightbulb-off"] = "rbxassetid://10723425762",
-                ["lucide-line-chart"] = "rbxassetid://10723426393",
-                ["lucide-link"] = "rbxassetid://10723426722",
-                ["lucide-link-2"] = "rbxassetid://10723426595",
-                ["lucide-link-2-off"] = "rbxassetid://10723426513",
-                ["lucide-list"] = "rbxassetid://10723433811",
-                ["lucide-list-checks"] = "rbxassetid://10734884548",
-                ["lucide-list-end"] = "rbxassetid://10723426886",
-                ["lucide-list-minus"] = "rbxassetid://10723426986",
-                ["lucide-list-music"] = "rbxassetid://10723427081",
-                ["lucide-list-ordered"] = "rbxassetid://10723427199",
-                ["lucide-list-plus"] = "rbxassetid://10723427334",
-                ["lucide-list-start"] = "rbxassetid://10723427494",
-                ["lucide-list-video"] = "rbxassetid://10723427619",
-                ["lucide-list-x"] = "rbxassetid://10723433655",
-                ["lucide-loader"] = "rbxassetid://10723434070",
-                ["lucide-loader-2"] = "rbxassetid://10723433935",
-                ["lucide-locate"] = "rbxassetid://10723434557",
-                ["lucide-locate-fixed"] = "rbxassetid://10723434236",
-                ["lucide-locate-off"] = "rbxassetid://10723434379",
-                ["lucide-lock"] = "rbxassetid://10723434711",
-                ["lucide-log-in"] = "rbxassetid://10723434830",
-                ["lucide-log-out"] = "rbxassetid://10723434906",
-                ["lucide-luggage"] = "rbxassetid://10723434993",
-                ["lucide-magnet"] = "rbxassetid://10723435069",
-                ["lucide-mail"] = "rbxassetid://10734885430",
-                ["lucide-mail-check"] = "rbxassetid://10723435182",
-                ["lucide-mail-minus"] = "rbxassetid://10723435261",
-                ["lucide-mail-open"] = "rbxassetid://10723435342",
-                ["lucide-mail-plus"] = "rbxassetid://10723435443",
-                ["lucide-mail-question"] = "rbxassetid://10723435515",
-                ["lucide-mail-search"] = "rbxassetid://10734884739",
-                ["lucide-mail-warning"] = "rbxassetid://10734885015",
-                ["lucide-mail-x"] = "rbxassetid://10734885247",
-                ["lucide-mails"] = "rbxassetid://10734885614",
-                ["lucide-map"] = "rbxassetid://10734886202",
-                ["lucide-map-pin"] = "rbxassetid://10734886004",
-                ["lucide-map-pin-off"] = "rbxassetid://10734885803",
-                ["lucide-maximize"] = "rbxassetid://10734886735",
-                ["lucide-maximize-2"] = "rbxassetid://10734886496",
-                ["lucide-medal"] = "rbxassetid://10734887072",
-                ["lucide-megaphone"] = "rbxassetid://10734887454",
-                ["lucide-megaphone-off"] = "rbxassetid://10734887311",
-                ["lucide-meh"] = "rbxassetid://10734887603",
-                ["lucide-menu"] = "rbxassetid://10734887784",
-                ["lucide-message-circle"] = "rbxassetid://10734888000",
-                ["lucide-message-square"] = "rbxassetid://10734888228",
-                ["lucide-mic"] = "rbxassetid://10734888864",
-                ["lucide-mic-2"] = "rbxassetid://10734888430",
-                ["lucide-mic-off"] = "rbxassetid://10734888646",
-                ["lucide-microscope"] = "rbxassetid://10734889106",
-                ["lucide-microwave"] = "rbxassetid://10734895076",
-                ["lucide-milestone"] = "rbxassetid://10734895310",
-                ["lucide-minimize"] = "rbxassetid://10734895698",
-                ["lucide-minimize-2"] = "rbxassetid://10734895530",
-                ["lucide-minus"] = "rbxassetid://10734896206",
-                ["lucide-minus-circle"] = "rbxassetid://10734895856",
-                ["lucide-minus-square"] = "rbxassetid://10734896029",
-                ["lucide-monitor"] = "rbxassetid://10734896881",
-                ["lucide-monitor-off"] = "rbxassetid://10734896360",
-                ["lucide-monitor-speaker"] = "rbxassetid://10734896512",
-                ["lucide-moon"] = "rbxassetid://10734897102",
-                ["lucide-more-horizontal"] = "rbxassetid://10734897250",
-                ["lucide-more-vertical"] = "rbxassetid://10734897387",
-                ["lucide-mountain"] = "rbxassetid://10734897956",
-                ["lucide-mountain-snow"] = "rbxassetid://10734897665",
-                ["lucide-mouse"] = "rbxassetid://10734898592",
-                ["lucide-mouse-pointer"] = "rbxassetid://10734898476",
-                ["lucide-mouse-pointer-2"] = "rbxassetid://10734898194",
-                ["lucide-mouse-pointer-click"] = "rbxassetid://10734898355",
-                ["lucide-move"] = "rbxassetid://10734900011",
-                ["lucide-move-3d"] = "rbxassetid://10734898756",
-                ["lucide-move-diagonal"] = "rbxassetid://10734899164",
-                ["lucide-move-diagonal-2"] = "rbxassetid://10734898934",
-                ["lucide-move-horizontal"] = "rbxassetid://10734899414",
-                ["lucide-move-vertical"] = "rbxassetid://10734899821",
-                ["lucide-music"] = "rbxassetid://10734905958",
-                ["lucide-music-2"] = "rbxassetid://10734900215",
-                ["lucide-music-3"] = "rbxassetid://10734905665",
-                ["lucide-music-4"] = "rbxassetid://10734905823",
-                ["lucide-navigation"] = "rbxassetid://10734906744",
-                ["lucide-navigation-2"] = "rbxassetid://10734906332",
-                ["lucide-navigation-2-off"] = "rbxassetid://10734906144",
-                ["lucide-navigation-off"] = "rbxassetid://10734906580",
-                ["lucide-network"] = "rbxassetid://10734906975",
-                ["lucide-newspaper"] = "rbxassetid://10734907168",
-                ["lucide-octagon"] = "rbxassetid://10734907361",
-                ["lucide-option"] = "rbxassetid://10734907649",
-                ["lucide-outdent"] = "rbxassetid://10734907933",
-                ["lucide-package"] = "rbxassetid://10734909540",
-                ["lucide-package-2"] = "rbxassetid://10734908151",
-                ["lucide-package-check"] = "rbxassetid://10734908384",
-                ["lucide-package-minus"] = "rbxassetid://10734908626",
-                ["lucide-package-open"] = "rbxassetid://10734908793",
-                ["lucide-package-plus"] = "rbxassetid://10734909016",
-                ["lucide-package-search"] = "rbxassetid://10734909196",
-                ["lucide-package-x"] = "rbxassetid://10734909375",
-                ["lucide-paint-bucket"] = "rbxassetid://10734909847",
-                ["lucide-paintbrush"] = "rbxassetid://10734910187",
-                ["lucide-paintbrush-2"] = "rbxassetid://10734910030",
-                ["lucide-palette"] = "rbxassetid://10734910430",
-                ["lucide-palmtree"] = "rbxassetid://10734910680",
-                ["lucide-paperclip"] = "rbxassetid://10734910927",
-                ["lucide-party-popper"] = "rbxassetid://10734918735",
-                ["lucide-pause"] = "rbxassetid://10734919336",
-                ["lucide-pause-circle"] = "rbxassetid://10735024209",
-                ["lucide-pause-octagon"] = "rbxassetid://10734919143",
-                ["lucide-pen-tool"] = "rbxassetid://10734919503",
-                ["lucide-pencil"] = "rbxassetid://10734919691",
-                ["lucide-percent"] = "rbxassetid://10734919919",
-                ["lucide-person-standing"] = "rbxassetid://10734920149",
-                ["lucide-phone"] = "rbxassetid://10734921524",
-                ["lucide-phone-call"] = "rbxassetid://10734920305",
-                ["lucide-phone-forwarded"] = "rbxassetid://10734920508",
-                ["lucide-phone-incoming"] = "rbxassetid://10734920694",
-                ["lucide-phone-missed"] = "rbxassetid://10734920845",
-                ["lucide-phone-off"] = "rbxassetid://10734921077",
-                ["lucide-phone-outgoing"] = "rbxassetid://10734921288",
-                ["lucide-pie-chart"] = "rbxassetid://10734921727",
-                ["lucide-piggy-bank"] = "rbxassetid://10734921935",
-                ["lucide-pin"] = "rbxassetid://10734922324",
-                ["lucide-pin-off"] = "rbxassetid://10734922180",
-                ["lucide-pipette"] = "rbxassetid://10734922497",
-                ["lucide-pizza"] = "rbxassetid://10734922774",
-                ["lucide-plane"] = "rbxassetid://10734922971",
-                ["lucide-play"] = "rbxassetid://10734923549",
-                ["lucide-play-circle"] = "rbxassetid://10734923214",
-                ["lucide-plus"] = "rbxassetid://10734924532",
-                ["lucide-plus-circle"] = "rbxassetid://10734923868",
-                ["lucide-plus-square"] = "rbxassetid://10734924219",
-                ["lucide-podcast"] = "rbxassetid://10734929553",
-                ["lucide-pointer"] = "rbxassetid://10734929723",
-                ["lucide-pound-sterling"] = "rbxassetid://10734929981",
-                ["lucide-power"] = "rbxassetid://10734930466",
-                ["lucide-power-off"] = "rbxassetid://10734930257",
-                ["lucide-printer"] = "rbxassetid://10734930632",
-                ["lucide-puzzle"] = "rbxassetid://10734930886",
-                ["lucide-quote"] = "rbxassetid://10734931234",
-                ["lucide-radio"] = "rbxassetid://10734931596",
-                ["lucide-radio-receiver"] = "rbxassetid://10734931402",
-                ["lucide-rectangle-horizontal"] = "rbxassetid://10734931777",
-                ["lucide-rectangle-vertical"] = "rbxassetid://10734932081",
-                ["lucide-recycle"] = "rbxassetid://10734932295",
-                ["lucide-redo"] = "rbxassetid://10734932822",
-                ["lucide-redo-2"] = "rbxassetid://10734932586",
-                ["lucide-refresh-ccw"] = "rbxassetid://10734933056",
-                ["lucide-refresh-cw"] = "rbxassetid://10734933222",
-                ["lucide-refrigerator"] = "rbxassetid://10734933465",
-                ["lucide-regex"] = "rbxassetid://10734933655",
-                ["lucide-repeat"] = "rbxassetid://10734933966",
-                ["lucide-repeat-1"] = "rbxassetid://10734933826",
-                ["lucide-reply"] = "rbxassetid://10734934252",
-                ["lucide-reply-all"] = "rbxassetid://10734934132",
-                ["lucide-rewind"] = "rbxassetid://10734934347",
-                ["lucide-rocket"] = "rbxassetid://10734934585",
-                ["lucide-rocking-chair"] = "rbxassetid://10734939942",
-                ["lucide-rotate-3d"] = "rbxassetid://10734940107",
-                ["lucide-rotate-ccw"] = "rbxassetid://10734940376",
-                ["lucide-rotate-cw"] = "rbxassetid://10734940654",
-                ["lucide-rss"] = "rbxassetid://10734940825",
-                ["lucide-ruler"] = "rbxassetid://10734941018",
-                ["lucide-russian-ruble"] = "rbxassetid://10734941199",
-                ["lucide-sailboat"] = "rbxassetid://10734941354",
-                ["lucide-save"] = "rbxassetid://10734941499",
-                ["lucide-scale"] = "rbxassetid://10734941912",
-                ["lucide-scale-3d"] = "rbxassetid://10734941739",
-                ["lucide-scaling"] = "rbxassetid://10734942072",
-                ["lucide-scan"] = "rbxassetid://10734942565",
-                ["lucide-scan-face"] = "rbxassetid://10734942198",
-                ["lucide-scan-line"] = "rbxassetid://10734942351",
-                ["lucide-scissors"] = "rbxassetid://10734942778",
-                ["lucide-screen-share"] = "rbxassetid://10734943193",
-                ["lucide-screen-share-off"] = "rbxassetid://10734942967",
-                ["lucide-scroll"] = "rbxassetid://10734943448",
-                ["lucide-search"] = "rbxassetid://10734943674",
-                ["lucide-send"] = "rbxassetid://10734943902",
-                ["lucide-separator-horizontal"] = "rbxassetid://10734944115",
-                ["lucide-separator-vertical"] = "rbxassetid://10734944326",
-                ["lucide-server"] = "rbxassetid://10734949856",
-                ["lucide-server-cog"] = "rbxassetid://10734944444",
-                ["lucide-server-crash"] = "rbxassetid://10734944554",
-                ["lucide-server-off"] = "rbxassetid://10734944668",
-                ["lucide-settings"] = "rbxassetid://10734950309",
-                ["lucide-settings-2"] = "rbxassetid://10734950020",
-                ["lucide-share"] = "rbxassetid://10734950813",
-                ["lucide-share-2"] = "rbxassetid://10734950553",
-                ["lucide-sheet"] = "rbxassetid://10734951038",
-                ["lucide-shield"] = "rbxassetid://10734951847",
-                ["lucide-shield-alert"] = "rbxassetid://10734951173",
-                ["lucide-shield-check"] = "rbxassetid://10734951367",
-                ["lucide-shield-close"] = "rbxassetid://10734951535",
-                ["lucide-shield-off"] = "rbxassetid://10734951684",
-                ["lucide-shirt"] = "rbxassetid://10734952036",
-                ["lucide-shopping-bag"] = "rbxassetid://10734952273",
-                ["lucide-shopping-cart"] = "rbxassetid://10734952479",
-                ["lucide-shovel"] = "rbxassetid://10734952773",
-                ["lucide-shower-head"] = "rbxassetid://10734952942",
-                ["lucide-shrink"] = "rbxassetid://10734953073",
-                ["lucide-shrub"] = "rbxassetid://10734953241",
-                ["lucide-shuffle"] = "rbxassetid://10734953451",
-                ["lucide-sidebar"] = "rbxassetid://10734954301",
-                ["lucide-sidebar-close"] = "rbxassetid://10734953715",
-                ["lucide-sidebar-open"] = "rbxassetid://10734954000",
-                ["lucide-sigma"] = "rbxassetid://10734954538",
-                ["lucide-signal"] = "rbxassetid://10734961133",
-                ["lucide-signal-high"] = "rbxassetid://10734954807",
-                ["lucide-signal-low"] = "rbxassetid://10734955080",
-                ["lucide-signal-medium"] = "rbxassetid://10734955336",
-                ["lucide-signal-zero"] = "rbxassetid://10734960878",
-                ["lucide-siren"] = "rbxassetid://10734961284",
-                ["lucide-skip-back"] = "rbxassetid://10734961526",
-                ["lucide-skip-forward"] = "rbxassetid://10734961809",
-                ["lucide-skull"] = "rbxassetid://10734962068",
-                ["lucide-slack"] = "rbxassetid://10734962339",
-                ["lucide-slash"] = "rbxassetid://10734962600",
-                ["lucide-slice"] = "rbxassetid://10734963024",
-                ["lucide-sliders"] = "rbxassetid://10734963400",
-                ["lucide-sliders-horizontal"] = "rbxassetid://10734963191",
-                ["lucide-smartphone"] = "rbxassetid://10734963940",
-                ["lucide-smartphone-charging"] = "rbxassetid://10734963671",
-                ["lucide-smile"] = "rbxassetid://10734964441",
-                ["lucide-smile-plus"] = "rbxassetid://10734964188",
-                ["lucide-snowflake"] = "rbxassetid://10734964600",
-                ["lucide-sofa"] = "rbxassetid://10734964852",
-                ["lucide-sort-asc"] = "rbxassetid://10734965115",
-                ["lucide-sort-desc"] = "rbxassetid://10734965287",
-                ["lucide-speaker"] = "rbxassetid://10734965419",
-                ["lucide-sprout"] = "rbxassetid://10734965572",
-                ["lucide-square"] = "rbxassetid://10734965702",
-                ["lucide-star"] = "rbxassetid://10734966248",
-                ["lucide-star-half"] = "rbxassetid://10734965897",
-                ["lucide-star-off"] = "rbxassetid://10734966097",
-                ["lucide-stethoscope"] = "rbxassetid://10734966384",
-                ["lucide-sticker"] = "rbxassetid://10734972234",
-                ["lucide-sticky-note"] = "rbxassetid://10734972463",
-                ["lucide-stop-circle"] = "rbxassetid://10734972621",
-                ["lucide-stretch-horizontal"] = "rbxassetid://10734972862",
-                ["lucide-stretch-vertical"] = "rbxassetid://10734973130",
-                ["lucide-strikethrough"] = "rbxassetid://10734973290",
-                ["lucide-subscript"] = "rbxassetid://10734973457",
-                ["lucide-sun"] = "rbxassetid://10734974297",
-                ["lucide-sun-dim"] = "rbxassetid://10734973645",
-                ["lucide-sun-medium"] = "rbxassetid://10734973778",
-                ["lucide-sun-moon"] = "rbxassetid://10734973999",
-                ["lucide-sun-snow"] = "rbxassetid://10734974130",
-                ["lucide-sunrise"] = "rbxassetid://10734974522",
-                ["lucide-sunset"] = "rbxassetid://10734974689",
-                ["lucide-superscript"] = "rbxassetid://10734974850",
-                ["lucide-swiss-franc"] = "rbxassetid://10734975024",
-                ["lucide-switch-camera"] = "rbxassetid://10734975214",
-                ["lucide-sword"] = "rbxassetid://10734975486",
-                ["lucide-swords"] = "rbxassetid://10734975692",
-                ["lucide-syringe"] = "rbxassetid://10734975932",
-                ["lucide-table"] = "rbxassetid://10734976230",
-                ["lucide-table-2"] = "rbxassetid://10734976097",
-                ["lucide-tablet"] = "rbxassetid://10734976394",
-                ["lucide-tag"] = "rbxassetid://10734976528",
-                ["lucide-tags"] = "rbxassetid://10734976739",
-                ["lucide-target"] = "rbxassetid://10734977012",
-                ["lucide-tent"] = "rbxassetid://10734981750",
-                ["lucide-terminal"] = "rbxassetid://10734982144",
-                ["lucide-terminal-square"] = "rbxassetid://10734981995",
-                ["lucide-text-cursor"] = "rbxassetid://10734982395",
-                ["lucide-text-cursor-input"] = "rbxassetid://10734982297",
-                ["lucide-thermometer"] = "rbxassetid://10734983134",
-                ["lucide-thermometer-snowflake"] = "rbxassetid://10734982571",
-                ["lucide-thermometer-sun"] = "rbxassetid://10734982771",
-                ["lucide-thumbs-down"] = "rbxassetid://10734983359",
-                ["lucide-thumbs-up"] = "rbxassetid://10734983629",
-                ["lucide-ticket"] = "rbxassetid://10734983868",
-                ["lucide-timer"] = "rbxassetid://10734984606",
-                ["lucide-timer-off"] = "rbxassetid://10734984138",
-                ["lucide-timer-reset"] = "rbxassetid://10734984355",
-                ["lucide-toggle-left"] = "rbxassetid://10734984834",
-                ["lucide-toggle-right"] = "rbxassetid://10734985040",
-                ["lucide-tornado"] = "rbxassetid://10734985247",
-                ["lucide-toy-brick"] = "rbxassetid://10747361919",
-                ["lucide-train"] = "rbxassetid://10747362105",
-                ["lucide-trash"] = "rbxassetid://10747362393",
-                ["lucide-trash-2"] = "rbxassetid://10747362241",
-                ["lucide-tree-deciduous"] = "rbxassetid://10747362534",
-                ["lucide-tree-pine"] = "rbxassetid://10747362748",
-                ["lucide-trees"] = "rbxassetid://10747363016",
-                ["lucide-trending-down"] = "rbxassetid://10747363205",
-                ["lucide-trending-up"] = "rbxassetid://10747363465",
-                ["lucide-triangle"] = "rbxassetid://10747363621",
-                ["lucide-trophy"] = "rbxassetid://10747363809",
-                ["lucide-truck"] = "rbxassetid://10747364031",
-                ["lucide-tv"] = "rbxassetid://10747364593",
-                ["lucide-tv-2"] = "rbxassetid://10747364302",
-                ["lucide-type"] = "rbxassetid://10747364761",
-                ["lucide-umbrella"] = "rbxassetid://10747364971",
-                ["lucide-underline"] = "rbxassetid://10747365191",
-                ["lucide-undo"] = "rbxassetid://10747365484",
-                ["lucide-undo-2"] = "rbxassetid://10747365359",
-                ["lucide-unlink"] = "rbxassetid://10747365771",
-                ["lucide-unlink-2"] = "rbxassetid://10747397871",
-                ["lucide-unlock"] = "rbxassetid://10747366027",
-                ["lucide-upload"] = "rbxassetid://10747366434",
-                ["lucide-upload-cloud"] = "rbxassetid://10747366266",
-                ["lucide-usb"] = "rbxassetid://10747366606",
-                ["lucide-user"] = "rbxassetid://10747373176",
-                ["lucide-user-check"] = "rbxassetid://10747371901",
-                ["lucide-user-cog"] = "rbxassetid://10747372167",
-                ["lucide-user-minus"] = "rbxassetid://10747372346",
-                ["lucide-user-plus"] = "rbxassetid://10747372702",
-                ["lucide-user-x"] = "rbxassetid://10747372992",
-                ["lucide-users"] = "rbxassetid://10747373426",
-                ["lucide-utensils"] = "rbxassetid://10747373821",
-                ["lucide-utensils-crossed"] = "rbxassetid://10747373629",
-                ["lucide-venetian-mask"] = "rbxassetid://10747374003",
-                ["lucide-verified"] = "rbxassetid://10747374131",
-                ["lucide-vibrate"] = "rbxassetid://10747374489",
-                ["lucide-vibrate-off"] = "rbxassetid://10747374269",
-                ["lucide-video"] = "rbxassetid://10747374938",
-                ["lucide-video-off"] = "rbxassetid://10747374721",
-                ["lucide-view"] = "rbxassetid://10747375132",
-                ["lucide-voicemail"] = "rbxassetid://10747375281",
-                ["lucide-volume"] = "rbxassetid://10747376008",
-                ["lucide-volume-1"] = "rbxassetid://10747375450",
-                ["lucide-volume-2"] = "rbxassetid://10747375679",
-                ["lucide-volume-x"] = "rbxassetid://10747375880",
-                ["lucide-wallet"] = "rbxassetid://10747376205",
-                ["lucide-wand"] = "rbxassetid://10747376565",
-                ["lucide-wand-2"] = "rbxassetid://10747376349",
-                ["lucide-watch"] = "rbxassetid://10747376722",
-                ["lucide-waves"] = "rbxassetid://10747376931",
-                ["lucide-webcam"] = "rbxassetid://10747381992",
-                ["lucide-wifi"] = "rbxassetid://10747382504",
-                ["lucide-wifi-off"] = "rbxassetid://10747382268",
-                ["lucide-wind"] = "rbxassetid://10747382750",
-                ["lucide-wrap-text"] = "rbxassetid://10747383065",
-                ["lucide-wrench"] = "rbxassetid://10747383470",
-                ["lucide-x"] = "rbxassetid://10747384394",
-                ["lucide-x-circle"] = "rbxassetid://10747383819",
-                ["lucide-x-octagon"] = "rbxassetid://10747384037",
-                ["lucide-x-square"] = "rbxassetid://10747384217",
-                ["lucide-zoom-in"] = "rbxassetid://10747384552",
-                ["lucide-zoom-out"] = "rbxassetid://10747384679"
-            }
-        }
-    end,
     [30] = function() --[[ Amethyst_Theme ]]
         local aa, ab, ac, ad, ae = b(30)
         local af = {
@@ -10079,12 +9886,13 @@ local aa = {
         local aa, ab, ac, ad, ae = b(47)
         local af = {
             Names = {
-                "AMOLED", "Ash Gray", "Blood Red", "Cyanic", "Amber Glow", "Deep Violet", "Neon Cyber", "Neon Purple", "Royal Blue", "Deep Ocean", "RGB", "Orange", "Charcoal", "Pearl White", "Midnight Blue", "Galaxy Purple", "Cosmic Violet", "Cotton Candy", "Arctic Frost", "Bloomings", "Crimson", "Gold"
+                "AMOLED", "Ash Gray", "Blood Red", "Cyanic", "Amber Glow", "Deep Violet", "Neon Cyber", "Neon Purple", "Royal Blue", "Deep Ocean", "Rose", "Orange", "Charcoal", "Pearl White", "Midnight Blue", "Galaxy Purple", "Cosmic Violet", "Cotton Candy", "Arctic Frost", "Bloomings", "Crimson", "Gold"
             }
         }
         for ag, ah in next, ab:GetChildren() do
             local aj = ac(ah)
             af[aj.Name] = aj
+            aj.Tier = "NativeTheme"
             if aj.Accent and not aj.ThemeAccentColors then
                 aj.ThemeAccentColors = { aj.Accent }
             end
@@ -10092,251 +9900,1502 @@ local aa = {
             if aj.BackgroundTransparency == nil then aj.BackgroundTransparency = 0 end
         end
 
-        if af["Blood Red"] then
-            af["Blood Red"].Background = "rbxassetid://121343473918667"
-            af["Blood Red"].BackgroundTransparency = 0.15
-            af["Blood Red"].ThemeAccentColors = { Color3.fromRGB(180, 10, 20) }
-        end
-
-        af["AMOLED"] = {
-            Name="AMOLED", Accent=Color3.fromRGB(255,255,255),
-            AcrylicMain=Color3.fromRGB(0,0,0), AcrylicBorder=Color3.fromRGB(20,20,20),
-            AcrylicGradient=ColorSequence.new(Color3.fromRGB(0,0,0),Color3.fromRGB(0,0,0)),
-            AcrylicNoise=1, TitleBarLine=Color3.fromRGB(22,22,22),
-            Tab=Color3.fromRGB(28,28,28), Element=Color3.fromRGB(10,10,10),
-            ElementBorder=Color3.fromRGB(0,0,0), InElementBorder=Color3.fromRGB(30,30,30),
-            ElementTransparency=0.96, ToggleSlider=Color3.fromRGB(30,30,30),
-            ToggleToggled=Color3.fromRGB(255,255,255), SliderRail=Color3.fromRGB(30,30,30),
-            CheckboxUnchecked=Color3.fromRGB(30,30,30), CheckboxChecked=Color3.fromRGB(255,255,255),
-            CheckboxCheck=Color3.fromRGB(255,255,255), ProgressBarRail=Color3.fromRGB(30,30,30), ProgressBarFill=Color3.fromRGB(255,255,255),
-            DropdownFrame=Color3.fromRGB(18,18,18), DropdownHolder=Color3.fromRGB(0,0,0),
-            DropdownBorder=Color3.fromRGB(0,0,0), DropdownOption=Color3.fromRGB(22,22,22),
-            Keybind=Color3.fromRGB(22,22,22), Input=Color3.fromRGB(12,12,12),
-            InputFocused=Color3.fromRGB(0,0,0), InputIndicator=Color3.fromRGB(45,45,45),
-            InputIndicatorFocus=Color3.fromRGB(255,255,255), Dialog=Color3.fromRGB(0,0,0),
-            DialogHolder=Color3.fromRGB(0,0,0), DialogHolderLine=Color3.fromRGB(18,18,18),
-            DialogButton=Color3.fromRGB(10,10,10), DialogButtonBorder=Color3.fromRGB(28,28,28),
-            DialogBorder=Color3.fromRGB(22,22,22), DialogInput=Color3.fromRGB(10,10,10),
-            DialogInputLine=Color3.fromRGB(45,45,45), Text=Color3.fromRGB(255,255,255),
-            SubText=Color3.fromRGB(150,150,150), Hover=Color3.fromRGB(22,22,22),
-            HoverChange=0.03, ShineEnabled=false,
-            Shine={Speed=0,RotationSpeed=0,ColorSequence=ColorSequence.new(Color3.fromRGB(0,0,0),Color3.fromRGB(0,0,0))},
-            StrokeShine=false, StrokeDark=Color3.fromRGB(18,18,18),
-            ButtonGradient={Background=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(10,10,10)),ColorSequenceKeypoint.new(1,Color3.fromRGB(0,0,0))}),Stroke=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(30,30,30)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(60,60,60)),ColorSequenceKeypoint.new(1,Color3.fromRGB(30,30,30))})},
-            Background="rbxassetid://134736124666311", BackgroundTransparency=0, ThemeAccentColors={Color3.fromRGB(255,255,255)},
+        return af
+    end,
+    [48] = function() --[[ Amethyst ]]
+        b(48)
+        return {
+            Name = "Deep Violet",
+            Accent = Color3.fromRGB(97, 62, 167),
+            AcrylicMain = Color3.fromRGB(20, 20, 20),
+            AcrylicBorder = Color3.fromRGB(110, 90, 130),
+            AcrylicGradient = ColorSequence.new(Color3.fromRGB(85, 57, 139), Color3.fromRGB(40, 25, 65)),
+            AcrylicNoise = 0.92,
+            TitleBarLine = Color3.fromRGB(95, 75, 110),
+            Tab = Color3.fromRGB(160, 140, 180),
+            Element = Color3.fromRGB(140, 120, 160),
+            ElementBorder = Color3.fromRGB(60, 50, 70),
+            InElementBorder = Color3.fromRGB(100, 90, 110),
+            ElementTransparency = 0.87,
+            ToggleSlider = Color3.fromRGB(140, 120, 160),
+            ToggleToggled = Color3.fromRGB(0, 0, 0),
+            SliderRail = Color3.fromRGB(140, 120, 160),
+            CheckboxUnchecked = Color3.fromRGB(140, 120, 160),
+            CheckboxChecked = Color3.fromRGB(97, 62, 167),
+            CheckboxCheck = Color3.fromRGB(0, 0, 0),
+            ProgressBarRail = Color3.fromRGB(140, 120, 160),
+            ProgressBarFill = Color3.fromRGB(97, 62, 167),
+            DropdownFrame = Color3.fromRGB(170, 160, 200),
+            DropdownHolder = Color3.fromRGB(60, 45, 80),
+            DropdownBorder = Color3.fromRGB(50, 40, 65),
+            DropdownOption = Color3.fromRGB(140, 120, 160),
+            Keybind = Color3.fromRGB(140, 120, 160),
+            Input = Color3.fromRGB(140, 120, 160),
+            InputFocused = Color3.fromRGB(20, 10, 30),
+            InputIndicator = Color3.fromRGB(170, 150, 190),
+            Dialog = Color3.fromRGB(60, 45, 80),
+            DialogHolder = Color3.fromRGB(45, 30, 65),
+            DialogHolderLine = Color3.fromRGB(40, 25, 60),
+            DialogButton = Color3.fromRGB(60, 45, 80),
+            DialogButtonBorder = Color3.fromRGB(95, 80, 110),
+            DialogBorder = Color3.fromRGB(85, 70, 100),
+            DialogInput = Color3.fromRGB(70, 55, 85),
+            DialogInputLine = Color3.fromRGB(175, 160, 190),
+            Text = Color3.fromRGB(240, 240, 240),
+            SubText = Color3.fromRGB(170, 170, 170),
+            Hover = Color3.fromRGB(140, 120, 160),
+            HoverChange = 0.04,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 0.5,
+                RotationSpeed = 25,
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 25, 65)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(160, 120, 220)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 25, 65))
+                    }
+                ),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(110, 90, 130),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 25, 65)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(160, 120, 220))
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 25, 65)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(160, 120, 220)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 25, 65))
+                    }
+                ),
+            },
+            Background = "rbxassetid://136310484943077",
+            BackgroundTransparency = 0.15,
         }
-
-        af["RGB"] = {
-            Name="RGB", Accent=Color3.fromRGB(0,255,180),
-            AcrylicMain=Color3.fromRGB(8,8,14), AcrylicBorder=Color3.fromRGB(0,255,180),
-            AcrylicGradient=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(20,0,40)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(0,20,50)),ColorSequenceKeypoint.new(1,Color3.fromRGB(30,0,30))}),
-            AcrylicNoise=0.95, TitleBarLine=Color3.fromRGB(0,200,140),
-            Tab=Color3.fromRGB(0,200,160), Element=Color3.fromRGB(20,20,35),
-            ElementBorder=Color3.fromRGB(5,5,12), InElementBorder=Color3.fromRGB(0,200,160),
-            ElementTransparency=0.88, ToggleSlider=Color3.fromRGB(0,180,140),
-            ToggleToggled=Color3.fromRGB(0,0,0), SliderRail=Color3.fromRGB(0,200,160),
-            CheckboxUnchecked=Color3.fromRGB(0,200,160), CheckboxChecked=Color3.fromRGB(0,255,180),
-            CheckboxCheck=Color3.fromRGB(0,0,0), ProgressBarRail=Color3.fromRGB(0,200,160), ProgressBarFill=Color3.fromRGB(0,255,180),
-            DropdownFrame=Color3.fromRGB(0,200,160), DropdownHolder=Color3.fromRGB(8,8,20),
-            DropdownBorder=Color3.fromRGB(0,200,160), DropdownOption=Color3.fromRGB(0,200,160),
-            Keybind=Color3.fromRGB(0,200,160), Input=Color3.fromRGB(20,20,40),
-            InputFocused=Color3.fromRGB(5,5,12), InputIndicator=Color3.fromRGB(0,180,140),
-            InputIndicatorFocus=Color3.fromRGB(0,255,200), Dialog=Color3.fromRGB(8,8,20),
-            DialogHolder=Color3.fromRGB(5,5,15), DialogHolderLine=Color3.fromRGB(0,200,160),
-            DialogButton=Color3.fromRGB(10,10,22), DialogButtonBorder=Color3.fromRGB(0,200,160),
-            DialogBorder=Color3.fromRGB(0,200,160), DialogInput=Color3.fromRGB(15,15,30),
-            DialogInputLine=Color3.fromRGB(0,200,160), Text=Color3.fromRGB(220,255,245),
-            SubText=Color3.fromRGB(100,220,190), Hover=Color3.fromRGB(0,50,40),
-            HoverChange=0.05, ShineEnabled=true,
-            Shine={Speed=1.2,RotationSpeed=40,ColorSequence=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(0,255,180)),ColorSequenceKeypoint.new(0.33,Color3.fromRGB(120,0,255)),ColorSequenceKeypoint.new(0.66,Color3.fromRGB(255,0,150)),ColorSequenceKeypoint.new(1,Color3.fromRGB(0,255,180))})},
-            StrokeShine=true, StrokeDark=Color3.fromRGB(0,180,140),
-            ButtonGradient={Background=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(0,40,30)),ColorSequenceKeypoint.new(1,Color3.fromRGB(0,20,15))}),Stroke=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(0,255,180)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(120,0,255)),ColorSequenceKeypoint.new(1,Color3.fromRGB(0,255,180))})},
-            Background=nil, BackgroundTransparency=0, IsRGB=true,
-            ThemeAccentColors={Color3.fromRGB(0,255,180),Color3.fromRGB(120,0,255),Color3.fromRGB(255,0,150)},
+    end,
+    [49] = function() --[[ Dark ]]
+        b(49)
+        return {
+            Name = "Ash Gray",
+            Accent = Color3.fromRGB(150, 150, 150),
+            AcrylicMain = Color3.fromRGB(60, 60, 60),
+            AcrylicBorder = Color3.fromRGB(90, 90, 90),
+            AcrylicGradient = ColorSequence.new(Color3.fromRGB(75, 75, 75), Color3.fromRGB(35, 35, 35)),
+            AcrylicNoise = 0.9,
+            TitleBarLine = Color3.fromRGB(75, 75, 75),
+            Tab = Color3.fromRGB(120, 120, 120),
+            Element = Color3.fromRGB(120, 120, 120),
+            ElementBorder = Color3.fromRGB(35, 35, 35),
+            InElementBorder = Color3.fromRGB(90, 90, 90),
+            ElementTransparency = 0.87,
+            ToggleSlider = Color3.fromRGB(120, 120, 120),
+            ToggleToggled = Color3.fromRGB(0, 0, 0),
+            SliderRail = Color3.fromRGB(120, 120, 120),
+            CheckboxUnchecked = Color3.fromRGB(120, 120, 120),
+            CheckboxChecked = Color3.fromRGB(150, 150, 150),
+            CheckboxCheck = Color3.fromRGB(0, 0, 0),
+            ProgressBarRail = Color3.fromRGB(120, 120, 120),
+            ProgressBarFill = Color3.fromRGB(150, 150, 150),
+            DropdownFrame = Color3.fromRGB(160, 160, 160),
+            DropdownHolder = Color3.fromRGB(45, 45, 45),
+            DropdownBorder = Color3.fromRGB(35, 35, 35),
+            DropdownOption = Color3.fromRGB(120, 120, 120),
+            Keybind = Color3.fromRGB(120, 120, 120),
+            Input = Color3.fromRGB(160, 160, 160),
+            InputFocused = Color3.fromRGB(10, 10, 10),
+            InputIndicator = Color3.fromRGB(150, 150, 150),
+            Dialog = Color3.fromRGB(45, 45, 45),
+            DialogHolder = Color3.fromRGB(35, 35, 35),
+            DialogHolderLine = Color3.fromRGB(30, 30, 30),
+            DialogButton = Color3.fromRGB(45, 45, 45),
+            DialogButtonBorder = Color3.fromRGB(80, 80, 80),
+            DialogBorder = Color3.fromRGB(70, 70, 70),
+            DialogInput = Color3.fromRGB(55, 55, 55),
+            DialogInputLine = Color3.fromRGB(160, 160, 160),
+            Text = Color3.fromRGB(240, 240, 240),
+            SubText = Color3.fromRGB(170, 170, 170),
+            Hover = Color3.fromRGB(120, 120, 120),
+            HoverChange = 0.07,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 0.4,
+                RotationSpeed = 20,
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 40, 40)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(105, 105, 105)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 40))
+                    }
+                ),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(90, 90, 90),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 60, 60)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 30, 30))
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 60, 60)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(120, 120, 120)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 60, 60))
+                    }
+                ),
+            },
+            ViewportBackground = Color3.fromRGB(15, 15, 20),
+            ViewportBackgroundImages = true,
+            DropdownOutsideWindowBackground = Color3.fromRGB(35, 35, 35),
+            DropdownOutsideWindowBackgroundImages = true,
+            ElementBorderThickness = 1,
+            DropdownBorderThickness = 1,
+            DiscordJoinButton = Color3.fromRGB(88, 101, 242),
+            WarningNotifyColor = Color3.fromRGB(255, 185, 30),
+            SuccessNotifyColor = Color3.fromRGB(50, 205, 80),
+            ErrorNotifyColor = Color3.fromRGB(220, 55, 55),
+            InfoNotifyColor = Color3.fromRGB(76, 194, 255),
         }
-
-        af["Neon Cyber"] = {
-            Name="Neon Cyber", Accent=Color3.fromRGB(57,255,20),
-            AcrylicMain=Color3.fromRGB(5,10,5), AcrylicBorder=Color3.fromRGB(40,200,20),
-            AcrylicGradient=ColorSequence.new(Color3.fromRGB(10,25,10),Color3.fromRGB(3,8,3)),
-            AcrylicNoise=0.93, TitleBarLine=Color3.fromRGB(35,160,15),
-            Tab=Color3.fromRGB(57,255,20), Element=Color3.fromRGB(10,22,10),
-            ElementBorder=Color3.fromRGB(3,8,3), InElementBorder=Color3.fromRGB(35,160,15),
-            ElementTransparency=0.88, ToggleSlider=Color3.fromRGB(57,255,20),
-            ToggleToggled=Color3.fromRGB(0,0,0), SliderRail=Color3.fromRGB(57,255,20),
-            CheckboxUnchecked=Color3.fromRGB(57,255,20), CheckboxChecked=Color3.fromRGB(57,255,20),
-            CheckboxCheck=Color3.fromRGB(0,0,0), ProgressBarRail=Color3.fromRGB(57,255,20), ProgressBarFill=Color3.fromRGB(57,255,20),
-            DropdownFrame=Color3.fromRGB(35,160,15), DropdownHolder=Color3.fromRGB(5,12,5),
-            DropdownBorder=Color3.fromRGB(35,160,15), DropdownOption=Color3.fromRGB(57,255,20),
-            Keybind=Color3.fromRGB(40,200,18), Input=Color3.fromRGB(10,22,10),
-            InputFocused=Color3.fromRGB(3,7,3), InputIndicator=Color3.fromRGB(57,255,20),
-            InputIndicatorFocus=Color3.fromRGB(130,255,80), Dialog=Color3.fromRGB(5,12,5),
-            DialogHolder=Color3.fromRGB(3,8,3), DialogHolderLine=Color3.fromRGB(35,160,15),
-            DialogButton=Color3.fromRGB(8,18,8), DialogButtonBorder=Color3.fromRGB(57,255,20),
-            DialogBorder=Color3.fromRGB(40,200,18), DialogInput=Color3.fromRGB(10,22,10),
-            DialogInputLine=Color3.fromRGB(57,255,20), Text=Color3.fromRGB(200,255,190),
-            SubText=Color3.fromRGB(80,200,60), Hover=Color3.fromRGB(15,40,15),
-            HoverChange=0.05, ShineEnabled=true,
-            Shine={Speed=0.8,RotationSpeed=30,ColorSequence=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(5,30,5)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(57,255,20)),ColorSequenceKeypoint.new(1,Color3.fromRGB(5,30,5))})},
-            StrokeShine=true, StrokeDark=Color3.fromRGB(35,160,15),
-            ButtonGradient={Background=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(8,22,8)),ColorSequenceKeypoint.new(1,Color3.fromRGB(3,8,3))}),Stroke=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(35,160,15)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(57,255,20)),ColorSequenceKeypoint.new(1,Color3.fromRGB(35,160,15))})},
-            Background=nil, BackgroundTransparency=0, ThemeAccentColors={Color3.fromRGB(57,255,20)},
+    end,
+    [50] = function() --[[ Darker ]]
+        b(50)
+        return {
+            Name = "Charcoal",
+            Accent = Color3.fromRGB(102, 102, 102),
+            AcrylicMain = Color3.fromRGB(20, 20, 20),
+            AcrylicBorder = Color3.fromRGB(60, 60, 60),
+            AcrylicGradient = ColorSequence.new(Color3.fromRGB(30, 30, 30), Color3.fromRGB(10, 10, 10)),
+            AcrylicNoise = 0.9,
+            TitleBarLine = Color3.fromRGB(70, 70, 70),
+            Tab = Color3.fromRGB(40, 40, 40),
+            Element = Color3.fromRGB(35, 35, 35),
+            ElementBorder = Color3.fromRGB(60, 60, 60),
+            InElementBorder = Color3.fromRGB(45, 45, 45),
+            ElementTransparency = 0.9,
+            ToggleSlider = Color3.fromRGB(90, 160, 255),
+            ToggleToggled = Color3.fromRGB(0, 0, 0),
+            SliderRail = Color3.fromRGB(60, 60, 60),
+            CheckboxUnchecked = Color3.fromRGB(60, 60, 60),
+            CheckboxChecked = Color3.fromRGB(102, 102, 102),
+            CheckboxCheck = Color3.fromRGB(0, 0, 0),
+            ProgressBarRail = Color3.fromRGB(60, 60, 60),
+            ProgressBarFill = Color3.fromRGB(102, 102, 102),
+            DropdownFrame = Color3.fromRGB(30, 30, 30),
+            DropdownHolder = Color3.fromRGB(20, 20, 20),
+            DropdownBorder = Color3.fromRGB(60, 60, 60),
+            DropdownOption = Color3.fromRGB(90, 160, 255),
+            Keybind = Color3.fromRGB(35, 35, 35),
+            Input = Color3.fromRGB(25, 25, 25),
+            InputFocused = Color3.fromRGB(15, 15, 15),
+            InputIndicator = Color3.fromRGB(120, 180, 255),
+            Dialog = Color3.fromRGB(25, 25, 25),
+            DialogHolder = Color3.fromRGB(20, 20, 20),
+            DialogHolderLine = Color3.fromRGB(15, 15, 15),
+            DialogButton = Color3.fromRGB(25, 25, 25),
+            DialogButtonBorder = Color3.fromRGB(60, 60, 60),
+            DialogBorder = Color3.fromRGB(60, 60, 60),
+            DialogInput = Color3.fromRGB(30, 30, 30),
+            DialogInputLine = Color3.fromRGB(120, 180, 255),
+            Text = Color3.fromRGB(240, 240, 240),
+            SubText = Color3.fromRGB(170, 170, 170),
+            Hover = Color3.fromRGB(90, 160, 255),
+            HoverChange = 0.05,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 0.45,
+                RotationSpeed = 25,
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(180, 180, 180)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 20))
+                    }
+                ),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(60, 60, 60),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(175, 175, 175))
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(180, 180, 180)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 20))
+                    }
+                ),
+            },
         }
-
-        af["Arctic Frost"] = {
-            Name="Arctic Frost", Accent=Color3.fromRGB(100,180,240),
-            AcrylicMain=Color3.fromRGB(185,215,235), AcrylicBorder=Color3.fromRGB(200,228,248),
-            AcrylicGradient=ColorSequence.new(Color3.fromRGB(235,248,255),Color3.fromRGB(210,235,250)),
-            AcrylicNoise=0.97, TitleBarLine=Color3.fromRGB(180,215,240),
-            Tab=Color3.fromRGB(90,150,200), Element=Color3.fromRGB(210,235,250),
-            ElementBorder=Color3.fromRGB(170,200,225), InElementBorder=Color3.fromRGB(140,185,218),
-            ElementTransparency=0.65, ToggleSlider=Color3.fromRGB(120,175,215),
-            ToggleToggled=Color3.fromRGB(30,70,120), SliderRail=Color3.fromRGB(150,200,235),
-            CheckboxUnchecked=Color3.fromRGB(150,200,235), CheckboxChecked=Color3.fromRGB(100,180,240),
-            CheckboxCheck=Color3.fromRGB(30,70,120), ProgressBarRail=Color3.fromRGB(150,200,235), ProgressBarFill=Color3.fromRGB(100,180,240),
-            DropdownFrame=Color3.fromRGB(190,225,248), DropdownHolder=Color3.fromRGB(225,242,255),
-            DropdownBorder=Color3.fromRGB(170,210,238), DropdownOption=Color3.fromRGB(130,180,220),
-            Keybind=Color3.fromRGB(150,200,235), Input=Color3.fromRGB(200,230,248),
-            InputFocused=Color3.fromRGB(100,150,190), InputIndicator=Color3.fromRGB(160,210,240),
-            InputIndicatorFocus=Color3.fromRGB(60,140,220), Dialog=Color3.fromRGB(220,240,255),
-            DialogHolder=Color3.fromRGB(235,248,255), DialogHolderLine=Color3.fromRGB(200,228,248),
-            DialogButton=Color3.fromRGB(225,242,255), DialogButtonBorder=Color3.fromRGB(170,210,238),
-            DialogBorder=Color3.fromRGB(180,215,240), DialogInput=Color3.fromRGB(200,230,248),
-            DialogInputLine=Color3.fromRGB(150,200,235), Text=Color3.fromRGB(20,40,70),
-            SubText=Color3.fromRGB(65,105,148), Hover=Color3.fromRGB(170,210,238),
-            HoverChange=0.04, ShineEnabled=true,
-            Shine={Speed=0.3,RotationSpeed=15,ColorSequence=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(200,235,255)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(255,255,255)),ColorSequenceKeypoint.new(1,Color3.fromRGB(200,235,255))})},
-            StrokeShine=true, StrokeDark=Color3.fromRGB(170,210,238),
-            ButtonGradient={Background=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(190,225,248)),ColorSequenceKeypoint.new(1,Color3.fromRGB(220,240,255))}),Stroke=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(150,200,235)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(200,235,255)),ColorSequenceKeypoint.new(1,Color3.fromRGB(150,200,235))})},
-            Background=nil, BackgroundTransparency=0, ThemeAccentColors={Color3.fromRGB(100,180,240)},
+    end,
+    [51] = function() --[[ Light ]]
+        b(51)
+        return {
+            Name = "Pearl White",
+            Accent = Color3.fromRGB(214, 214, 214),
+            AcrylicMain = Color3.fromRGB(240, 240, 240),
+            AcrylicBorder = Color3.fromRGB(200, 200, 200),
+            AcrylicGradient = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(220, 220, 220)),
+            AcrylicNoise = 0.9,
+            TitleBarLine = Color3.fromRGB(200, 200, 200),
+            Tab = Color3.fromRGB(230, 230, 230),
+            Element = Color3.fromRGB(220, 220, 220),
+            ElementBorder = Color3.fromRGB(200, 200, 200),
+            InElementBorder = Color3.fromRGB(210, 210, 210),
+            ElementTransparency = 0.9,
+            ToggleSlider = Color3.fromRGB(60, 160, 255),
+            ToggleToggled = Color3.fromRGB(255, 255, 255),
+            SliderRail = Color3.fromRGB(200, 200, 200),
+            CheckboxUnchecked = Color3.fromRGB(200, 200, 200),
+            CheckboxChecked = Color3.fromRGB(214, 214, 214),
+            CheckboxCheck = Color3.fromRGB(255, 255, 255),
+            ProgressBarRail = Color3.fromRGB(200, 200, 200),
+            ProgressBarFill = Color3.fromRGB(214, 214, 214),
+            DropdownFrame = Color3.fromRGB(230, 230, 230),
+            DropdownHolder = Color3.fromRGB(220, 220, 220),
+            DropdownBorder = Color3.fromRGB(200, 200, 200),
+            DropdownOption = Color3.fromRGB(60, 160, 255),
+            Keybind = Color3.fromRGB(220, 220, 220),
+            Input = Color3.fromRGB(230, 230, 230),
+            InputFocused = Color3.fromRGB(210, 210, 210),
+            InputIndicator = Color3.fromRGB(60, 160, 255),
+            Dialog = Color3.fromRGB(230, 230, 230),
+            DialogHolder = Color3.fromRGB(220, 220, 220),
+            DialogHolderLine = Color3.fromRGB(210, 210, 210),
+            DialogButton = Color3.fromRGB(230, 230, 230),
+            DialogButtonBorder = Color3.fromRGB(200, 200, 200),
+            DialogBorder = Color3.fromRGB(200, 200, 200),
+            DialogInput = Color3.fromRGB(240, 240, 240),
+            DialogInputLine = Color3.fromRGB(60, 160, 255),
+            Text = Color3.fromRGB(20, 20, 20),
+            SubText = Color3.fromRGB(90, 90, 90),
+            Hover = Color3.fromRGB(60, 160, 255),
+            HoverChange = 0.05,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 0.4,
+                RotationSpeed = 20,
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 200, 200)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 200, 200))
+                    }
+                ),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(200, 200, 200),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(160, 160, 160)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(160, 160, 160))
+                    }
+                ),
+            },
         }
-
-        af["Cotton Candy"] = {
-            Name="Cotton Candy", Accent=Color3.fromRGB(255,130,190),
-            AcrylicMain=Color3.fromRGB(255,225,245), AcrylicBorder=Color3.fromRGB(255,190,230),
-            AcrylicGradient=ColorSequence.new(Color3.fromRGB(255,235,250),Color3.fromRGB(235,210,255)),
-            AcrylicNoise=0.96, TitleBarLine=Color3.fromRGB(240,180,225),
-            Tab=Color3.fromRGB(195,130,185), Element=Color3.fromRGB(255,200,235),
-            ElementBorder=Color3.fromRGB(230,165,210), InElementBorder=Color3.fromRGB(235,170,215),
-            ElementTransparency=0.70, ToggleSlider=Color3.fromRGB(215,145,192),
-            ToggleToggled=Color3.fromRGB(90,30,70), SliderRail=Color3.fromRGB(235,170,215),
-            CheckboxUnchecked=Color3.fromRGB(235,170,215), CheckboxChecked=Color3.fromRGB(255,130,190),
-            CheckboxCheck=Color3.fromRGB(90,30,70), ProgressBarRail=Color3.fromRGB(235,170,215), ProgressBarFill=Color3.fromRGB(255,130,190),
-            DropdownFrame=Color3.fromRGB(248,192,230), DropdownHolder=Color3.fromRGB(255,225,248),
-            DropdownBorder=Color3.fromRGB(228,168,213), DropdownOption=Color3.fromRGB(205,140,188),
-            Keybind=Color3.fromRGB(228,168,213), Input=Color3.fromRGB(250,210,238),
-            InputFocused=Color3.fromRGB(195,125,168), InputIndicator=Color3.fromRGB(250,195,232),
-            InputIndicatorFocus=Color3.fromRGB(255,130,190), Dialog=Color3.fromRGB(255,228,248),
-            DialogHolder=Color3.fromRGB(255,238,252), DialogHolderLine=Color3.fromRGB(238,208,235),
-            DialogButton=Color3.fromRGB(255,233,250), DialogButtonBorder=Color3.fromRGB(228,178,218),
-            DialogBorder=Color3.fromRGB(238,188,226), DialogInput=Color3.fromRGB(250,213,240),
-            DialogInputLine=Color3.fromRGB(228,172,215), Text=Color3.fromRGB(75,25,55),
-            SubText=Color3.fromRGB(145,75,115), Hover=Color3.fromRGB(238,182,222),
-            HoverChange=0.04, ShineEnabled=true,
-            Shine={Speed=0.4,RotationSpeed=18,ColorSequence=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(255,180,220)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(220,180,255)),ColorSequenceKeypoint.new(1,Color3.fromRGB(255,180,220))})},
-            StrokeShine=true, StrokeDark=Color3.fromRGB(228,172,213),
-            ButtonGradient={Background=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(250,198,232)),ColorSequenceKeypoint.new(1,Color3.fromRGB(232,182,252))}),Stroke=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(228,172,213)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(250,198,232)),ColorSequenceKeypoint.new(1,Color3.fromRGB(228,172,213))})},
-            Background=nil, BackgroundTransparency=0,
-            ThemeAccentColors={Color3.fromRGB(255,130,190),Color3.fromRGB(175,140,255)},
+    end,
+    [52] = function() --[[ BloodRed ]]
+        b(52)
+        return {
+            Name = "Blood Red",
+            Accent = Color3.fromRGB(180, 10, 20),
+            AcrylicMain = Color3.fromRGB(35, 8, 10),
+            AcrylicBorder = Color3.fromRGB(140, 15, 25),
+            AcrylicGradient = ColorSequence.new(Color3.fromRGB(130, 12, 20), Color3.fromRGB(28, 5, 8)),
+            AcrylicNoise = 0.9,
+            TitleBarLine = Color3.fromRGB(155, 18, 28),
+            Tab = Color3.fromRGB(145, 15, 25),
+            Element = Color3.fromRGB(130, 12, 22),
+            ElementBorder = Color3.fromRGB(85, 8, 14),
+            InElementBorder = Color3.fromRGB(150, 18, 28),
+            ElementTransparency = 0.9,
+            ToggleSlider = Color3.fromRGB(180, 10, 20),
+            ToggleToggled = Color3.fromRGB(255, 230, 230),
+            SliderRail = Color3.fromRGB(145, 15, 25),
+            CheckboxUnchecked = Color3.fromRGB(145, 15, 25),
+            CheckboxChecked = Color3.fromRGB(180, 10, 20),
+            CheckboxCheck = Color3.fromRGB(255, 230, 230),
+            ProgressBarRail = Color3.fromRGB(145, 15, 25),
+            ProgressBarFill = Color3.fromRGB(180, 10, 20),
+            DropdownFrame = Color3.fromRGB(115, 10, 18),
+            DropdownHolder = Color3.fromRGB(28, 5, 8),
+            DropdownBorder = Color3.fromRGB(80, 7, 13),
+            DropdownOption = Color3.fromRGB(180, 10, 20),
+            Keybind = Color3.fromRGB(130, 12, 22),
+            Input = Color3.fromRGB(115, 10, 18),
+            InputFocused = Color3.fromRGB(18, 3, 5),
+            InputIndicator = Color3.fromRGB(220, 50, 70),
+            Dialog = Color3.fromRGB(28, 5, 8),
+            DialogHolder = Color3.fromRGB(18, 3, 5),
+            DialogHolderLine = Color3.fromRGB(12, 2, 3),
+            DialogButton = Color3.fromRGB(28, 5, 8),
+            DialogButtonBorder = Color3.fromRGB(145, 15, 25),
+            DialogBorder = Color3.fromRGB(85, 8, 14),
+            DialogInput = Color3.fromRGB(50, 10, 14),
+            DialogInputLine = Color3.fromRGB(220, 50, 70),
+            Text = Color3.fromRGB(255, 230, 230),
+            SubText = Color3.fromRGB(210, 175, 178),
+            Hover = Color3.fromRGB(180, 10, 20),
+            HoverChange = 0.05,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 0.5,
+                RotationSpeed = 25,
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(71, 0, 0)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(159, 0, 0)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(71, 0, 0))
+                    }
+                ),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(145, 15, 25),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(141, 0, 0)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(71, 0, 0))
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(71, 0, 0)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(159, 0, 0)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(71, 0, 0))
+                    }
+                ),
+            },
+            Background = "rbxassetid://121343473918667",
+            BackgroundTransparency = 0.15,
+            ThemeAccentColors = {Color3.fromRGB(180, 10, 20)},
         }
-
-        af["Orange"] = {
-            Name="Orange", Accent=Color3.fromRGB(255,140,30),
-            AcrylicMain=Color3.fromRGB(4,4,4), AcrylicBorder=Color3.fromRGB(200,90,10),
-            AcrylicGradient=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(30,10,0)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(10,5,0)),ColorSequenceKeypoint.new(1,Color3.fromRGB(0,0,0))}),
-            AcrylicNoise=0.98, TitleBarLine=Color3.fromRGB(180,75,5),
-            Tab=Color3.fromRGB(180,80,10), Element=Color3.fromRGB(22,10,2),
-            ElementBorder=Color3.fromRGB(80,35,5), InElementBorder=Color3.fromRGB(200,90,10),
-            ElementTransparency=0.92, ToggleSlider=Color3.fromRGB(255,140,30),
-            ToggleToggled=Color3.fromRGB(0,0,0), SliderRail=Color3.fromRGB(180,80,10),
-            CheckboxUnchecked=Color3.fromRGB(180,80,10), CheckboxChecked=Color3.fromRGB(255,140,30),
-            CheckboxCheck=Color3.fromRGB(0,0,0), ProgressBarRail=Color3.fromRGB(180,80,10), ProgressBarFill=Color3.fromRGB(255,140,30),
-            DropdownFrame=Color3.fromRGB(160,70,8), DropdownHolder=Color3.fromRGB(4,2,0),
-            DropdownBorder=Color3.fromRGB(200,90,10), DropdownOption=Color3.fromRGB(255,140,30),
-            Keybind=Color3.fromRGB(22,10,2), Input=Color3.fromRGB(18,8,2),
-            InputFocused=Color3.fromRGB(2,1,0), InputIndicator=Color3.fromRGB(255,160,60),
-            InputIndicatorFocus=Color3.fromRGB(255,200,100), Dialog=Color3.fromRGB(6,3,0),
-            DialogHolder=Color3.fromRGB(4,2,0), DialogHolderLine=Color3.fromRGB(180,75,5),
-            DialogButton=Color3.fromRGB(8,4,0), DialogButtonBorder=Color3.fromRGB(180,80,10),
-            DialogBorder=Color3.fromRGB(120,50,5), DialogInput=Color3.fromRGB(18,8,2),
-            DialogInputLine=Color3.fromRGB(255,160,60), Text=Color3.fromRGB(255,240,220),
-            SubText=Color3.fromRGB(220,175,130), Hover=Color3.fromRGB(255,140,30),
-            HoverChange=0.05, ShineEnabled=true,
-            Shine={Speed=0.7,RotationSpeed=30,ColorSequence=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(30,10,0)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(255,140,30)),ColorSequenceKeypoint.new(1,Color3.fromRGB(30,10,0))})},
-            StrokeShine=true, StrokeDark=Color3.fromRGB(180,80,10),
-            ButtonGradient={Background=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(40,18,4)),ColorSequenceKeypoint.new(1,Color3.fromRGB(8,3,0))}),Stroke=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(180,80,10)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(255,140,30)),ColorSequenceKeypoint.new(1,Color3.fromRGB(180,80,10))})},
-            Background="rbxassetid://122033436660262", BackgroundTransparency=0.05,
-            ThemeAccentColors={Color3.fromRGB(255,140,30),Color3.fromRGB(200,90,10)},
+    end,
+    [53] = function() --[[ Neon ]]
+        b(53)
+        return {
+            Name = "Neon Purple",
+            Accent = Color3.fromRGB(180, 0, 255),
+            AcrylicMain = Color3.fromRGB(5, 0, 15),
+            AcrylicBorder = Color3.fromRGB(140, 0, 255),
+            AcrylicGradient = ColorSequence.new(Color3.fromRGB(5, 0, 15), Color3.fromRGB(45, 0, 160)),
+            AcrylicNoise = 0.9,
+            TitleBarLine = Color3.fromRGB(160, 0, 255),
+            Tab = Color3.fromRGB(130, 0, 230),
+            Element = Color3.fromRGB(120, 0, 210),
+            ElementBorder = Color3.fromRGB(50, 0, 100),
+            InElementBorder = Color3.fromRGB(155, 0, 245),
+            ElementTransparency = 0.87,
+            ToggleSlider = Color3.fromRGB(180, 0, 255),
+            ToggleToggled = Color3.fromRGB(15, 0, 40),
+            SliderRail = Color3.fromRGB(130, 0, 230),
+            CheckboxUnchecked = Color3.fromRGB(130, 0, 230),
+            CheckboxChecked = Color3.fromRGB(180, 0, 255),
+            CheckboxCheck = Color3.fromRGB(15, 0, 40),
+            ProgressBarRail = Color3.fromRGB(130, 0, 230),
+            ProgressBarFill = Color3.fromRGB(180, 0, 255),
+            DropdownFrame = Color3.fromRGB(255, 255, 255),
+            DropdownHolder = Color3.fromRGB(10, 0, 30),
+            DropdownBorder = Color3.fromRGB(50, 0, 140),
+            DropdownOption = Color3.fromRGB(180, 0, 255),
+            Keybind = Color3.fromRGB(120, 0, 210),
+            Input = Color3.fromRGB(255, 255, 255),
+            InputFocused = Color3.fromRGB(20, 0, 50),
+            InputIndicator = Color3.fromRGB(200, 0, 255),
+            Dialog = Color3.fromRGB(10, 0, 30),
+            DialogHolder = Color3.fromRGB(5, 0, 20),
+            DialogHolderLine = Color3.fromRGB(3, 0, 12),
+            DialogButton = Color3.fromRGB(10, 0, 30),
+            DialogButtonBorder = Color3.fromRGB(140, 0, 255),
+            DialogBorder = Color3.fromRGB(50, 0, 120),
+            DialogInput = Color3.fromRGB(25, 0, 60),
+            DialogInputLine = Color3.fromRGB(200, 0, 255),
+            Text = Color3.fromRGB(252, 245, 255),
+            SubText = Color3.fromRGB(210, 185, 255),
+            Hover = Color3.fromRGB(150, 0, 255),
+            HoverChange = 0.07,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 0.4,
+                RotationSpeed = 20,
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(32, 5, 137)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(171, 32, 253)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(32, 5, 137))
+                    }
+                ),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(60, 0, 150),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(125, 18, 255)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(32, 5, 137))
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(125, 18, 255)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(171, 32, 253)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(125, 18, 255))
+                    }
+                ),
+            },
         }
-
-        af["Cyanic"] = {
-            Name="Cyanic", Accent=Color3.fromRGB(57,197,187),
-            AcrylicMain=Color3.fromRGB(8,18,22), AcrylicBorder=Color3.fromRGB(40,170,165),
-            AcrylicGradient=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(15,45,55)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(8,25,32)),ColorSequenceKeypoint.new(1,Color3.fromRGB(4,12,16))}),
-            AcrylicNoise=0.92, TitleBarLine=Color3.fromRGB(35,155,150),
-            Tab=Color3.fromRGB(40,165,160), Element=Color3.fromRGB(14,38,46),
-            ElementBorder=Color3.fromRGB(8,22,28), InElementBorder=Color3.fromRGB(40,165,160),
-            ElementTransparency=0.88, ToggleSlider=Color3.fromRGB(57,197,187),
-            ToggleToggled=Color3.fromRGB(0,0,0), SliderRail=Color3.fromRGB(40,165,160),
-            CheckboxUnchecked=Color3.fromRGB(40,165,160), CheckboxChecked=Color3.fromRGB(57,197,187),
-            CheckboxCheck=Color3.fromRGB(0,0,0), ProgressBarRail=Color3.fromRGB(40,165,160), ProgressBarFill=Color3.fromRGB(57,197,187),
-            DropdownFrame=Color3.fromRGB(32,140,135), DropdownHolder=Color3.fromRGB(6,18,22),
-            DropdownBorder=Color3.fromRGB(40,165,160), DropdownOption=Color3.fromRGB(57,197,187),
-            Keybind=Color3.fromRGB(14,38,46), Input=Color3.fromRGB(10,28,35),
-            InputFocused=Color3.fromRGB(4,10,14), InputIndicator=Color3.fromRGB(80,215,205),
-            InputIndicatorFocus=Color3.fromRGB(130,235,228), Dialog=Color3.fromRGB(8,22,28),
-            DialogHolder=Color3.fromRGB(5,14,18), DialogHolderLine=Color3.fromRGB(35,155,150),
-            DialogButton=Color3.fromRGB(10,26,32), DialogButtonBorder=Color3.fromRGB(40,165,160),
-            DialogBorder=Color3.fromRGB(30,120,115), DialogInput=Color3.fromRGB(12,32,40),
-            DialogInputLine=Color3.fromRGB(80,215,205), Text=Color3.fromRGB(210,248,246),
-            SubText=Color3.fromRGB(130,210,205), Hover=Color3.fromRGB(57,197,187),
-            HoverChange=0.05, ShineEnabled=true,
-            Shine={Speed=0.6,RotationSpeed=25,ColorSequence=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(10,40,50)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(57,197,187)),ColorSequenceKeypoint.new(1,Color3.fromRGB(10,40,50))})},
-            StrokeShine=true, StrokeDark=Color3.fromRGB(35,155,150),
-            ButtonGradient={Background=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(18,55,65)),ColorSequenceKeypoint.new(1,Color3.fromRGB(8,22,28))}),Stroke=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(35,155,150)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(57,197,187)),ColorSequenceKeypoint.new(1,Color3.fromRGB(35,155,150))})},
-            Background="rbxassetid://95656189244173", BackgroundTransparency=0.12,
-            ThemeAccentColors={Color3.fromRGB(57,197,187),Color3.fromRGB(35,155,150)},
+    end,
+    [54] = function() --[[ Ocean ]]
+        b(54)
+        return {
+            Name = "Deep Ocean",
+            Accent = Color3.fromRGB(0, 150, 200),
+            AcrylicMain = Color3.fromRGB(15, 30, 45),
+            AcrylicBorder = Color3.fromRGB(0, 100, 150),
+            AcrylicGradient = ColorSequence.new(Color3.fromRGB(0, 80, 120), Color3.fromRGB(10, 25, 40)),
+            AcrylicNoise = 0.9,
+            TitleBarLine = Color3.fromRGB(0, 120, 180),
+            Tab = Color3.fromRGB(0, 100, 150),
+            Element = Color3.fromRGB(0, 90, 135),
+            ElementBorder = Color3.fromRGB(0, 70, 105),
+            InElementBorder = Color3.fromRGB(0, 110, 165),
+            ElementTransparency = 0.87,
+            ToggleSlider = Color3.fromRGB(0, 150, 200),
+            ToggleToggled = Color3.fromRGB(255, 255, 255),
+            SliderRail = Color3.fromRGB(0, 100, 150),
+            CheckboxUnchecked = Color3.fromRGB(0, 100, 150),
+            CheckboxChecked = Color3.fromRGB(0, 150, 200),
+            CheckboxCheck = Color3.fromRGB(255, 255, 255),
+            ProgressBarRail = Color3.fromRGB(0, 100, 150),
+            ProgressBarFill = Color3.fromRGB(0, 150, 200),
+            DropdownFrame = Color3.fromRGB(0, 80, 120),
+            DropdownHolder = Color3.fromRGB(10, 25, 40),
+            DropdownBorder = Color3.fromRGB(0, 70, 105),
+            DropdownOption = Color3.fromRGB(0, 150, 200),
+            Keybind = Color3.fromRGB(0, 90, 135),
+            Input = Color3.fromRGB(0, 80, 120),
+            InputFocused = Color3.fromRGB(5, 20, 35),
+            InputIndicator = Color3.fromRGB(0, 200, 255),
+            Dialog = Color3.fromRGB(10, 25, 40),
+            DialogHolder = Color3.fromRGB(5, 15, 25),
+            DialogHolderLine = Color3.fromRGB(0, 10, 20),
+            DialogButton = Color3.fromRGB(10, 25, 40),
+            DialogButtonBorder = Color3.fromRGB(0, 100, 150),
+            DialogBorder = Color3.fromRGB(0, 70, 105),
+            DialogInput = Color3.fromRGB(15, 35, 55),
+            DialogInputLine = Color3.fromRGB(0, 200, 255),
+            Text = Color3.fromRGB(240, 248, 255),
+            SubText = Color3.fromRGB(180, 210, 230),
+            Hover = Color3.fromRGB(0, 150, 200),
+            HoverChange = 0.05,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 0.5,
+                RotationSpeed = 25,
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 60, 90)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 200, 255)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 60, 90)),
+                    }
+                ),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(0, 100, 150),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 120, 180)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 60, 90)),
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 100, 150)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 200, 255)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 100, 150)),
+                    }
+                ),
+            },
         }
-
-        af["Amber Glow"] = {
-            Name="Amber Glow", Accent=Color3.fromRGB(255,170,40),
-            AcrylicMain=Color3.fromRGB(18,10,4), AcrylicBorder=Color3.fromRGB(200,130,30),
-            AcrylicGradient=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(50,25,5)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(28,14,3)),ColorSequenceKeypoint.new(1,Color3.fromRGB(10,5,1))}),
-            AcrylicNoise=0.9, TitleBarLine=Color3.fromRGB(185,120,25),
-            Tab=Color3.fromRGB(190,125,25), Element=Color3.fromRGB(38,20,5),
-            ElementBorder=Color3.fromRGB(18,10,2), InElementBorder=Color3.fromRGB(200,130,30),
-            ElementTransparency=0.88, ToggleSlider=Color3.fromRGB(255,170,40),
-            ToggleToggled=Color3.fromRGB(0,0,0), SliderRail=Color3.fromRGB(190,125,25),
-            CheckboxUnchecked=Color3.fromRGB(190,125,25), CheckboxChecked=Color3.fromRGB(255,170,40),
-            CheckboxCheck=Color3.fromRGB(0,0,0), ProgressBarRail=Color3.fromRGB(190,125,25), ProgressBarFill=Color3.fromRGB(255,170,40),
-            DropdownFrame=Color3.fromRGB(165,105,20), DropdownHolder=Color3.fromRGB(14,7,2),
-            DropdownBorder=Color3.fromRGB(200,130,30), DropdownOption=Color3.fromRGB(255,170,40),
-            Keybind=Color3.fromRGB(38,20,5), Input=Color3.fromRGB(28,14,3),
-            InputFocused=Color3.fromRGB(8,4,1), InputIndicator=Color3.fromRGB(255,195,80),
-            InputIndicatorFocus=Color3.fromRGB(255,220,130), Dialog=Color3.fromRGB(18,9,2),
-            DialogHolder=Color3.fromRGB(12,6,1), DialogHolderLine=Color3.fromRGB(185,120,25),
-            DialogButton=Color3.fromRGB(22,11,3), DialogButtonBorder=Color3.fromRGB(190,125,25),
-            DialogBorder=Color3.fromRGB(140,88,18), DialogInput=Color3.fromRGB(32,16,4),
-            DialogInputLine=Color3.fromRGB(255,195,80), Text=Color3.fromRGB(255,245,225),
-            SubText=Color3.fromRGB(230,195,145), Hover=Color3.fromRGB(255,170,40),
-            HoverChange=0.05, ShineEnabled=true,
-            Shine={Speed=0.6,RotationSpeed=25,ColorSequence=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(50,22,4)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(255,170,40)),ColorSequenceKeypoint.new(1,Color3.fromRGB(50,22,4))})},
-            StrokeShine=true, StrokeDark=Color3.fromRGB(185,120,25),
-            ButtonGradient={Background=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(60,30,6)),ColorSequenceKeypoint.new(1,Color3.fromRGB(22,10,2))}),Stroke=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(185,120,25)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(255,170,40)),ColorSequenceKeypoint.new(1,Color3.fromRGB(185,120,25))})},
-            Background="rbxassetid://107795771598485", BackgroundTransparency=0.12,
-            ThemeAccentColors={Color3.fromRGB(255,170,40),Color3.fromRGB(200,130,30)},
+    end,
+    [55] = function() --[[ Midnight ]]
+        b(55)
+        return {
+            Name = "Midnight Blue",
+            Accent = Color3.fromRGB(100, 80, 200),
+            AcrylicMain = Color3.fromRGB(10, 8, 25),
+            AcrylicBorder = Color3.fromRGB(60, 45, 140),
+            AcrylicGradient = ColorSequence.new(Color3.fromRGB(50, 35, 120), Color3.fromRGB(8, 5, 20)),
+            AcrylicNoise = 0.9,
+            TitleBarLine = Color3.fromRGB(80, 60, 170),
+            Tab = Color3.fromRGB(60, 45, 140),
+            Element = Color3.fromRGB(55, 40, 125),
+            ElementBorder = Color3.fromRGB(40, 30, 90),
+            InElementBorder = Color3.fromRGB(70, 55, 155),
+            ElementTransparency = 0.87,
+            ToggleSlider = Color3.fromRGB(100, 80, 200),
+            ToggleToggled = Color3.fromRGB(255, 255, 255),
+            SliderRail = Color3.fromRGB(60, 45, 140),
+            CheckboxUnchecked = Color3.fromRGB(60, 45, 140),
+            CheckboxChecked = Color3.fromRGB(100, 80, 200),
+            CheckboxCheck = Color3.fromRGB(255, 255, 255),
+            ProgressBarRail = Color3.fromRGB(60, 45, 140),
+            ProgressBarFill = Color3.fromRGB(100, 80, 200),
+            DropdownFrame = Color3.fromRGB(45, 30, 110),
+            DropdownHolder = Color3.fromRGB(8, 5, 20),
+            DropdownBorder = Color3.fromRGB(35, 25, 85),
+            DropdownOption = Color3.fromRGB(100, 80, 200),
+            Keybind = Color3.fromRGB(55, 40, 125),
+            Input = Color3.fromRGB(45, 30, 110),
+            InputFocused = Color3.fromRGB(5, 3, 15),
+            InputIndicator = Color3.fromRGB(140, 120, 240),
+            Dialog = Color3.fromRGB(8, 5, 20),
+            DialogHolder = Color3.fromRGB(5, 3, 15),
+            DialogHolderLine = Color3.fromRGB(3, 2, 10),
+            DialogButton = Color3.fromRGB(8, 5, 20),
+            DialogButtonBorder = Color3.fromRGB(60, 45, 140),
+            DialogBorder = Color3.fromRGB(40, 30, 90),
+            DialogInput = Color3.fromRGB(15, 10, 35),
+            DialogInputLine = Color3.fromRGB(140, 120, 240),
+            Text = Color3.fromRGB(220, 220, 255),
+            SubText = Color3.fromRGB(170, 170, 210),
+            Hover = Color3.fromRGB(100, 80, 200),
+            HoverChange = 0.05,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 0.5,
+                RotationSpeed = 25,
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 15, 60)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(140, 120, 240)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 15, 60)),
+                    }
+                ),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(60, 45, 140),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 60, 170)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 15, 60)),
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 45, 140)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(140, 120, 240)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 45, 140)),
+                    }
+                ),
+            },
         }
+    end,
+    [56] = function() --[[ Sapphire ]]
+        b(56)
+        return {
+            Name = "Royal Blue",
+            Accent = Color3.fromRGB(15, 82, 186),
+            AcrylicMain = Color3.fromRGB(10, 25, 50),
+            AcrylicBorder = Color3.fromRGB(10, 65, 150),
+            AcrylicGradient = ColorSequence.new(Color3.fromRGB(12, 70, 160), Color3.fromRGB(8, 20, 45)),
+            AcrylicNoise = 0.9,
+            TitleBarLine = Color3.fromRGB(13, 75, 170),
+            Tab = Color3.fromRGB(10, 65, 150),
+            Element = Color3.fromRGB(9, 58, 135),
+            ElementBorder = Color3.fromRGB(6, 40, 95),
+            InElementBorder = Color3.fromRGB(11, 70, 160),
+            ElementTransparency = 0.87,
+            ToggleSlider = Color3.fromRGB(15, 82, 186),
+            ToggleToggled = Color3.fromRGB(255, 255, 255),
+            SliderRail = Color3.fromRGB(10, 65, 150),
+            CheckboxUnchecked = Color3.fromRGB(10, 65, 150),
+            CheckboxChecked = Color3.fromRGB(15, 82, 186),
+            CheckboxCheck = Color3.fromRGB(255, 255, 255),
+            ProgressBarRail = Color3.fromRGB(10, 65, 150),
+            ProgressBarFill = Color3.fromRGB(15, 82, 186),
+            DropdownFrame = Color3.fromRGB(8, 50, 120),
+            DropdownHolder = Color3.fromRGB(8, 20, 45),
+            DropdownBorder = Color3.fromRGB(6, 40, 95),
+            DropdownOption = Color3.fromRGB(15, 82, 186),
+            Keybind = Color3.fromRGB(9, 58, 135),
+            Input = Color3.fromRGB(8, 50, 120),
+            InputFocused = Color3.fromRGB(5, 15, 35),
+            InputIndicator = Color3.fromRGB(50, 120, 230),
+            Dialog = Color3.fromRGB(8, 20, 45),
+            DialogHolder = Color3.fromRGB(5, 15, 35),
+            DialogHolderLine = Color3.fromRGB(3, 10, 25),
+            DialogButton = Color3.fromRGB(8, 20, 45),
+            DialogButtonBorder = Color3.fromRGB(10, 65, 150),
+            DialogBorder = Color3.fromRGB(6, 40, 95),
+            DialogInput = Color3.fromRGB(12, 30, 65),
+            DialogInputLine = Color3.fromRGB(50, 120, 230),
+            Text = Color3.fromRGB(220, 235, 255),
+            SubText = Color3.fromRGB(170, 190, 220),
+            Hover = Color3.fromRGB(15, 82, 186),
+            HoverChange = 0.05,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 0.5,
+                RotationSpeed = 25,
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 40, 85)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(50, 120, 230)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 40, 85)),
+                    }
+                ),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(10, 65, 150),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(13, 75, 170)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 40, 85)),
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 65, 150)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(50, 120, 230)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 65, 150)),
+                    }
+                ),
+            },
+        }
+    end,
+    [57] = function() --[[ Galaxy ]]
+        b(57)
+        return {
+            Name = "Galaxy Purple",
+            Accent = Color3.fromRGB(160, 60, 220),
+            AcrylicMain = Color3.fromRGB(12, 5, 25),
+            AcrylicBorder = Color3.fromRGB(120, 40, 185),
+            AcrylicGradient = ColorSequence.new(Color3.fromRGB(110, 35, 175), Color3.fromRGB(8, 3, 20)),
+            AcrylicNoise = 0.9,
+            TitleBarLine = Color3.fromRGB(130, 50, 195),
+            Tab = Color3.fromRGB(125, 45, 190),
+            Element = Color3.fromRGB(112, 40, 170),
+            ElementBorder = Color3.fromRGB(75, 25, 115),
+            InElementBorder = Color3.fromRGB(130, 50, 195),
+            ElementTransparency = 0.87,
+            ToggleSlider = Color3.fromRGB(160, 60, 220),
+            ToggleToggled = Color3.fromRGB(255, 255, 255),
+            SliderRail = Color3.fromRGB(125, 45, 190),
+            CheckboxUnchecked = Color3.fromRGB(125, 45, 190),
+            CheckboxChecked = Color3.fromRGB(160, 60, 220),
+            CheckboxCheck = Color3.fromRGB(255, 255, 255),
+            ProgressBarRail = Color3.fromRGB(125, 45, 190),
+            ProgressBarFill = Color3.fromRGB(160, 60, 220),
+            DropdownFrame = Color3.fromRGB(100, 35, 152),
+            DropdownHolder = Color3.fromRGB(8, 3, 20),
+            DropdownBorder = Color3.fromRGB(72, 24, 108),
+            DropdownOption = Color3.fromRGB(160, 60, 220),
+            Keybind = Color3.fromRGB(112, 40, 170),
+            Input = Color3.fromRGB(100, 35, 152),
+            InputFocused = Color3.fromRGB(5, 2, 14),
+            InputIndicator = Color3.fromRGB(195, 100, 255),
+            Dialog = Color3.fromRGB(8, 3, 20),
+            DialogHolder = Color3.fromRGB(5, 2, 14),
+            DialogHolderLine = Color3.fromRGB(3, 1, 9),
+            DialogButton = Color3.fromRGB(8, 3, 20),
+            DialogButtonBorder = Color3.fromRGB(125, 45, 190),
+            DialogBorder = Color3.fromRGB(75, 25, 115),
+            DialogInput = Color3.fromRGB(22, 10, 50),
+            DialogInputLine = Color3.fromRGB(195, 100, 255),
+            Text = Color3.fromRGB(242, 232, 255),
+            SubText = Color3.fromRGB(200, 178, 228),
+            Hover = Color3.fromRGB(160, 60, 220),
+            HoverChange = 0.05,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 0.5,
+                RotationSpeed = 25,
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(48, 18, 85)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(195, 100, 255)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(48, 18, 85)),
+                    }
+                ),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(125, 45, 190),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(130, 50, 195)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(48, 18, 85)),
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(125, 45, 190)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(195, 100, 255)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(125, 45, 190)),
+                    }
+                ),
+            },
+        }
+    end,
 
-        af["Bloomings"] = {
+    [58] = function() --[[ Cosmic ]]
+        b(58)
+        return {
+            Name = "Cosmic Violet",
+            Accent = Color3.fromRGB(80, 60, 140),
+            AcrylicMain = Color3.fromRGB(12, 10, 22),
+            AcrylicBorder = Color3.fromRGB(50, 35, 110),
+            AcrylicGradient = ColorSequence.new(Color3.fromRGB(45, 30, 100), Color3.fromRGB(8, 6, 16)),
+            AcrylicNoise = 0.9,
+            TitleBarLine = Color3.fromRGB(60, 42, 120),
+            Tab = Color3.fromRGB(55, 38, 115),
+            Element = Color3.fromRGB(50, 34, 104),
+            ElementBorder = Color3.fromRGB(34, 23, 70),
+            InElementBorder = Color3.fromRGB(60, 42, 120),
+            ElementTransparency = 0.87,
+            ToggleSlider = Color3.fromRGB(80, 60, 140),
+            ToggleToggled = Color3.fromRGB(255, 255, 255),
+            SliderRail = Color3.fromRGB(55, 38, 115),
+            CheckboxUnchecked = Color3.fromRGB(55, 38, 115),
+            CheckboxChecked = Color3.fromRGB(80, 60, 140),
+            CheckboxCheck = Color3.fromRGB(255, 255, 255),
+            ProgressBarRail = Color3.fromRGB(55, 38, 115),
+            ProgressBarFill = Color3.fromRGB(80, 60, 140),
+            DropdownFrame = Color3.fromRGB(44, 30, 92),
+            DropdownHolder = Color3.fromRGB(8, 6, 16),
+            DropdownBorder = Color3.fromRGB(32, 22, 68),
+            DropdownOption = Color3.fromRGB(80, 60, 140),
+            Keybind = Color3.fromRGB(50, 34, 104),
+            Input = Color3.fromRGB(44, 30, 92),
+            InputFocused = Color3.fromRGB(5, 3, 10),
+            InputIndicator = Color3.fromRGB(115, 90, 175),
+            Dialog = Color3.fromRGB(8, 6, 16),
+            DialogHolder = Color3.fromRGB(5, 3, 10),
+            DialogHolderLine = Color3.fromRGB(3, 2, 6),
+            DialogButton = Color3.fromRGB(8, 6, 16),
+            DialogButtonBorder = Color3.fromRGB(55, 38, 115),
+            DialogBorder = Color3.fromRGB(34, 23, 70),
+            DialogInput = Color3.fromRGB(22, 16, 45),
+            DialogInputLine = Color3.fromRGB(115, 90, 175),
+            Text = Color3.fromRGB(230, 225, 245),
+            SubText = Color3.fromRGB(185, 175, 210),
+            Hover = Color3.fromRGB(80, 60, 140),
+            HoverChange = 0.05,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 0.5,
+                RotationSpeed = 25,
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 25, 65)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(115, 90, 175)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 25, 65)),
+                    }
+                ),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(55, 38, 115),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 42, 120)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 25, 65)),
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(55, 38, 115)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(115, 90, 175)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(55, 38, 115)),
+                    }
+                ),
+            },
+        }
+    end,
+    [70] = function() --[[ AMOLED ]]
+        b(70)
+                return {
+            Name = "AMOLED",
+            Accent = Color3.fromRGB(255, 255, 255),
+            AcrylicMain = Color3.fromRGB(0, 0, 0),
+            AcrylicBorder = Color3.fromRGB(20, 20, 20),
+            AcrylicGradient = ColorSequence.new(Color3.fromRGB(0, 0, 0), Color3.fromRGB(0, 0, 0)),
+            AcrylicNoise = 1,
+            TitleBarLine = Color3.fromRGB(22, 22, 22),
+            Tab = Color3.fromRGB(28, 28, 28),
+            Element = Color3.fromRGB(10, 10, 10),
+            ElementBorder = Color3.fromRGB(0, 0, 0),
+            InElementBorder = Color3.fromRGB(30, 30, 30),
+            ElementTransparency = 0.96,
+            ToggleSlider = Color3.fromRGB(30, 30, 30),
+            ToggleToggled = Color3.fromRGB(255, 255, 255),
+            SliderRail = Color3.fromRGB(30, 30, 30),
+            CheckboxUnchecked = Color3.fromRGB(30, 30, 30),
+            CheckboxChecked = Color3.fromRGB(255, 255, 255),
+            CheckboxCheck = Color3.fromRGB(255, 255, 255),
+            ProgressBarRail = Color3.fromRGB(30, 30, 30),
+            ProgressBarFill = Color3.fromRGB(255, 255, 255),
+            DropdownFrame = Color3.fromRGB(18, 18, 18),
+            DropdownHolder = Color3.fromRGB(0, 0, 0),
+            DropdownBorder = Color3.fromRGB(0, 0, 0),
+            DropdownOption = Color3.fromRGB(22, 22, 22),
+            Keybind = Color3.fromRGB(22, 22, 22),
+            Input = Color3.fromRGB(12, 12, 12),
+            InputFocused = Color3.fromRGB(0, 0, 0),
+            InputIndicator = Color3.fromRGB(45, 45, 45),
+            InputIndicatorFocus = Color3.fromRGB(255, 255, 255),
+            Dialog = Color3.fromRGB(0, 0, 0),
+            DialogHolder = Color3.fromRGB(0, 0, 0),
+            DialogHolderLine = Color3.fromRGB(18, 18, 18),
+            DialogButton = Color3.fromRGB(10, 10, 10),
+            DialogButtonBorder = Color3.fromRGB(28, 28, 28),
+            DialogBorder = Color3.fromRGB(22, 22, 22),
+            DialogInput = Color3.fromRGB(10, 10, 10),
+            DialogInputLine = Color3.fromRGB(45, 45, 45),
+            Text = Color3.fromRGB(255, 255, 255),
+            SubText = Color3.fromRGB(150, 150, 150),
+            Hover = Color3.fromRGB(22, 22, 22),
+            HoverChange = 0.03,
+            ShineEnabled = false,
+            Shine = {
+                Speed = 0,
+                RotationSpeed = 0,
+                ColorSequence = ColorSequence.new(Color3.fromRGB(0, 0, 0), Color3.fromRGB(0, 0, 0)),
+            },
+            StrokeShine = false,
+            StrokeDark = Color3.fromRGB(18, 18, 18),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 10, 10)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0)),
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(60, 60, 60)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 30, 30)),
+                    }
+                ),
+            },
+            Background = "rbxassetid://134736124666311",
+            BackgroundTransparency = 0,
+            ThemeAccentColors = {Color3.fromRGB(255, 255, 255)},
+                }
+    end,
+
+    [71] = function()
+        b(71)
+                return {
+            Name = "Rose",
+            Accent = Color3.fromRGB(255, 120, 160),
+            AcrylicMain = Color3.fromRGB(25, 20, 22),
+            AcrylicBorder = Color3.fromRGB(120, 70, 90),
+            AcrylicGradient = ColorSequence.new(
+                {
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 40, 55)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 15, 18)),
+                }
+            ),
+            AcrylicNoise = 0.9,
+            TitleBarLine = Color3.fromRGB(180, 90, 120),
+            Tab = Color3.fromRGB(70, 40, 50),
+            Element = Color3.fromRGB(60, 35, 45),
+            ElementBorder = Color3.fromRGB(120, 70, 90),
+            InElementBorder = Color3.fromRGB(80, 45, 60),
+            ElementTransparency = 0.9,
+            ToggleSlider = Color3.fromRGB(255, 120, 160),
+            ToggleToggled = Color3.fromRGB(0, 0, 0),
+            SliderRail = Color3.fromRGB(120, 70, 90),
+            CheckboxUnchecked = Color3.fromRGB(120, 70, 90),
+            CheckboxChecked = Color3.fromRGB(255, 120, 160),
+            CheckboxCheck = Color3.fromRGB(0, 0, 0),
+            ProgressBarRail = Color3.fromRGB(120, 70, 90),
+            ProgressBarFill = Color3.fromRGB(255, 120, 160),
+            DropdownFrame = Color3.fromRGB(50, 30, 40),
+            DropdownHolder = Color3.fromRGB(35, 20, 28),
+            DropdownBorder = Color3.fromRGB(120, 70, 90),
+            DropdownOption = Color3.fromRGB(255, 120, 160),
+            Keybind = Color3.fromRGB(60, 35, 45),
+            Input = Color3.fromRGB(45, 25, 32),
+            InputFocused = Color3.fromRGB(30, 15, 20),
+            InputIndicator = Color3.fromRGB(255, 170, 200),
+            InputIndicatorFocus = Color3.fromRGB(255, 200, 220),
+            Dialog = Color3.fromRGB(45, 25, 32),
+            DialogHolder = Color3.fromRGB(30, 18, 22),
+            DialogHolderLine = Color3.fromRGB(25, 14, 18),
+            DialogButton = Color3.fromRGB(45, 25, 32),
+            DialogButtonBorder = Color3.fromRGB(120, 70, 90),
+            DialogBorder = Color3.fromRGB(120, 70, 90),
+            DialogInput = Color3.fromRGB(60, 35, 45),
+            DialogInputLine = Color3.fromRGB(255, 170, 200),
+            Text = Color3.fromRGB(240, 240, 240),
+            SubText = Color3.fromRGB(170, 170, 170),
+            Hover = Color3.fromRGB(255, 120, 160),
+            HoverChange = 0.05,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 0.5,
+                RotationSpeed = 25,
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 20, 30)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 160, 190)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 20, 30)),
+                    }
+                ),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(120, 70, 90),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 160, 190)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 30, 40)),
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(120, 70, 90)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 160, 190)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(120, 70, 90)),
+                    }
+                ),
+            },
+            Background = nil,
+            BackgroundTransparency = 0,
+            ThemeAccentColors = {Color3.fromRGB(255, 120, 160)},
+                }
+    end,
+
+    [72] = function() --[[ Neon Cyber ]]
+        b(72)
+                return {
+            Name = "Neon Cyber",
+            Accent = Color3.fromRGB(57, 255, 20),
+            AcrylicMain = Color3.fromRGB(5, 10, 5),
+            AcrylicBorder = Color3.fromRGB(40, 200, 20),
+            AcrylicGradient = ColorSequence.new(Color3.fromRGB(10, 25, 10), Color3.fromRGB(3, 8, 3)),
+            AcrylicNoise = 0.93,
+            TitleBarLine = Color3.fromRGB(35, 160, 15),
+            Tab = Color3.fromRGB(57, 255, 20),
+            Element = Color3.fromRGB(10, 22, 10),
+            ElementBorder = Color3.fromRGB(3, 8, 3),
+            InElementBorder = Color3.fromRGB(35, 160, 15),
+            ElementTransparency = 0.88,
+            ToggleSlider = Color3.fromRGB(57, 255, 20),
+            ToggleToggled = Color3.fromRGB(0, 0, 0),
+            SliderRail = Color3.fromRGB(57, 255, 20),
+            CheckboxUnchecked = Color3.fromRGB(57, 255, 20),
+            CheckboxChecked = Color3.fromRGB(57, 255, 20),
+            CheckboxCheck = Color3.fromRGB(0, 0, 0),
+            ProgressBarRail = Color3.fromRGB(57, 255, 20),
+            ProgressBarFill = Color3.fromRGB(57, 255, 20),
+            DropdownFrame = Color3.fromRGB(35, 160, 15),
+            DropdownHolder = Color3.fromRGB(5, 12, 5),
+            DropdownBorder = Color3.fromRGB(35, 160, 15),
+            DropdownOption = Color3.fromRGB(57, 255, 20),
+            Keybind = Color3.fromRGB(40, 200, 18),
+            Input = Color3.fromRGB(10, 22, 10),
+            InputFocused = Color3.fromRGB(3, 7, 3),
+            InputIndicator = Color3.fromRGB(57, 255, 20),
+            InputIndicatorFocus = Color3.fromRGB(130, 255, 80),
+            Dialog = Color3.fromRGB(5, 12, 5),
+            DialogHolder = Color3.fromRGB(3, 8, 3),
+            DialogHolderLine = Color3.fromRGB(35, 160, 15),
+            DialogButton = Color3.fromRGB(8, 18, 8),
+            DialogButtonBorder = Color3.fromRGB(57, 255, 20),
+            DialogBorder = Color3.fromRGB(40, 200, 18),
+            DialogInput = Color3.fromRGB(10, 22, 10),
+            DialogInputLine = Color3.fromRGB(57, 255, 20),
+            Text = Color3.fromRGB(200, 255, 190),
+            SubText = Color3.fromRGB(80, 200, 60),
+            Hover = Color3.fromRGB(15, 40, 15),
+            HoverChange = 0.05,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 0.8,
+                RotationSpeed = 30,
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(5, 30, 5)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(57, 255, 20)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(5, 30, 5)),
+                    }
+                ),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(35, 160, 15),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(8, 22, 8)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(3, 8, 3)),
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 160, 15)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(57, 255, 20)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 160, 15)),
+                    }
+                ),
+            },
+            Background = nil,
+            BackgroundTransparency = 0,
+            ThemeAccentColors = {Color3.fromRGB(57, 255, 20)},
+                }
+    end,
+
+    [73] = function() --[[ Arctic Frost ]]
+        b(73)
+                return {
+            Name = "Arctic Frost",
+            Accent = Color3.fromRGB(100, 180, 240),
+            AcrylicMain = Color3.fromRGB(185, 215, 235),
+            AcrylicBorder = Color3.fromRGB(200, 228, 248),
+            AcrylicGradient = ColorSequence.new(Color3.fromRGB(235, 248, 255), Color3.fromRGB(210, 235, 250)),
+            AcrylicNoise = 0.97,
+            TitleBarLine = Color3.fromRGB(180, 215, 240),
+            Tab = Color3.fromRGB(90, 150, 200),
+            Element = Color3.fromRGB(210, 235, 250),
+            ElementBorder = Color3.fromRGB(170, 200, 225),
+            InElementBorder = Color3.fromRGB(140, 185, 218),
+            ElementTransparency = 0.65,
+            ToggleSlider = Color3.fromRGB(120, 175, 215),
+            ToggleToggled = Color3.fromRGB(30, 70, 120),
+            SliderRail = Color3.fromRGB(150, 200, 235),
+            CheckboxUnchecked = Color3.fromRGB(150, 200, 235),
+            CheckboxChecked = Color3.fromRGB(100, 180, 240),
+            CheckboxCheck = Color3.fromRGB(30, 70, 120),
+            ProgressBarRail = Color3.fromRGB(150, 200, 235),
+            ProgressBarFill = Color3.fromRGB(100, 180, 240),
+            DropdownFrame = Color3.fromRGB(190, 225, 248),
+            DropdownHolder = Color3.fromRGB(225, 242, 255),
+            DropdownBorder = Color3.fromRGB(170, 210, 238),
+            DropdownOption = Color3.fromRGB(130, 180, 220),
+            Keybind = Color3.fromRGB(150, 200, 235),
+            Input = Color3.fromRGB(200, 230, 248),
+            InputFocused = Color3.fromRGB(100, 150, 190),
+            InputIndicator = Color3.fromRGB(160, 210, 240),
+            InputIndicatorFocus = Color3.fromRGB(60, 140, 220),
+            Dialog = Color3.fromRGB(220, 240, 255),
+            DialogHolder = Color3.fromRGB(235, 248, 255),
+            DialogHolderLine = Color3.fromRGB(200, 228, 248),
+            DialogButton = Color3.fromRGB(225, 242, 255),
+            DialogButtonBorder = Color3.fromRGB(170, 210, 238),
+            DialogBorder = Color3.fromRGB(180, 215, 240),
+            DialogInput = Color3.fromRGB(200, 230, 248),
+            DialogInputLine = Color3.fromRGB(150, 200, 235),
+            Text = Color3.fromRGB(20, 40, 70),
+            SubText = Color3.fromRGB(65, 105, 148),
+            Hover = Color3.fromRGB(170, 210, 238),
+            HoverChange = 0.04,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 0.3,
+                RotationSpeed = 15,
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 235, 255)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 235, 255)),
+                    }
+                ),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(170, 210, 238),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(190, 225, 248)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(220, 240, 255)),
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 200, 235)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(200, 235, 255)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 200, 235)),
+                    }
+                ),
+            },
+            Background = nil,
+            BackgroundTransparency = 0,
+            ThemeAccentColors = {Color3.fromRGB(100, 180, 240)},
+                }
+    end,
+
+    [74] = function() --[[ Cotton Candy ]]
+        b(74)
+                return {
+            Name = "Cotton Candy",
+            Accent = Color3.fromRGB(255, 130, 190),
+            AcrylicMain = Color3.fromRGB(255, 225, 245),
+            AcrylicBorder = Color3.fromRGB(255, 190, 230),
+            AcrylicGradient = ColorSequence.new(Color3.fromRGB(255, 235, 250), Color3.fromRGB(235, 210, 255)),
+            AcrylicNoise = 0.96,
+            TitleBarLine = Color3.fromRGB(240, 180, 225),
+            Tab = Color3.fromRGB(195, 130, 185),
+            Element = Color3.fromRGB(255, 200, 235),
+            ElementBorder = Color3.fromRGB(230, 165, 210),
+            InElementBorder = Color3.fromRGB(235, 170, 215),
+            ElementTransparency = 0.70,
+            ToggleSlider = Color3.fromRGB(215, 145, 192),
+            ToggleToggled = Color3.fromRGB(90, 30, 70),
+            SliderRail = Color3.fromRGB(235, 170, 215),
+            CheckboxUnchecked = Color3.fromRGB(235, 170, 215),
+            CheckboxChecked = Color3.fromRGB(255, 130, 190),
+            CheckboxCheck = Color3.fromRGB(90, 30, 70),
+            ProgressBarRail = Color3.fromRGB(235, 170, 215),
+            ProgressBarFill = Color3.fromRGB(255, 130, 190),
+            DropdownFrame = Color3.fromRGB(248, 192, 230),
+            DropdownHolder = Color3.fromRGB(255, 225, 248),
+            DropdownBorder = Color3.fromRGB(228, 168, 213),
+            DropdownOption = Color3.fromRGB(205, 140, 188),
+            Keybind = Color3.fromRGB(228, 168, 213),
+            Input = Color3.fromRGB(250, 210, 238),
+            InputFocused = Color3.fromRGB(195, 125, 168),
+            InputIndicator = Color3.fromRGB(250, 195, 232),
+            InputIndicatorFocus = Color3.fromRGB(255, 130, 190),
+            Dialog = Color3.fromRGB(255, 228, 248),
+            DialogHolder = Color3.fromRGB(255, 238, 252),
+            DialogHolderLine = Color3.fromRGB(238, 208, 235),
+            DialogButton = Color3.fromRGB(255, 233, 250),
+            DialogButtonBorder = Color3.fromRGB(228, 178, 218),
+            DialogBorder = Color3.fromRGB(238, 188, 226),
+            DialogInput = Color3.fromRGB(250, 213, 240),
+            DialogInputLine = Color3.fromRGB(228, 172, 215),
+            Text = Color3.fromRGB(75, 25, 55),
+            SubText = Color3.fromRGB(145, 75, 115),
+            Hover = Color3.fromRGB(238, 182, 222),
+            HoverChange = 0.04,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 0.4,
+                RotationSpeed = 18,
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 180, 220)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(220, 180, 255)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 180, 220)),
+                    }
+                ),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(228, 172, 213),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(250, 198, 232)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(232, 182, 252)),
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(228, 172, 213)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(250, 198, 232)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(228, 172, 213)),
+                    }
+                ),
+            },
+            Background = nil,
+            BackgroundTransparency = 0,
+            ThemeAccentColors = {Color3.fromRGB(255, 130, 190), Color3.fromRGB(175, 140, 255)},
+                }
+    end,
+
+    [75] = function() --[[ Orange ]]
+        b(75)
+                return {
+            Name = "Orange",
+            Accent = Color3.fromRGB(255, 140, 30),
+            AcrylicMain = Color3.fromRGB(4, 4, 4),
+            AcrylicBorder = Color3.fromRGB(200, 90, 10),
+            AcrylicGradient = ColorSequence.new(
+                {
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 10, 0)),
+                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(10, 5, 0)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0)),
+                }
+            ),
+            AcrylicNoise = 0.98,
+            TitleBarLine = Color3.fromRGB(180, 75, 5),
+            Tab = Color3.fromRGB(180, 80, 10),
+            Element = Color3.fromRGB(22, 10, 2),
+            ElementBorder = Color3.fromRGB(80, 35, 5),
+            InElementBorder = Color3.fromRGB(200, 90, 10),
+            ElementTransparency = 0.92,
+            ToggleSlider = Color3.fromRGB(255, 140, 30),
+            ToggleToggled = Color3.fromRGB(0, 0, 0),
+            SliderRail = Color3.fromRGB(180, 80, 10),
+            CheckboxUnchecked = Color3.fromRGB(180, 80, 10),
+            CheckboxChecked = Color3.fromRGB(255, 140, 30),
+            CheckboxCheck = Color3.fromRGB(0, 0, 0),
+            ProgressBarRail = Color3.fromRGB(180, 80, 10),
+            ProgressBarFill = Color3.fromRGB(255, 140, 30),
+            DropdownFrame = Color3.fromRGB(160, 70, 8),
+            DropdownHolder = Color3.fromRGB(4, 2, 0),
+            DropdownBorder = Color3.fromRGB(200, 90, 10),
+            DropdownOption = Color3.fromRGB(255, 140, 30),
+            Keybind = Color3.fromRGB(22, 10, 2),
+            Input = Color3.fromRGB(18, 8, 2),
+            InputFocused = Color3.fromRGB(2, 1, 0),
+            InputIndicator = Color3.fromRGB(255, 160, 60),
+            InputIndicatorFocus = Color3.fromRGB(255, 200, 100),
+            Dialog = Color3.fromRGB(6, 3, 0),
+            DialogHolder = Color3.fromRGB(4, 2, 0),
+            DialogHolderLine = Color3.fromRGB(180, 75, 5),
+            DialogButton = Color3.fromRGB(8, 4, 0),
+            DialogButtonBorder = Color3.fromRGB(180, 80, 10),
+            DialogBorder = Color3.fromRGB(120, 50, 5),
+            DialogInput = Color3.fromRGB(18, 8, 2),
+            DialogInputLine = Color3.fromRGB(255, 160, 60),
+            Text = Color3.fromRGB(255, 240, 220),
+            SubText = Color3.fromRGB(220, 175, 130),
+            Hover = Color3.fromRGB(255, 140, 30),
+            HoverChange = 0.05,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 0.7,
+                RotationSpeed = 30,
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 10, 0)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 140, 30)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 10, 0)),
+                    }
+                ),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(180, 80, 10),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 18, 4)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 3, 0)),
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 80, 10)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 140, 30)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 80, 10)),
+                    }
+                ),
+            },
+            Background = "rbxassetid://122033436660262",
+            BackgroundTransparency = 0.05,
+            ThemeAccentColors = {Color3.fromRGB(255, 140, 30), Color3.fromRGB(200, 90, 10)},
+                }
+    end,
+
+    [76] = function() --[[ Cyanic ]]
+        b(76)
+                return {
+            Name = "Cyanic",
+            Accent = Color3.fromRGB(57, 197, 187),
+            AcrylicMain = Color3.fromRGB(8, 18, 22),
+            AcrylicBorder = Color3.fromRGB(40, 170, 165),
+            AcrylicGradient = ColorSequence.new(
+                {
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 45, 55)),
+                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(8, 25, 32)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(4, 12, 16)),
+                }
+            ),
+            AcrylicNoise = 0.92,
+            TitleBarLine = Color3.fromRGB(35, 155, 150),
+            Tab = Color3.fromRGB(40, 165, 160),
+            Element = Color3.fromRGB(14, 38, 46),
+            ElementBorder = Color3.fromRGB(8, 22, 28),
+            InElementBorder = Color3.fromRGB(40, 165, 160),
+            ElementTransparency = 0.88,
+            ToggleSlider = Color3.fromRGB(57, 197, 187),
+            ToggleToggled = Color3.fromRGB(0, 0, 0),
+            SliderRail = Color3.fromRGB(40, 165, 160),
+            CheckboxUnchecked = Color3.fromRGB(40, 165, 160),
+            CheckboxChecked = Color3.fromRGB(57, 197, 187),
+            CheckboxCheck = Color3.fromRGB(0, 0, 0),
+            ProgressBarRail = Color3.fromRGB(40, 165, 160),
+            ProgressBarFill = Color3.fromRGB(57, 197, 187),
+            DropdownFrame = Color3.fromRGB(32, 140, 135),
+            DropdownHolder = Color3.fromRGB(6, 18, 22),
+            DropdownBorder = Color3.fromRGB(40, 165, 160),
+            DropdownOption = Color3.fromRGB(57, 197, 187),
+            Keybind = Color3.fromRGB(14, 38, 46),
+            Input = Color3.fromRGB(10, 28, 35),
+            InputFocused = Color3.fromRGB(4, 10, 14),
+            InputIndicator = Color3.fromRGB(80, 215, 205),
+            InputIndicatorFocus = Color3.fromRGB(130, 235, 228),
+            Dialog = Color3.fromRGB(8, 22, 28),
+            DialogHolder = Color3.fromRGB(5, 14, 18),
+            DialogHolderLine = Color3.fromRGB(35, 155, 150),
+            DialogButton = Color3.fromRGB(10, 26, 32),
+            DialogButtonBorder = Color3.fromRGB(40, 165, 160),
+            DialogBorder = Color3.fromRGB(30, 120, 115),
+            DialogInput = Color3.fromRGB(12, 32, 40),
+            DialogInputLine = Color3.fromRGB(80, 215, 205),
+            Text = Color3.fromRGB(210, 248, 246),
+            SubText = Color3.fromRGB(130, 210, 205),
+            Hover = Color3.fromRGB(57, 197, 187),
+            HoverChange = 0.05,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 0.6,
+                RotationSpeed = 25,
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 40, 50)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(57, 197, 187)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 40, 50)),
+                    }
+                ),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(35, 155, 150),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(18, 55, 65)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 22, 28)),
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 155, 150)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(57, 197, 187)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 155, 150)),
+                    }
+                ),
+            },
+            Background = "rbxassetid://95656189244173",
+            BackgroundTransparency = 0.12,
+            ThemeAccentColors = {Color3.fromRGB(57, 197, 187), Color3.fromRGB(35, 155, 150)},
+                }
+    end,
+
+    [77] = function() --[[ Amber Glow ]]
+        b(77)
+                return {
+            Name = "Amber Glow",
+            Accent = Color3.fromRGB(255, 170, 40),
+            AcrylicMain = Color3.fromRGB(18, 10, 4),
+            AcrylicBorder = Color3.fromRGB(200, 130, 30),
+            AcrylicGradient = ColorSequence.new(
+                {
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 25, 5)),
+                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(28, 14, 3)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 5, 1)),
+                }
+            ),
+            AcrylicNoise = 0.9,
+            TitleBarLine = Color3.fromRGB(185, 120, 25),
+            Tab = Color3.fromRGB(190, 125, 25),
+            Element = Color3.fromRGB(38, 20, 5),
+            ElementBorder = Color3.fromRGB(18, 10, 2),
+            InElementBorder = Color3.fromRGB(200, 130, 30),
+            ElementTransparency = 0.88,
+            ToggleSlider = Color3.fromRGB(255, 170, 40),
+            ToggleToggled = Color3.fromRGB(0, 0, 0),
+            SliderRail = Color3.fromRGB(190, 125, 25),
+            CheckboxUnchecked = Color3.fromRGB(190, 125, 25),
+            CheckboxChecked = Color3.fromRGB(255, 170, 40),
+            CheckboxCheck = Color3.fromRGB(0, 0, 0),
+            ProgressBarRail = Color3.fromRGB(190, 125, 25),
+            ProgressBarFill = Color3.fromRGB(255, 170, 40),
+            DropdownFrame = Color3.fromRGB(165, 105, 20),
+            DropdownHolder = Color3.fromRGB(14, 7, 2),
+            DropdownBorder = Color3.fromRGB(200, 130, 30),
+            DropdownOption = Color3.fromRGB(255, 170, 40),
+            Keybind = Color3.fromRGB(38, 20, 5),
+            Input = Color3.fromRGB(28, 14, 3),
+            InputFocused = Color3.fromRGB(8, 4, 1),
+            InputIndicator = Color3.fromRGB(255, 195, 80),
+            InputIndicatorFocus = Color3.fromRGB(255, 220, 130),
+            Dialog = Color3.fromRGB(18, 9, 2),
+            DialogHolder = Color3.fromRGB(12, 6, 1),
+            DialogHolderLine = Color3.fromRGB(185, 120, 25),
+            DialogButton = Color3.fromRGB(22, 11, 3),
+            DialogButtonBorder = Color3.fromRGB(190, 125, 25),
+            DialogBorder = Color3.fromRGB(140, 88, 18),
+            DialogInput = Color3.fromRGB(32, 16, 4),
+            DialogInputLine = Color3.fromRGB(255, 195, 80),
+            Text = Color3.fromRGB(255, 245, 225),
+            SubText = Color3.fromRGB(230, 195, 145),
+            Hover = Color3.fromRGB(255, 170, 40),
+            HoverChange = 0.05,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 0.6,
+                RotationSpeed = 25,
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 22, 4)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 170, 40)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 22, 4)),
+                    }
+                ),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(185, 120, 25),
+            ButtonGradient = {
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 30, 6)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(22, 10, 2)),
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(185, 120, 25)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 170, 40)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(185, 120, 25)),
+                    }
+                ),
+            },
+            Background = "rbxassetid://107795771598485",
+            BackgroundTransparency = 0.12,
+            ThemeAccentColors = {Color3.fromRGB(255, 170, 40), Color3.fromRGB(200, 130, 30)},
+                }
+    end,
+
+    [78] = function() --[[ Bloomings ]]
+        b(78)
+                return {
             Name = "Bloomings",
             Accent = Color3.fromRGB(255, 80, 150),
             AcrylicMain = Color3.fromRGB(40, 15, 30),
             AcrylicBorder = Color3.fromRGB(200, 60, 120),
-            AcrylicGradient = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(120, 35, 85)),
-                ColorSequenceKeypoint.new(0.5, Color3.fromRGB(45, 95, 70)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 140, 145))
-            }),
+            AcrylicGradient = ColorSequence.new(
+                {
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(120, 35, 85)),
+                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(45, 95, 70)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 140, 145)),
+                }
+            ),
             AcrylicNoise = 0.90,
             TitleBarLine = Color3.fromRGB(255, 100, 180),
             Tab = Color3.fromRGB(50, 18, 38),
@@ -10382,36 +11441,45 @@ local aa = {
             Shine = {
                 Speed = 0.35,
                 RotationSpeed = 15,
-                ColorSequence = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 70, 150)),
-                    ColorSequenceKeypoint.new(0.25, Color3.fromRGB(80, 255, 150)),
-                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-                    ColorSequenceKeypoint.new(0.75, Color3.fromRGB(255, 50, 130)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 70, 150))
-                })
+                ColorSequence = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 70, 150)),
+                        ColorSequenceKeypoint.new(0.25, Color3.fromRGB(80, 255, 150)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+                        ColorSequenceKeypoint.new(0.75, Color3.fromRGB(255, 50, 130)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 70, 150)),
+                    }
+                ),
             },
             StrokeShine = true,
             StrokeDark = Color3.fromRGB(80, 30, 60),
             ButtonGradient = {
-                Background = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(220, 60, 130)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 25, 60))
-                }),
-                Stroke = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 180, 220)),
-                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 100, 180)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 70, 150))
-                })
+                Background = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(220, 60, 130)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 25, 60)),
+                    }
+                ),
+                Stroke = ColorSequence.new(
+                    {
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 180, 220)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 100, 180)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 70, 150)),
+                    }
+                ),
             },
             ThemeAccentColors = {Color3.fromRGB(255, 80, 150), Color3.fromRGB(200, 60, 120)},
-        }
+                }
+    end,
 
-        do
+    [79] = function() --[[ Crimson ]]
+        b(79)
             local _crimsonBackgrounds = {
+                "rbxassetid://132324914333495",
                 "rbxassetid://74252111742950",
             }
             local _crimsonBg = _crimsonBackgrounds[math.random(1, #_crimsonBackgrounds)]
-            af["Crimson"] = {
+                return {
                 Name = "Crimson",
                 Accent = Color3.fromRGB(220, 30, 60),
                 AcrylicMain = Color3.fromRGB(30, 6, 9),
@@ -10483,9 +11551,11 @@ local aa = {
                 },
                 ThemeAccentColors = {Color3.fromRGB(220, 30, 60), Color3.fromRGB(120, 15, 35)},
             }
-        end
+    end,
 
-        af["Gold"] = {
+    [80] = function() --[[ Gold ]]
+        b(80)
+                return {
             Name = "Gold",
             Accent = Color3.fromRGB(255, 200, 90),
             AcrylicMain = Color3.fromRGB(35, 27, 12),
@@ -10536,7 +11606,7 @@ local aa = {
                         ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 210, 120)),
                         ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 30, 10))
                     }
-                )
+                ),
             },
             StrokeShine = true,
             StrokeDark = Color3.fromRGB(120, 90, 30),
@@ -10553,774 +11623,12 @@ local aa = {
                         ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 220, 140)),
                         ColorSequenceKeypoint.new(1, Color3.fromRGB(120, 90, 30))
                     }
-                )
+                ),
             },
             ThemeAccentColors = {Color3.fromRGB(255, 200, 90), Color3.fromRGB(120, 90, 30)},
-        }
-
-        return af
-    end,
-    [48] = function() --[[ Amethyst ]]
-        local aa, ab, ac, ad, ae = b(48)
-        return {
-            Name = "Deep Violet",
-            Accent = Color3.fromRGB(97, 62, 167),
-            AcrylicMain = Color3.fromRGB(20, 20, 20),
-            AcrylicBorder = Color3.fromRGB(110, 90, 130),
-            AcrylicGradient = ColorSequence.new(Color3.fromRGB(85, 57, 139), Color3.fromRGB(40, 25, 65)),
-            AcrylicNoise = 0.92,
-            TitleBarLine = Color3.fromRGB(95, 75, 110),
-            Tab = Color3.fromRGB(160, 140, 180),
-            Element = Color3.fromRGB(140, 120, 160),
-            ElementBorder = Color3.fromRGB(60, 50, 70),
-            InElementBorder = Color3.fromRGB(100, 90, 110),
-            ElementTransparency = 0.87,
-            ToggleSlider = Color3.fromRGB(140, 120, 160),
-            ToggleToggled = Color3.fromRGB(0, 0, 0),
-            SliderRail = Color3.fromRGB(140, 120, 160),
-            CheckboxUnchecked = Color3.fromRGB(140, 120, 160),
-            CheckboxChecked = Color3.fromRGB(97, 62, 167),
-            CheckboxCheck = Color3.fromRGB(0, 0, 0),
-            ProgressBarRail = Color3.fromRGB(140, 120, 160),
-            ProgressBarFill = Color3.fromRGB(97, 62, 167),
-            DropdownFrame = Color3.fromRGB(170, 160, 200),
-            DropdownHolder = Color3.fromRGB(60, 45, 80),
-            DropdownBorder = Color3.fromRGB(50, 40, 65),
-            DropdownOption = Color3.fromRGB(140, 120, 160),
-            Keybind = Color3.fromRGB(140, 120, 160),
-            Input = Color3.fromRGB(140, 120, 160),
-            InputFocused = Color3.fromRGB(20, 10, 30),
-            InputIndicator = Color3.fromRGB(170, 150, 190),
-            Dialog = Color3.fromRGB(60, 45, 80),
-            DialogHolder = Color3.fromRGB(45, 30, 65),
-            DialogHolderLine = Color3.fromRGB(40, 25, 60),
-            DialogButton = Color3.fromRGB(60, 45, 80),
-            DialogButtonBorder = Color3.fromRGB(95, 80, 110),
-            DialogBorder = Color3.fromRGB(85, 70, 100),
-            DialogInput = Color3.fromRGB(70, 55, 85),
-            DialogInputLine = Color3.fromRGB(175, 160, 190),
-            Text = Color3.fromRGB(240, 240, 240),
-            SubText = Color3.fromRGB(170, 170, 170),
-            Hover = Color3.fromRGB(140, 120, 160),
-            HoverChange = 0.04,
-            ShineEnabled = true,
-            Shine = {
-                Speed = 0.5,
-                RotationSpeed = 25,
-                ColorSequence = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 25, 65)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(160, 120, 220)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 25, 65))
-                    }
-                )
-            },
-            StrokeShine = true,
-            StrokeDark = Color3.fromRGB(110, 90, 130),
-            ButtonGradient = {
-                Background = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 25, 65)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(160, 120, 220))
-                    }
-                ),
-                Stroke = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 25, 65)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(160, 120, 220)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 25, 65))
-                    }
-                )
-            },
-            Background = "rbxassetid://136310484943077",
-            BackgroundTransparency = 0.15,
-        }
-    end,
-    [49] = function() --[[ Dark ]]
-        local aa, ab, ac, ad, ae = b(49)
-        return {
-            Name = "Ash Gray",
-            Accent = Color3.fromRGB(150, 150, 150),
-            AcrylicMain = Color3.fromRGB(60, 60, 60),
-            AcrylicBorder = Color3.fromRGB(90, 90, 90),
-            AcrylicGradient = ColorSequence.new(Color3.fromRGB(75, 75, 75), Color3.fromRGB(35, 35, 35)),
-            AcrylicNoise = 0.9,
-            TitleBarLine = Color3.fromRGB(75, 75, 75),
-            Tab = Color3.fromRGB(120, 120, 120),
-            Element = Color3.fromRGB(120, 120, 120),
-            ElementBorder = Color3.fromRGB(35, 35, 35),
-            InElementBorder = Color3.fromRGB(90, 90, 90),
-            ElementTransparency = 0.87,
-            ToggleSlider = Color3.fromRGB(120, 120, 120),
-            ToggleToggled = Color3.fromRGB(0, 0, 0),
-            SliderRail = Color3.fromRGB(120, 120, 120),
-            CheckboxUnchecked = Color3.fromRGB(120, 120, 120),
-            CheckboxChecked = Color3.fromRGB(150, 150, 150),
-            CheckboxCheck = Color3.fromRGB(0, 0, 0),
-            ProgressBarRail = Color3.fromRGB(120, 120, 120),
-            ProgressBarFill = Color3.fromRGB(150, 150, 150),
-            DropdownFrame = Color3.fromRGB(160, 160, 160),
-            DropdownHolder = Color3.fromRGB(45, 45, 45),
-            DropdownBorder = Color3.fromRGB(35, 35, 35),
-            DropdownOption = Color3.fromRGB(120, 120, 120),
-            Keybind = Color3.fromRGB(120, 120, 120),
-            Input = Color3.fromRGB(160, 160, 160),
-            InputFocused = Color3.fromRGB(10, 10, 10),
-            InputIndicator = Color3.fromRGB(150, 150, 150),
-            Dialog = Color3.fromRGB(45, 45, 45),
-            DialogHolder = Color3.fromRGB(35, 35, 35),
-            DialogHolderLine = Color3.fromRGB(30, 30, 30),
-            DialogButton = Color3.fromRGB(45, 45, 45),
-            DialogButtonBorder = Color3.fromRGB(80, 80, 80),
-            DialogBorder = Color3.fromRGB(70, 70, 70),
-            DialogInput = Color3.fromRGB(55, 55, 55),
-            DialogInputLine = Color3.fromRGB(160, 160, 160),
-            Text = Color3.fromRGB(240, 240, 240),
-            SubText = Color3.fromRGB(170, 170, 170),
-            Hover = Color3.fromRGB(120, 120, 120),
-            HoverChange = 0.07,
-            ShineEnabled = true,
-            Shine = {
-                Speed = 0.4,
-                RotationSpeed = 20,
-                ColorSequence = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 40, 40)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(105, 105, 105)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 40))
-                    }
-                )
-            },
-            StrokeShine = true,
-            StrokeDark = Color3.fromRGB(90, 90, 90),
-            ButtonGradient = {
-                Background = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 60, 60)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 30, 30))
-                    }
-                ),
-                Stroke = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 60, 60)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(120, 120, 120)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 60, 60))
-                    }
-                )
-            },
-            ViewportBackground = Color3.fromRGB(15, 15, 20),
-            ViewportBackgroundImages = true,
-            DropdownOutsideWindowBackground = Color3.fromRGB(35, 35, 35),
-            DropdownOutsideWindowBackgroundImages = true,
-            ElementBorderThickness = 1,
-            DropdownBorderThickness = 1,
-            DiscordJoinButton = Color3.fromRGB(88, 101, 242),
-            WarningNotifyColor = Color3.fromRGB(255, 185, 30),
-            SuccessNotifyColor = Color3.fromRGB(50, 205, 80),
-            ErrorNotifyColor = Color3.fromRGB(220, 55, 55),
-            InfoNotifyColor = Color3.fromRGB(76, 194, 255),
-        }
-    end,
-    [50] = function() --[[ Darker ]]
-        local aa, ab, ac, ad, ae = b(50)
-        return {
-            Name = "Charcoal",
-            Accent = Color3.fromRGB(102, 102, 102),
-            AcrylicMain = Color3.fromRGB(20, 20, 20),
-            AcrylicBorder = Color3.fromRGB(60, 60, 60),
-            AcrylicGradient = ColorSequence.new(Color3.fromRGB(30, 30, 30), Color3.fromRGB(10, 10, 10)),
-            AcrylicNoise = 0.9,
-            TitleBarLine = Color3.fromRGB(70, 70, 70),
-            Tab = Color3.fromRGB(40, 40, 40),
-            Element = Color3.fromRGB(35, 35, 35),
-            ElementBorder = Color3.fromRGB(60, 60, 60),
-            InElementBorder = Color3.fromRGB(45, 45, 45),
-            ElementTransparency = 0.9,
-            ToggleSlider = Color3.fromRGB(90, 160, 255),
-            ToggleToggled = Color3.fromRGB(0, 0, 0),
-            SliderRail = Color3.fromRGB(60, 60, 60),
-            CheckboxUnchecked = Color3.fromRGB(60, 60, 60),
-            CheckboxChecked = Color3.fromRGB(102, 102, 102),
-            CheckboxCheck = Color3.fromRGB(0, 0, 0),
-            ProgressBarRail = Color3.fromRGB(60, 60, 60),
-            ProgressBarFill = Color3.fromRGB(102, 102, 102),
-            DropdownFrame = Color3.fromRGB(30, 30, 30),
-            DropdownHolder = Color3.fromRGB(20, 20, 20),
-            DropdownBorder = Color3.fromRGB(60, 60, 60),
-            DropdownOption = Color3.fromRGB(90, 160, 255),
-            Keybind = Color3.fromRGB(35, 35, 35),
-            Input = Color3.fromRGB(25, 25, 25),
-            InputFocused = Color3.fromRGB(15, 15, 15),
-            InputIndicator = Color3.fromRGB(120, 180, 255),
-            Dialog = Color3.fromRGB(25, 25, 25),
-            DialogHolder = Color3.fromRGB(20, 20, 20),
-            DialogHolderLine = Color3.fromRGB(15, 15, 15),
-            DialogButton = Color3.fromRGB(25, 25, 25),
-            DialogButtonBorder = Color3.fromRGB(60, 60, 60),
-            DialogBorder = Color3.fromRGB(60, 60, 60),
-            DialogInput = Color3.fromRGB(30, 30, 30),
-            DialogInputLine = Color3.fromRGB(120, 180, 255),
-            Text = Color3.fromRGB(240, 240, 240),
-            SubText = Color3.fromRGB(170, 170, 170),
-            Hover = Color3.fromRGB(90, 160, 255),
-            HoverChange = 0.05,
-            ShineEnabled = true,
-            Shine = {
-                Speed = 0.45,
-                RotationSpeed = 25,
-                ColorSequence = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(150, 150, 150)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 20))
-                    }
-                )
-            },
-            StrokeShine = true,
-            StrokeDark = Color3.fromRGB(60, 60, 60),
-            ButtonGradient = {
-                Background = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(175, 175, 175))
-                    }
-                ),
-                Stroke = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(180, 180, 180)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 20))
-                    }
-                )
-            }
-        }
-    end,
-    [51] = function() --[[ Light ]]
-        local aa, ab, ac, ad, ae = b(51)
-        return {
-            Name = "Pearl White",
-            Accent = Color3.fromRGB(214, 214, 214),
-            AcrylicMain = Color3.fromRGB(240, 240, 240),
-            AcrylicBorder = Color3.fromRGB(200, 200, 200),
-            AcrylicGradient = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(220, 220, 220)),
-            AcrylicNoise = 0.9,
-            TitleBarLine = Color3.fromRGB(200, 200, 200),
-            Tab = Color3.fromRGB(230, 230, 230),
-            Element = Color3.fromRGB(220, 220, 220),
-            ElementBorder = Color3.fromRGB(200, 200, 200),
-            InElementBorder = Color3.fromRGB(210, 210, 210),
-            ElementTransparency = 0.9,
-            ToggleSlider = Color3.fromRGB(60, 160, 255),
-            ToggleToggled = Color3.fromRGB(255, 255, 255),
-            SliderRail = Color3.fromRGB(200, 200, 200),
-            CheckboxUnchecked = Color3.fromRGB(200, 200, 200),
-            CheckboxChecked = Color3.fromRGB(214, 214, 214),
-            CheckboxCheck = Color3.fromRGB(255, 255, 255),
-            ProgressBarRail = Color3.fromRGB(200, 200, 200),
-            ProgressBarFill = Color3.fromRGB(214, 214, 214),
-            DropdownFrame = Color3.fromRGB(230, 230, 230),
-            DropdownHolder = Color3.fromRGB(220, 220, 220),
-            DropdownBorder = Color3.fromRGB(200, 200, 200),
-            DropdownOption = Color3.fromRGB(60, 160, 255),
-            Keybind = Color3.fromRGB(220, 220, 220),
-            Input = Color3.fromRGB(230, 230, 230),
-            InputFocused = Color3.fromRGB(210, 210, 210),
-            InputIndicator = Color3.fromRGB(60, 160, 255),
-            Dialog = Color3.fromRGB(230, 230, 230),
-            DialogHolder = Color3.fromRGB(220, 220, 220),
-            DialogHolderLine = Color3.fromRGB(210, 210, 210),
-            DialogButton = Color3.fromRGB(230, 230, 230),
-            DialogButtonBorder = Color3.fromRGB(200, 200, 200),
-            DialogBorder = Color3.fromRGB(200, 200, 200),
-            DialogInput = Color3.fromRGB(240, 240, 240),
-            DialogInputLine = Color3.fromRGB(60, 160, 255),
-            Text = Color3.fromRGB(20, 20, 20),
-            SubText = Color3.fromRGB(90, 90, 90),
-            Hover = Color3.fromRGB(60, 160, 255),
-            HoverChange = 0.05,
-            ShineEnabled = true,
-            Shine = {
-                Speed = 0.4,
-                RotationSpeed = 20,
-                ColorSequence = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 200, 200)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 200, 200))
-                    }
-                )
-            },
-            StrokeShine = true,
-            StrokeDark = Color3.fromRGB(200, 200, 200),
-            ButtonGradient = {
-                Background = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))
-                    }
-                ),
-                Stroke = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(160, 160, 160)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(160, 160, 160))
-                    }
-                )
-            }
-        }
-    end,
-    [52] = function() --[[ BloodRed ]]
-        local aa, ab, ac, ad, ae = b(52)
-        return {
-            Name = "Blood Red",
-            Accent = Color3.fromRGB(180, 10, 20),
-            AcrylicMain = Color3.fromRGB(35, 8, 10),
-            AcrylicBorder = Color3.fromRGB(140, 15, 25),
-            AcrylicGradient = ColorSequence.new(Color3.fromRGB(130, 12, 20), Color3.fromRGB(28, 5, 8)),
-            AcrylicNoise = 0.9,
-            TitleBarLine = Color3.fromRGB(155, 18, 28),
-            Tab = Color3.fromRGB(145, 15, 25),
-            Element = Color3.fromRGB(130, 12, 22),
-            ElementBorder = Color3.fromRGB(85, 8, 14),
-            InElementBorder = Color3.fromRGB(150, 18, 28),
-            ElementTransparency = 0.9,
-            ToggleSlider = Color3.fromRGB(180, 10, 20),
-            ToggleToggled = Color3.fromRGB(255, 230, 230),
-            SliderRail = Color3.fromRGB(145, 15, 25),
-            CheckboxUnchecked = Color3.fromRGB(145, 15, 25),
-            CheckboxChecked = Color3.fromRGB(180, 10, 20),
-            CheckboxCheck = Color3.fromRGB(255, 230, 230),
-            ProgressBarRail = Color3.fromRGB(145, 15, 25),
-            ProgressBarFill = Color3.fromRGB(180, 10, 20),
-            DropdownFrame = Color3.fromRGB(115, 10, 18),
-            DropdownHolder = Color3.fromRGB(28, 5, 8),
-            DropdownBorder = Color3.fromRGB(80, 7, 13),
-            DropdownOption = Color3.fromRGB(180, 10, 20),
-            Keybind = Color3.fromRGB(130, 12, 22),
-            Input = Color3.fromRGB(115, 10, 18),
-            InputFocused = Color3.fromRGB(18, 3, 5),
-            InputIndicator = Color3.fromRGB(220, 50, 70),
-            Dialog = Color3.fromRGB(28, 5, 8),
-            DialogHolder = Color3.fromRGB(18, 3, 5),
-            DialogHolderLine = Color3.fromRGB(12, 2, 3),
-            DialogButton = Color3.fromRGB(28, 5, 8),
-            DialogButtonBorder = Color3.fromRGB(145, 15, 25),
-            DialogBorder = Color3.fromRGB(85, 8, 14),
-            DialogInput = Color3.fromRGB(50, 10, 14),
-            DialogInputLine = Color3.fromRGB(220, 50, 70),
-            Text = Color3.fromRGB(255, 230, 230),
-            SubText = Color3.fromRGB(210, 175, 178),
-            Hover = Color3.fromRGB(180, 10, 20),
-            HoverChange = 0.05,
-            ShineEnabled = true,
-            Shine = {
-                Speed = 0.5,
-                RotationSpeed = 25,
-                ColorSequence = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(71, 0, 0)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(159, 0, 0)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(71, 0, 0))
-                    }
-                )
-            },
-            StrokeShine = true,
-            StrokeDark = Color3.fromRGB(145, 15, 25),
-            ButtonGradient = {
-                Background = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(141, 0, 0)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(71, 0, 0))
-                    }
-                ),
-                Stroke = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(71, 0, 0)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(159, 0, 0)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(71, 0, 0))
-                    }
-                )
-            }
-        }
-    end,
-    [53] = function() --[[ Neon ]]
-        local aa, ab, ac, ad, ae = b(53)
-        return {
-            Name = "Neon Purple",
-            Accent = Color3.fromRGB(180, 0, 255),
-            AcrylicMain = Color3.fromRGB(5, 0, 15),
-            AcrylicBorder = Color3.fromRGB(140, 0, 255),
-            AcrylicGradient = ColorSequence.new(Color3.fromRGB(5, 0, 15), Color3.fromRGB(45, 0, 160)),
-            AcrylicNoise = 0.9,
-            TitleBarLine = Color3.fromRGB(160, 0, 255),
-            Tab = Color3.fromRGB(130, 0, 230),
-            Element = Color3.fromRGB(120, 0, 210),
-            ElementBorder = Color3.fromRGB(50, 0, 100),
-            InElementBorder = Color3.fromRGB(155, 0, 245),
-            ElementTransparency = 0.87,
-            ToggleSlider = Color3.fromRGB(180, 0, 255),
-            ToggleToggled = Color3.fromRGB(15, 0, 40),
-            SliderRail = Color3.fromRGB(130, 0, 230),
-            CheckboxUnchecked = Color3.fromRGB(130, 0, 230),
-            CheckboxChecked = Color3.fromRGB(180, 0, 255),
-            CheckboxCheck = Color3.fromRGB(15, 0, 40),
-            ProgressBarRail = Color3.fromRGB(130, 0, 230),
-            ProgressBarFill = Color3.fromRGB(180, 0, 255),
-            DropdownFrame = Color3.fromRGB(255, 255, 255),
-            DropdownHolder = Color3.fromRGB(10, 0, 30),
-            DropdownBorder = Color3.fromRGB(50, 0, 140),
-            DropdownOption = Color3.fromRGB(180, 0, 255),
-            Keybind = Color3.fromRGB(120, 0, 210),
-            Input = Color3.fromRGB(255, 255, 255),
-            InputFocused = Color3.fromRGB(20, 0, 50),
-            InputIndicator = Color3.fromRGB(200, 0, 255),
-            Dialog = Color3.fromRGB(10, 0, 30),
-            DialogHolder = Color3.fromRGB(5, 0, 20),
-            DialogHolderLine = Color3.fromRGB(3, 0, 12),
-            DialogButton = Color3.fromRGB(10, 0, 30),
-            DialogButtonBorder = Color3.fromRGB(140, 0, 255),
-            DialogBorder = Color3.fromRGB(50, 0, 120),
-            DialogInput = Color3.fromRGB(25, 0, 60),
-            DialogInputLine = Color3.fromRGB(200, 0, 255),
-            Text = Color3.fromRGB(252, 245, 255),
-            SubText = Color3.fromRGB(210, 185, 255),
-            Hover = Color3.fromRGB(150, 0, 255),
-            HoverChange = 0.07,
-            ShineEnabled = true,
-            Shine = {
-                Speed = 0.4,
-                RotationSpeed = 20,
-                ColorSequence = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(32, 5, 137)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(171, 32, 253)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(32, 5, 137))
-                    }
-                )
-            },
-            StrokeShine = true,
-            StrokeDark = Color3.fromRGB(60, 0, 150),
-            ButtonGradient = {
-                Background = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(125, 18, 255)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(32, 5, 137))
-                    }
-                ),
-                Stroke = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(125, 18, 255)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(171, 32, 253)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(125, 18, 255))
-                    }
-                )
-            }
-        }
-    end,
-    [54] = function() --[[ Ocean ]]
-        local aa, ab, ac, ad, ae = b(54)
-        return {
-            Name = "Deep Ocean",
-            Accent = Color3.fromRGB(0, 150, 200),
-            AcrylicMain = Color3.fromRGB(15, 30, 45),
-            AcrylicBorder = Color3.fromRGB(0, 100, 150),
-            AcrylicGradient = ColorSequence.new(Color3.fromRGB(0, 80, 120), Color3.fromRGB(10, 25, 40)),
-            AcrylicNoise = 0.9,
-            TitleBarLine = Color3.fromRGB(0, 120, 180),
-            Tab = Color3.fromRGB(0, 100, 150),
-            Element = Color3.fromRGB(0, 90, 135),
-            ElementBorder = Color3.fromRGB(0, 70, 105),
-            InElementBorder = Color3.fromRGB(0, 110, 165),
-            ElementTransparency = 0.87,
-            ToggleSlider = Color3.fromRGB(0, 150, 200),
-            ToggleToggled = Color3.fromRGB(255, 255, 255),
-            SliderRail = Color3.fromRGB(0, 100, 150),
-            CheckboxUnchecked = Color3.fromRGB(0, 100, 150),
-            CheckboxChecked = Color3.fromRGB(0, 150, 200),
-            CheckboxCheck = Color3.fromRGB(255, 255, 255),
-            ProgressBarRail = Color3.fromRGB(0, 100, 150),
-            ProgressBarFill = Color3.fromRGB(0, 150, 200),
-            DropdownFrame = Color3.fromRGB(0, 80, 120),
-            DropdownHolder = Color3.fromRGB(10, 25, 40),
-            DropdownBorder = Color3.fromRGB(0, 70, 105),
-            DropdownOption = Color3.fromRGB(0, 150, 200),
-            Keybind = Color3.fromRGB(0, 90, 135),
-            Input = Color3.fromRGB(0, 80, 120),
-            InputFocused = Color3.fromRGB(5, 20, 35),
-            InputIndicator = Color3.fromRGB(0, 200, 255),
-            Dialog = Color3.fromRGB(10, 25, 40),
-            DialogHolder = Color3.fromRGB(5, 15, 25),
-            DialogHolderLine = Color3.fromRGB(0, 10, 20),
-            DialogButton = Color3.fromRGB(10, 25, 40),
-            DialogButtonBorder = Color3.fromRGB(0, 100, 150),
-            DialogBorder = Color3.fromRGB(0, 70, 105),
-            DialogInput = Color3.fromRGB(15, 35, 55),
-            DialogInputLine = Color3.fromRGB(0, 200, 255),
-            Text = Color3.fromRGB(240, 248, 255),
-            SubText = Color3.fromRGB(180, 210, 230),
-            Hover = Color3.fromRGB(0, 150, 200),
-            HoverChange = 0.05,
-            ShineEnabled = true,
-            Shine = {
-                Speed = 0.5,
-                RotationSpeed = 25,
-                ColorSequence = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 60, 90)),
-                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 200, 255)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 60, 90))
-                })
-            },
-            StrokeShine = true,
-            StrokeDark = Color3.fromRGB(0, 100, 150),
-            ButtonGradient = {
-                Background = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 120, 180)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 60, 90))
-                }),
-                Stroke = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 100, 150)),
-                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 200, 255)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 100, 150))
-                })
-            }
-        }
-    end,
-    [55] = function() --[[ Midnight ]]
-        local aa, ab, ac, ad, ae = b(55)
-        return {
-            Name = "Midnight Blue",
-            Accent = Color3.fromRGB(100, 80, 200),
-            AcrylicMain = Color3.fromRGB(10, 8, 25),
-            AcrylicBorder = Color3.fromRGB(60, 45, 140),
-            AcrylicGradient = ColorSequence.new(Color3.fromRGB(50, 35, 120), Color3.fromRGB(8, 5, 20)),
-            AcrylicNoise = 0.9,
-            TitleBarLine = Color3.fromRGB(80, 60, 170),
-            Tab = Color3.fromRGB(60, 45, 140),
-            Element = Color3.fromRGB(55, 40, 125),
-            ElementBorder = Color3.fromRGB(40, 30, 90),
-            InElementBorder = Color3.fromRGB(70, 55, 155),
-            ElementTransparency = 0.87,
-            ToggleSlider = Color3.fromRGB(100, 80, 200),
-            ToggleToggled = Color3.fromRGB(255, 255, 255),
-            SliderRail = Color3.fromRGB(60, 45, 140),
-            CheckboxUnchecked = Color3.fromRGB(60, 45, 140),
-            CheckboxChecked = Color3.fromRGB(100, 80, 200),
-            CheckboxCheck = Color3.fromRGB(255, 255, 255),
-            ProgressBarRail = Color3.fromRGB(60, 45, 140),
-            ProgressBarFill = Color3.fromRGB(100, 80, 200),
-            DropdownFrame = Color3.fromRGB(45, 30, 110),
-            DropdownHolder = Color3.fromRGB(8, 5, 20),
-            DropdownBorder = Color3.fromRGB(35, 25, 85),
-            DropdownOption = Color3.fromRGB(100, 80, 200),
-            Keybind = Color3.fromRGB(55, 40, 125),
-            Input = Color3.fromRGB(45, 30, 110),
-            InputFocused = Color3.fromRGB(5, 3, 15),
-            InputIndicator = Color3.fromRGB(140, 120, 240),
-            Dialog = Color3.fromRGB(8, 5, 20),
-            DialogHolder = Color3.fromRGB(5, 3, 15),
-            DialogHolderLine = Color3.fromRGB(3, 2, 10),
-            DialogButton = Color3.fromRGB(8, 5, 20),
-            DialogButtonBorder = Color3.fromRGB(60, 45, 140),
-            DialogBorder = Color3.fromRGB(40, 30, 90),
-            DialogInput = Color3.fromRGB(15, 10, 35),
-            DialogInputLine = Color3.fromRGB(140, 120, 240),
-            Text = Color3.fromRGB(220, 220, 255),
-            SubText = Color3.fromRGB(170, 170, 210),
-            Hover = Color3.fromRGB(100, 80, 200),
-            HoverChange = 0.05,
-            ShineEnabled = true,
-            Shine = {
-                Speed = 0.5,
-                RotationSpeed = 25,
-                ColorSequence = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 15, 60)),
-                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(140, 120, 240)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 15, 60))
-                })
-            },
-            StrokeShine = true,
-            StrokeDark = Color3.fromRGB(60, 45, 140),
-            ButtonGradient = {
-                Background = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 60, 170)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 15, 60))
-                }),
-                Stroke = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 45, 140)),
-                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(140, 120, 240)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 45, 140))
-                })
-            }
-        }
-    end,
-    [56] = function() --[[ Sapphire ]]
-        local aa, ab, ac, ad, ae = b(56)
-        return {
-            Name = "Royal Blue",
-            Accent = Color3.fromRGB(15, 82, 186),
-            AcrylicMain = Color3.fromRGB(10, 25, 50),
-            AcrylicBorder = Color3.fromRGB(10, 65, 150),
-            AcrylicGradient = ColorSequence.new(Color3.fromRGB(12, 70, 160), Color3.fromRGB(8, 20, 45)),
-            AcrylicNoise = 0.9,
-            TitleBarLine = Color3.fromRGB(13, 75, 170),
-            Tab = Color3.fromRGB(10, 65, 150),
-            Element = Color3.fromRGB(9, 58, 135),
-            ElementBorder = Color3.fromRGB(6, 40, 95),
-            InElementBorder = Color3.fromRGB(11, 70, 160),
-            ElementTransparency = 0.87,
-            ToggleSlider = Color3.fromRGB(15, 82, 186),
-            ToggleToggled = Color3.fromRGB(255, 255, 255),
-            SliderRail = Color3.fromRGB(10, 65, 150),
-            CheckboxUnchecked = Color3.fromRGB(10, 65, 150),
-            CheckboxChecked = Color3.fromRGB(15, 82, 186),
-            CheckboxCheck = Color3.fromRGB(255, 255, 255),
-            ProgressBarRail = Color3.fromRGB(10, 65, 150),
-            ProgressBarFill = Color3.fromRGB(15, 82, 186),
-            DropdownFrame = Color3.fromRGB(8, 50, 120),
-            DropdownHolder = Color3.fromRGB(8, 20, 45),
-            DropdownBorder = Color3.fromRGB(6, 40, 95),
-            DropdownOption = Color3.fromRGB(15, 82, 186),
-            Keybind = Color3.fromRGB(9, 58, 135),
-            Input = Color3.fromRGB(8, 50, 120),
-            InputFocused = Color3.fromRGB(5, 15, 35),
-            InputIndicator = Color3.fromRGB(50, 120, 230),
-            Dialog = Color3.fromRGB(8, 20, 45),
-            DialogHolder = Color3.fromRGB(5, 15, 35),
-            DialogHolderLine = Color3.fromRGB(3, 10, 25),
-            DialogButton = Color3.fromRGB(8, 20, 45),
-            DialogButtonBorder = Color3.fromRGB(10, 65, 150),
-            DialogBorder = Color3.fromRGB(6, 40, 95),
-            DialogInput = Color3.fromRGB(12, 30, 65),
-            DialogInputLine = Color3.fromRGB(50, 120, 230),
-            Text = Color3.fromRGB(220, 235, 255),
-            SubText = Color3.fromRGB(170, 190, 220),
-            Hover = Color3.fromRGB(15, 82, 186),
-            HoverChange = 0.05,
-            ShineEnabled = true,
-            Shine = {
-                Speed = 0.5,
-                RotationSpeed = 25,
-                ColorSequence = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 40, 85)),
-                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(50, 120, 230)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 40, 85))
-                })
-            },
-            StrokeShine = true,
-            StrokeDark = Color3.fromRGB(10, 65, 150),
-            ButtonGradient = {
-                Background = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(13, 75, 170)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 40, 85))
-                }),
-                Stroke = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 65, 150)),
-                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(50, 120, 230)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 65, 150))
-                })
-            }
-        }
-    end,
-    [57] = function() --[[ Galaxy ]]
-        local aa, ab, ac, ad, ae = b(57)
-        return {
-            Name = "Galaxy Purple",
-            Accent = Color3.fromRGB(160, 60, 220),
-            AcrylicMain = Color3.fromRGB(12, 5, 25),
-            AcrylicBorder = Color3.fromRGB(120, 40, 185),
-            AcrylicGradient = ColorSequence.new(Color3.fromRGB(110, 35, 175), Color3.fromRGB(8, 3, 20)),
-            AcrylicNoise = 0.9,
-            TitleBarLine = Color3.fromRGB(130, 50, 195),
-            Tab = Color3.fromRGB(125, 45, 190),
-            Element = Color3.fromRGB(112, 40, 170),
-            ElementBorder = Color3.fromRGB(75, 25, 115),
-            InElementBorder = Color3.fromRGB(130, 50, 195),
-            ElementTransparency = 0.87,
-            ToggleSlider = Color3.fromRGB(160, 60, 220),
-            ToggleToggled = Color3.fromRGB(255, 255, 255),
-            SliderRail = Color3.fromRGB(125, 45, 190),
-            CheckboxUnchecked = Color3.fromRGB(125, 45, 190),
-            CheckboxChecked = Color3.fromRGB(160, 60, 220),
-            CheckboxCheck = Color3.fromRGB(255, 255, 255),
-            ProgressBarRail = Color3.fromRGB(125, 45, 190),
-            ProgressBarFill = Color3.fromRGB(160, 60, 220),
-            DropdownFrame = Color3.fromRGB(100, 35, 152),
-            DropdownHolder = Color3.fromRGB(8, 3, 20),
-            DropdownBorder = Color3.fromRGB(72, 24, 108),
-            DropdownOption = Color3.fromRGB(160, 60, 220),
-            Keybind = Color3.fromRGB(112, 40, 170),
-            Input = Color3.fromRGB(100, 35, 152),
-            InputFocused = Color3.fromRGB(5, 2, 14),
-            InputIndicator = Color3.fromRGB(195, 100, 255),
-            Dialog = Color3.fromRGB(8, 3, 20),
-            DialogHolder = Color3.fromRGB(5, 2, 14),
-            DialogHolderLine = Color3.fromRGB(3, 1, 9),
-            DialogButton = Color3.fromRGB(8, 3, 20),
-            DialogButtonBorder = Color3.fromRGB(125, 45, 190),
-            DialogBorder = Color3.fromRGB(75, 25, 115),
-            DialogInput = Color3.fromRGB(22, 10, 50),
-            DialogInputLine = Color3.fromRGB(195, 100, 255),
-            Text = Color3.fromRGB(242, 232, 255),
-            SubText = Color3.fromRGB(200, 178, 228),
-            Hover = Color3.fromRGB(160, 60, 220),
-            HoverChange = 0.05,
-            ShineEnabled = true,
-            Shine = { Speed = 0.5, RotationSpeed = 25, ColorSequence = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(48, 18, 85)), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(195, 100, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(48, 18, 85)) }) },
-            StrokeShine = true,
-            StrokeDark = Color3.fromRGB(125, 45, 190),
-            ButtonGradient = { Background = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(130, 50, 195)), ColorSequenceKeypoint.new(1, Color3.fromRGB(48, 18, 85)) }), Stroke = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(125, 45, 190)), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(195, 100, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(125, 45, 190)) }) }
-        }
+                }
     end,
 
-    [58] = function() --[[ Cosmic ]]
-        local aa, ab, ac, ad, ae = b(58)
-        return {
-            Name = "Cosmic Violet",
-            Accent = Color3.fromRGB(80, 60, 140),
-            AcrylicMain = Color3.fromRGB(12, 10, 22),
-            AcrylicBorder = Color3.fromRGB(50, 35, 110),
-            AcrylicGradient = ColorSequence.new(Color3.fromRGB(45, 30, 100), Color3.fromRGB(8, 6, 16)),
-            AcrylicNoise = 0.9,
-            TitleBarLine = Color3.fromRGB(60, 42, 120),
-            Tab = Color3.fromRGB(55, 38, 115),
-            Element = Color3.fromRGB(50, 34, 104),
-            ElementBorder = Color3.fromRGB(34, 23, 70),
-            InElementBorder = Color3.fromRGB(60, 42, 120),
-            ElementTransparency = 0.87,
-            ToggleSlider = Color3.fromRGB(80, 60, 140),
-            ToggleToggled = Color3.fromRGB(255, 255, 255),
-            SliderRail = Color3.fromRGB(55, 38, 115),
-            CheckboxUnchecked = Color3.fromRGB(55, 38, 115),
-            CheckboxChecked = Color3.fromRGB(80, 60, 140),
-            CheckboxCheck = Color3.fromRGB(255, 255, 255),
-            ProgressBarRail = Color3.fromRGB(55, 38, 115),
-            ProgressBarFill = Color3.fromRGB(80, 60, 140),
-            DropdownFrame = Color3.fromRGB(44, 30, 92),
-            DropdownHolder = Color3.fromRGB(8, 6, 16),
-            DropdownBorder = Color3.fromRGB(32, 22, 68),
-            DropdownOption = Color3.fromRGB(80, 60, 140),
-            Keybind = Color3.fromRGB(50, 34, 104),
-            Input = Color3.fromRGB(44, 30, 92),
-            InputFocused = Color3.fromRGB(5, 3, 10),
-            InputIndicator = Color3.fromRGB(115, 90, 175),
-            Dialog = Color3.fromRGB(8, 6, 16),
-            DialogHolder = Color3.fromRGB(5, 3, 10),
-            DialogHolderLine = Color3.fromRGB(3, 2, 6),
-            DialogButton = Color3.fromRGB(8, 6, 16),
-            DialogButtonBorder = Color3.fromRGB(55, 38, 115),
-            DialogBorder = Color3.fromRGB(34, 23, 70),
-            DialogInput = Color3.fromRGB(22, 16, 45),
-            DialogInputLine = Color3.fromRGB(115, 90, 175),
-            Text = Color3.fromRGB(230, 225, 245),
-            SubText = Color3.fromRGB(185, 175, 210),
-            Hover = Color3.fromRGB(80, 60, 140),
-            HoverChange = 0.05,
-            ShineEnabled = true,
-            Shine = { Speed = 0.5, RotationSpeed = 25, ColorSequence = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 25, 65)), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(115, 90, 175)), ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 25, 65)) }) },
-            StrokeShine = true,
-            StrokeDark = Color3.fromRGB(55, 38, 115),
-            ButtonGradient = { Background = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 42, 120)), ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 25, 65)) }), Stroke = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(55, 38, 115)), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(115, 90, 175)), ColorSequenceKeypoint.new(1, Color3.fromRGB(55, 38, 115)) }) }
-        }
-    end,}
+}
 
 do local ab,ac,ad,ae,af,ag,ah,aj,c,e,f,g,h,i,j,k=task,setmetatable,error,newproxy,getmetatable,next,table,unpack,coroutine,script,type,require,pcall,getfenv,setfenv,rawget local l,m,n,o,p,s,t,u,v,w,x=ah.insert,ah.remove,ah.freeze or function(l)return l end,ab and ab.defer or function(l,...)local m=c.create(l)c.resume(m,...)return m end,'0.0.0-venv',{},{},{},{},{},{}local y,z={GetChildren=function(y)local z,A=x[y],{}for B in ag,z do l(A,B)end return A end,FindFirstChild=function(y,z)if not z then ad('Argument 1 missing or nil',2)end for A in ag,x[y]do if A.Name==z then return A end end return end,GetFullName=function(y)local z,A=y.Name,y.Parent while A do z=A.Name..'.'..z A=A.Parent end return'VirtualEnv.'..z end},{}for A,B in ag,y do z[A]=function(C,...)if not x[C]then ad("Expected ':' not '.' calling member function "..A,1)end return B(C,...)end end local C=function(C,D,E)local F,G,H,I,J=ac({},{__mode='k'}),function(F)ad(F..' is not a valid (virtual) member of '..C..' "'..D..'"',1)end,function(F)ad('Unable to assign (virtual) property '..F..'. Property is read only',1)end,(ae(true))local K=af(I)K.__index=function(L,M)if M=='ClassName'then return C elseif M=='Name'then return D elseif M=='Parent'then return E elseif C=='StringValue'and M=='Value'then return J else local N=z[M]if N then return N end end for N in ag,F do if N.Name==M then return N end end G(M)end K.__newindex=function(L,M,N)if M=='ClassName'then H(M)elseif M=='Name'then D=N elseif M=='Parent'then if N==I then return end if E~=nil then x[E][I]=nil end E=N if N~=nil then x[N][I]=true end elseif C=='StringValue'and M=='Value'then J=N else G(M)end end K.__tostring=function()return D end x[I]=F if E~=nil then x[E][I]=true end return I end local function D(E,F)local G,H,I,J=E[1],E[2],E[3],E[4]local K=m(I,1)local L=C(H,K,F)s[G]=L if I then for M,N in ag,I do L[M]=N end end if J then for M,N in ag,J do D(N,L)end end return L end local E={}for F,G in ag,a do l(E,D(G))end for H,I in ag,aa do local J=s[H]t[J]=I local K=J.ClassName if K=='LocalScript'or K=='Script'then l(v,J)end end local J=function(J)local K,L=J.ClassName,u[J]if L and K=='ModuleScript'then return aj(L)end local M=t[J]if not M then return end if K=='LocalScript'or K=='Script'then M()return else local N={M()}u[J]=N return aj(N)end end function b(K)local L=s[K]local M=t[L]if not M then return end local N,O,P,Q,R,S,T=false,n{Version=p,Script=e,Shared=w,GetScript=function()return e end,GetShared=function()return w end},L,function(N,...)if x[N]and N.ClassName=='ModuleScript'and t[N]then return J(N)end return g(N,...)end local U,V=function(U,...)if not N then T()end if f(U)=='number'and U>=0 then if U==0 then return S else U=U+1 local V,W=h(i,U)if V and W==R then return S end end end return i(U,...)end,function(U,V,...)if not N then T()end if f(U)=='number'and U>=0 then if U==0 then return j(S,V)else U=U+1 local W,X=h(i,U)if W and X==R then return j(S,V)end end end return j(U,V,...)end function T()R=i(0)local W={maui=O,script=P,require=Q,getfenv=U,setfenv=V}S=ac({},{__index=function(X,Y)local Z=k(S,Y)if Z~=nil then return Z end local _=W[Y]if _~=nil then return _ end return R[Y]end})j(M,S)N=true end return O,P,Q,U,V end for K,L in ag,v do o(J,L)end do local M for N,O in ag,E do if O.ClassName=='ModuleScript'and O.Name=='MainModule'then M=O break end end if M then return J(M)end end end
