@@ -217,7 +217,7 @@ local aa = {
             Window = nil,
             WindowFrame = nil,
             Unloaded = false,
-            Theme = "Blood Red",
+            Theme = "Crimson",
             FischBypass = (game and game.GameId == 5750914919) or false,
             DialogOpen = false,
             UseAcrylic = false,
@@ -2113,7 +2113,7 @@ local aa = {
 
         local InterfaceManager = {}
         InterfaceManager.Folder = "FluentSettings"
-        InterfaceManager.Settings = { Theme="Blood Red", Acrylic=true, Transparency=true, Animated=true, MenuKeybind="LeftControl", Font="GothamSSm", DisableBG=false, Favorites={} }
+        InterfaceManager.Settings = { Theme="Crimson", Acrylic=true, Transparency=true, Animated=true, MenuKeybind="LeftControl", Font="GothamSSm", DisableBG=false, Favorites={} }
         function InterfaceManager:SetFolder(folder) self.Folder=folder; self:BuildFolderTree() end
         function InterfaceManager:SetLibrary(lib) self.Library=lib end
         function InterfaceManager:BuildFolderTree()
@@ -11475,7 +11475,6 @@ local aa = {
     [79] = function() --[[ Crimson ]]
         b(79)
             local _crimsonBackgrounds = {
-                "rbxassetid://132324914333495",
                 "rbxassetid://74252111742950",
             }
             local _crimsonBg = _crimsonBackgrounds[math.random(1, #_crimsonBackgrounds)]
