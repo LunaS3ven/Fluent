@@ -19,19 +19,16 @@ local a, b = {
                     {54, "ModuleScript", {"Ocean"}},
                     {55, "ModuleScript", {"Midnight"}},
                     {56, "ModuleScript", {"Sapphire"}},
-                    {57, "ModuleScript", {"Galaxy"}},
-                    {58, "ModuleScript", {"Cosmic"}},
-                    {70, "ModuleScript", {"AMOLED"}},
                     {71, "ModuleScript", {"Rose"}},
                     {72, "ModuleScript", {"Neon Cyber"}},
                     {73, "ModuleScript", {"Arctic Frost"}},
                     {74, "ModuleScript", {"Cotton Candy"}},
-                    {75, "ModuleScript", {"Orange"}},
                     {76, "ModuleScript", {"Cyanic"}},
                     {77, "ModuleScript", {"Amber Glow"}},
                     {78, "ModuleScript", {"Bloomings"}},
                     {79, "ModuleScript", {"Crimson"}},
                     {80, "ModuleScript", {"Gold"}},
+                    {81, "ModuleScript", {"Lavender Pink"}}
                 }
             },
             {
@@ -209,7 +206,7 @@ local aa = {
         v(nw)
         t:Init(nw)
         local x = {
-            Version = "1.5.7",
+            Version = "1.6.0",
             Name = "FluentPro",
             OpenFrames = {},
             Options = {},
@@ -217,7 +214,7 @@ local aa = {
             Window = nil,
             WindowFrame = nil,
             Unloaded = false,
-            Theme = "Crimson",
+            Theme = "Blood Red",
             FischBypass = (game and game.GameId == 5750914919) or false,
             DialogOpen = false,
             UseAcrylic = false,
@@ -230,6 +227,7 @@ local aa = {
             PopupGUI = nw,
             ErrorHandler = nil,
             ShineEnabled = true,
+            NotifyInsideWindow = false,
             WindowTransparent = false,
             ButtonGradients = {
                 Background = ColorSequence.new {
@@ -333,50 +331,9 @@ local aa = {
         end
         function er.Fallback(title, msg)
             pcall(function()
-                local lp = game:GetService("Players").LocalPlayer
-                local sg = Instance.new("ScreenGui")
-                sg.Name = "FluentProErrorNotify"
-                sg.ResetOnSpawn = false
-                sg.DisplayOrder = 99999
-                sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-                sg.Parent = (lp and lp:FindFirstChildOfClass("PlayerGui")) or game:GetService("CoreGui")
-                local fr = Instance.new("Frame")
-                fr.Size = UDim2.fromOffset(310, 76)
-                fr.Position = UDim2.new(1, -320, 0, 24)
-                fr.BackgroundColor3 = Color3.fromRGB(18, 6, 6)
-                fr.BorderSizePixel = 0
-                fr.Parent = sg
-                Instance.new("UICorner", fr).CornerRadius = UDim.new(0, 8)
-                local stroke = Instance.new("UIStroke", fr)
-                stroke.Color = Color3.fromRGB(220, 55, 55)
-                stroke.Thickness = 1.5
-                local stripe = Instance.new("Frame", fr)
-                stripe.Size = UDim2.new(0, 3, 1, -14)
-                stripe.Position = UDim2.new(0, 7, 0, 7)
-                stripe.BackgroundColor3 = Color3.fromRGB(220, 55, 55)
-                stripe.BorderSizePixel = 0
-                Instance.new("UICorner", stripe).CornerRadius = UDim.new(1, 0)
-                local t1 = Instance.new("TextLabel", fr)
-                t1.Size = UDim2.new(1, -20, 0, 18)
-                t1.Position = UDim2.new(0, 18, 0, 8)
-                t1.BackgroundTransparency = 1
-                t1.Text = "[FluentPro] " .. tostring(title)
-                t1.TextColor3 = Color3.fromRGB(255, 80, 80)
-                t1.TextSize = 12
-                t1.Font = Enum.Font.GothamBold
-                t1.TextXAlignment = Enum.TextXAlignment.Left
-                local t2 = Instance.new("TextLabel", fr)
-                t2.Size = UDim2.new(1, -20, 0, 38)
-                t2.Position = UDim2.new(0, 18, 0, 28)
-                t2.BackgroundTransparency = 1
-                t2.Text = tostring(msg)
-                t2.TextColor3 = Color3.fromRGB(220, 185, 185)
-                t2.TextSize = 11
-                t2.Font = Enum.Font.Gotham
-                t2.TextWrapped = true
-                t2.TextXAlignment = Enum.TextXAlignment.Left
-                game:GetService("Debris"):AddItem(sg, 10)
+                x:Notify({Title = title, Content = msg, Type = "Error", Duration = 8})
             end)
+            pcall(function() warn("[FluentPro] " .. tostring(title) .. ": " .. tostring(msg)) end)
         end
         function er.Report(title, msg, duration)
             local content = er.BuildContent(tostring(msg))
@@ -657,14 +614,9 @@ local aa = {
                         else
                             ico.Image = tostring(icImg)
                         end
-                        if E.IconColor then
-                            ico.ImageColor3 = E.IconColor
-                        else
-                            local Creator = x.Creator or p
-                            pcall(function()
-                                Creator.AddTag(ico, {ImageColor3 = "Text"})
-                            end)
-                        end
+                        local _iconColorKey = type(E.IconColor) == "string" and E.IconColor or "IconColor"
+                        local Creator = x.Creator or p
+                        pcall(function() Creator.AddThemeObject(ico, {ImageColor3 = _iconColorKey}) end)
                         if result.LabelHolder then
                             ico.Parent = result.Frame
                             result.LabelHolder.Position = UDim2.fromOffset(26, 0)
@@ -888,7 +840,7 @@ local aa = {
         z.AddSection = function(self, Title, IconKey)
             self._elementCount = (self._elementCount or 0) + 1
             local _order = self._elementCount
-            local built = e(s.Section)(Title, IconKey, self.Container)
+            local built = e(s.Section)(Title, (IconKey ~= "" and IconKey or nil), self.Container)
             local sectionObj = {
                 Type = "Section",
                 Container = built.Container,
@@ -934,15 +886,15 @@ local aa = {
                 AutoButtonColor = false,
                 Parent = outerWrap2,
             })
-            local titleOffX2 = iconKey2 and 22 or 0
-            if iconKey2 then
+            local titleOffX2 = (iconKey2 and iconKey2 ~= "") and 22 or 0
+            if iconKey2 and iconKey2 ~= "" then
                 local hIco2 = u("ImageLabel", {
                     Name = "_SecIcon",
                     Size = UDim2.fromOffset(14, 14),
                     Position = UDim2.fromOffset(0, 3),
                     BackgroundTransparency = 1,
-                    ImageColor3 = Color3.fromRGB(255, 255, 255),
                     ImageTransparency = 0.25,
+                    ThemeTag = {ImageColor3 = "IconColor"},
                     Parent = header2,
                 })
                 task.defer(function()
@@ -969,6 +921,7 @@ local aa = {
                 Size = UDim2.new(1, -36, 0, 18),
                 Position = UDim2.fromOffset(titleOffX2, 2),
                 BackgroundTransparency = 1,
+                TextColor3 = Color3.fromRGB(255, 255, 255),
                 ThemeTag = {TextColor3 = "Text"},
                 Parent = header2,
             })
@@ -1092,13 +1045,13 @@ local aa = {
             }
             local wrap = u("Frame",{
                 Size=UDim2.new(1,0,0,38),
-                BackgroundTransparency=0.9,
+                BackgroundTransparency=0.89,
                 BorderSizePixel=0,
                 Parent=parent,
-                ThemeTag={BackgroundColor3="Element"},
+                ThemeTag={BackgroundColor3="Element", BackgroundTransparency="ElementTransparency"},
             })
-            u("UICorner",{CornerRadius=UDim.new(0,8),Parent=wrap})
-            u("UIStroke",{Transparency=0.5,Thickness=1,ThemeTag={Color="InElementBorder"},Parent=wrap})
+            u("UICorner",{CornerRadius=UDim.new(0,4),Parent=wrap})
+            u("UIStroke",{Transparency=0.5,Thickness=1,ApplyStrokeMode=Enum.ApplyStrokeMode.Border,ThemeTag={Color="ElementBorder"},Parent=wrap})
             h.Frame = wrap
 
             local titleLbl = u("TextLabel",{
@@ -1703,6 +1656,151 @@ local aa = {
         z.Social = z["AddSocial"]
         z.Checkbox = z["AddCheckbox"]
         z.ProgressBar = z["AddProgressBar"]
+
+
+        z.AddHGroup = function(self, cfg)
+            cfg = cfg or {}
+            local parent = self.Container
+            if not parent then return end
+            local u = p.New
+            local hGap = cfg.Gap or 6
+            local sec = self
+
+            local outerWrap = u("Frame", {
+                Size = UDim2.new(1, 0, 0, 0),
+                BackgroundTransparency = 1,
+                AutomaticSize = Enum.AutomaticSize.Y,
+                BorderSizePixel = 0,
+                Parent = parent,
+            })
+            u("UIPadding", {
+                PaddingTop = UDim.new(0, 2),
+                PaddingBottom = UDim.new(0, 2),
+                Parent = outerWrap,
+            })
+            local innerRow = u("Frame", {
+                Size = UDim2.new(1, 0, 0, 0),
+                BackgroundTransparency = 1,
+                AutomaticSize = Enum.AutomaticSize.Y,
+                BorderSizePixel = 0,
+                Parent = outerWrap,
+            })
+            local rowLayout = u("UIListLayout", {
+                FillDirection = Enum.FillDirection.Horizontal,
+                HorizontalAlignment = Enum.HorizontalAlignment.Left,
+                VerticalAlignment = Enum.VerticalAlignment.Top,
+                Padding = UDim.new(0, hGap),
+                SortOrder = Enum.SortOrder.LayoutOrder,
+                Parent = innerRow,
+            })
+
+            local columns = {}
+
+            local function recalcColumns()
+                local n = #columns
+                if n == 0 then return end
+                local totalGap = hGap * (n - 1)
+                local colScale = 1 / n
+                local colOffset = -math.floor(totalGap / n + 0.5)
+                for i, col in ipairs(columns) do
+                    col.Size = UDim2.new(colScale, colOffset, 0, 0)
+                end
+            end
+
+            local hObj = {
+                Frame = outerWrap,
+                Container = outerWrap,
+                Type = sec and sec.Type or "Section",
+                ScrollFrame = sec and sec.ScrollFrame or nil,
+                _elementCount = 0,
+                _gap = hGap,
+            }
+
+            function hObj:VGroup(cfg2)
+                cfg2 = cfg2 or {}
+                local vGap = cfg2.Gap or hGap
+                local colFrame = u("Frame", {
+                    Size = UDim2.new(0.5, 0, 0, 0),
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    BackgroundTransparency = 1,
+                    BorderSizePixel = 0,
+                    Parent = innerRow,
+                })
+                u("UIListLayout", {
+                    FillDirection = Enum.FillDirection.Vertical,
+                    HorizontalAlignment = Enum.HorizontalAlignment.Left,
+                    VerticalAlignment = Enum.VerticalAlignment.Top,
+                    Padding = UDim.new(0, vGap),
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                    Parent = colFrame,
+                })
+                table.insert(columns, colFrame)
+                recalcColumns()
+                local colObj = setmetatable({
+                    Frame = colFrame,
+                    Container = colFrame,
+                    Type = sec and sec.Type or "Section",
+                    ScrollFrame = sec and sec.ScrollFrame or nil,
+                    _elementCount = 0,
+                }, getmetatable(sec))
+                return colObj
+            end
+            hObj.AddVGroup = hObj.VGroup
+
+            setmetatable(hObj, getmetatable(sec))
+            self._elementCount = (self._elementCount or 0) + 1
+            outerWrap.LayoutOrder = self._elementCount
+            return hObj
+        end
+
+        z.AddVGroup = function(self, cfg)
+            cfg = cfg or {}
+            local parent = self.Container
+            if not parent then return end
+            local u = p.New
+            local vGap = cfg.Gap or 6
+            local sec = self
+
+            local outerWrap = u("Frame", {
+                Size = UDim2.new(1, 0, 0, 0),
+                BackgroundTransparency = 1,
+                AutomaticSize = Enum.AutomaticSize.Y,
+                BorderSizePixel = 0,
+                Parent = parent,
+            })
+            u("UIListLayout", {
+                FillDirection = Enum.FillDirection.Vertical,
+                HorizontalAlignment = Enum.HorizontalAlignment.Left,
+                VerticalAlignment = Enum.VerticalAlignment.Top,
+                Padding = UDim.new(0, vGap),
+                SortOrder = Enum.SortOrder.LayoutOrder,
+                Parent = outerWrap,
+            })
+
+            local vObj = setmetatable({
+                Frame = outerWrap,
+                Container = outerWrap,
+                Type = sec and sec.Type or "Section",
+                ScrollFrame = sec and sec.ScrollFrame or nil,
+                _elementCount = 0,
+                _gap = vGap,
+            }, getmetatable(sec))
+
+            self._elementCount = (self._elementCount or 0) + 1
+            outerWrap.LayoutOrder = self._elementCount
+            return vObj
+        end
+
+        z.HGroup = z.AddHGroup
+        z.VGroup = z.AddVGroup
+
+        z.DestroyElement = function(self, elemObj)
+            if type(elemObj) == "table" and type(elemObj.Destroy) == "function" then
+                pcall(elemObj.Destroy, elemObj)
+            elseif type(elemObj) == "table" and elemObj.Frame then
+                pcall(function() elemObj.Frame:Destroy() end)
+            end
+        end
         function x.CreateWindow(C, D)
             assert(D.Title, "Window - Missing Title")
             if x.Window then
@@ -1739,7 +1837,7 @@ local aa = {
                 local _sc = D.Search
                 D.SearchHighlight = _sc.Highlight
                 D.SearchHighlightColor = _sc.HighlightColor
-                D.SearchInHeader = (_sc.SearchInHeader == true) or D.SearchInHeader
+                D.SearchInHeader = false
                 D.Search = not (_sc.Search == false)
             end
             local _uiCfg = type(D.UserInfo) == "table" and D.UserInfo or {}
@@ -1760,7 +1858,7 @@ local aa = {
                     UserInfoColor = _effUserInfoColor, UserInfoIcons = _effUserInfoIcons,
                     Anonymous = _effAnonymous,
                     Search = D.Search,
-                    SearchInHeader = D.SearchInHeader,
+                    SearchInHeader = false,
                     SearchHighlight = D.SearchHighlight,
                     SearchHighlightColor = D.SearchHighlightColor,
                     Tags = D.Tags,
@@ -1852,15 +1950,6 @@ local aa = {
                 p.UpdateTheme()
                 local thm = e(o.Themes)[D]
                 if thm then
-                    if thm.IconColor then
-                        pcall(function()
-                            for _, img in pairs(x.GUI:GetDescendants()) do
-                                if img:IsA("ImageLabel") and img:GetAttribute("IsThemeIcon") then
-                                    img.ImageColor3 = thm.IconColor
-                                end
-                            end
-                        end)
-                    end
                     if thm.IconSize then
                         pcall(function()
                             for _, img in pairs(x.GUI:GetDescendants()) do
@@ -1928,7 +2017,6 @@ local aa = {
             return t:New(D)
         end
 
-
         local rgbConn = nil
         function x.StartRGBMode()
             if rgbConn then rgbConn:Disconnect(); rgbConn = nil end
@@ -1941,7 +2029,6 @@ local aa = {
             x.StopRGBMode()
             baseST(C, D)
         end
-
 
         local httpService = game:GetService("HttpService")
         local SaveManager = {}
@@ -2110,10 +2197,9 @@ local aa = {
         SaveManager:BuildFolderTree()
         x.SaveManager = SaveManager
 
-
         local InterfaceManager = {}
         InterfaceManager.Folder = "FluentSettings"
-        InterfaceManager.Settings = { Theme="Crimson", Acrylic=true, Transparency=true, Animated=true, MenuKeybind="LeftControl", Font="GothamSSm", DisableBG=false, Favorites={} }
+        InterfaceManager.Settings = { Theme="Blood Red", Acrylic=true, Transparency=true, Animated=true, MenuKeybind="LeftControl", Font="GothamSSm", DisableBG=false, Favorites={} }
         function InterfaceManager:SetFolder(folder) self.Folder=folder; self:BuildFolderTree() end
         function InterfaceManager:SetLibrary(lib) self.Library=lib end
         function InterfaceManager:BuildFolderTree()
@@ -2325,23 +2411,24 @@ local aa = {
                 Library:SetTheme(Library.Theme)
                 if Library._RefreshOpenDropdownShine then Library._RefreshOpenDropdownShine() end
             end})
-            section:AddToggle("TransparentToggle",{Title="Transparency",Description="Makes the interface transparent.",Icon="solar/eye-bold",Default=Settings.Transparency,Callback=function(Value)
-                Library:ToggleTransparency(Value); Settings.Transparency=Value; InterfaceManager:SaveSettings()
-                if Library._ManagerDropdownSyncs then
-                    for _, fn in ipairs(Library._ManagerDropdownSyncs) do pcall(fn) end
-                end
-            end})
+            if Library.UseAcrylic then
+                section:AddToggle("AcrylicToggle",{Title="Acrylic",Description="Requires graphic quality 8+.",Icon="solar/layers-bold",Default=Settings.Acrylic,Callback=function(Value)
+                    Library:ToggleAcrylic(Value); Settings.Acrylic=Value; InterfaceManager:SaveSettings()
+                end})
+            end
             section:AddToggle("DisableBGToggle",{Title="Disable Background",Description="Hides theme background images and videos.",Icon="solar/eye-closed-bold",Default=Settings.DisableBG or false,Callback=function(Value)
                 Settings.DisableBG=Value; InterfaceManager:SaveSettings()
                 if Library and Library.Theme then
                     pcall(function() Library:SetTheme(Library.Theme) end)
                 end
             end})
-            if Library.UseAcrylic then
-                section:AddToggle("AcrylicToggle",{Title="Acrylic",Description="Requires graphic quality 8+.",Icon="solar/layers-bold",Default=Settings.Acrylic,Callback=function(Value)
-                    Library:ToggleAcrylic(Value); Settings.Acrylic=Value; InterfaceManager:SaveSettings()
-                end})
-            end
+
+            section:AddToggle("TransparentToggle",{Title="Transparency",Description="Makes the interface transparent.",Icon="solar/eye-bold",Default=Settings.Transparency,Callback=function(Value)
+                Library:ToggleTransparency(Value); Settings.Transparency=Value; InterfaceManager:SaveSettings()
+                if Library._ManagerDropdownSyncs then
+                    for _, fn in ipairs(Library._ManagerDropdownSyncs) do pcall(fn) end
+                end
+            end})
             local FontDropdown=section:AddDropdown("InterfaceFont",{
                 Title="Font Manager", Description="Changes the UI font.",
                 Icon="solar/text-bold",
@@ -2358,7 +2445,6 @@ local aa = {
         end
         InterfaceManager:BuildFolderTree()
         x.InterfaceManager = InterfaceManager
-
 
         local FloatingButtonManager = {}
         FloatingButtonManager.Folder = "FloatingButtons"
@@ -2624,9 +2710,11 @@ local aa = {
             if src:match("^rbxassetid://") or src:match("^rbxasset://") then return src end
             if src:match("^%d+$") then return "rbxassetid://"..src end
             if not src:match("^https?://") then return "" end
-            local ext = (src:match("%.(%a+)%??[^/]*$") or "webm"):lower()
+            local cleanPath = src:match("^[^?#]+") or src
+            local ext = (cleanPath:match("%.([^%.%/]+)$") or "webm"):lower()
             if not ({webm=1,mp4=1,ogg=1,mov=1})[ext] then ext="webm" end
             if ext == "mp4" or ext == "mov" then ext = "webm" end
+            if not (writefile and isfolder and makefolder and getcustomasset) then return "" end
             self:_init("videos")
             local dir = self:_dir("videos")
             local key = src:gsub("[^%w]", "_"):sub(-90)
@@ -2635,26 +2723,44 @@ local aa = {
             if isfile(path) then
                 local ok, a = pcall(getcustomasset, path)
                 if ok and a and a ~= "" then return a end
+                pcall(function() delfile(path) end)
             end
-            local body  = nil
-            local reqOk = pcall(function()
-                local req = (syn and syn.request) or http_request or request
-                local r = req({Url=src,Method="GET",Headers={["User-Agent"]="Roblox/WinInet"}})
-                if r and r.Body and #r.Body > 512 then
-                    local peek = r.Body:sub(1,15):lower()
-                    if peek:find("<!doctype") or peek:find("<html") then return end
-                    body = r.Body
-                end
-            end)
-            if not (reqOk and body) then return "" end
+            local body = nil
+            for attempt = 1, 3 do
+                local reqOk = pcall(function()
+                    local req = (syn and syn.request) or http_request or request
+                    if not req then
+                        body = game:HttpGet(src, true)
+                        return
+                    end
+                    local r = req({Url=src, Method="GET", Headers={["User-Agent"]="Roblox/WinInet", ["Accept"]="video/*,*/*;q=0.8"}})
+                    if r and r.Body and #r.Body > 256 then
+                        local peek = r.Body:sub(1,20):lower()
+                        if peek:find("<!doctype") or peek:find("<html") or peek:find("<?xml") then return end
+                        local ctype = (r.Headers and (r.Headers["content-type"] or r.Headers["Content-Type"])) or ""
+                        if ctype:find("text/html") then return end
+                        body = r.Body
+                    end
+                end)
+                if body and body ~= "" then break end
+                if attempt < 3 then task.wait(1.5) end
+            end
+            if not body or body == "" then return "" end
+            local isFtyp = #body >= 12 and (body:sub(5,8) == "ftyp" or body:sub(5,8) == "moov")
+            if isFtyp and ext ~= "ogg" then
+                fname = key .. ".webm"
+                path = self:_join(dir, fname)
+            end
             if isfile(path) then
                 local ok, a = pcall(getcustomasset, path)
                 if ok and a and a ~= "" then return a end
+                pcall(function() delfile(path) end)
             end
-            writefile(path, body)
+            local writeOk = pcall(writefile, path, body)
+            if not writeOk then return "" end
             if isfile(path) then
-                local ok2,a = pcall(getcustomasset, path)
-                if ok2 and a and a~="" then return a end
+                local ok2, a = pcall(getcustomasset, path)
+                if ok2 and a and a ~= "" then return a end
             end
             return ""
         end
@@ -2663,9 +2769,24 @@ local aa = {
 
         x.MediaManager = _MM
 
+        local function _resolveThemeColor(v)
+            if type(v) ~= "string" then return v end
+            if v:sub(1, 1) == "#" then
+                local ok, col = pcall(Color3.fromHex, v)
+                return ok and col or v
+            end
+            local r2, g2, b2 = v:match("^rgb%((%d+)%s*,%s*(%d+)%s*,%s*(%d+)%)$")
+            if r2 then return Color3.fromRGB(tonumber(r2), tonumber(g2), tonumber(b2)) end
+            local h2, s2, vv = v:match("^hsv%(([%d%.]+)%s*,%s*([%d%.]+)%s*,%s*([%d%.]+)%)$")
+            if h2 then return Color3.fromHSV(tonumber(h2), tonumber(s2), tonumber(vv)) end
+            return v
+        end
 
         function x.RegisterCustomTheme(C, D, E)
             if type(D) ~= "string" or type(E) ~= "table" then return false end
+            for k, val in next, E do
+                E[k] = _resolveThemeColor(val)
+            end
             E.Name = D
             if not E.Tier then E.Tier = "CustomTheme" end
             if not E.ThemeAccentColors and E.Accent then E.ThemeAccentColors = {E.Accent} end
@@ -2673,7 +2794,10 @@ local aa = {
             if E.BackgroundTransparency == nil then E.BackgroundTransparency = 0 end
             if type(E.ElementBorderThickness) ~= "number" then E.ElementBorderThickness = 1 end
             if type(E.DropdownBorderThickness) ~= "number" then E.DropdownBorderThickness = 1 end
-            local baseTheme = e(o.Themes)["Ash Gray"]
+            if E.GlobalDropdownBackgroundImages ~= nil then
+                E.DropdownBackgroundImages = nil
+            end
+            local baseTheme = e(o.Themes)["Dark"]
             if type(baseTheme) == "table" then
                 for key, val in next, baseTheme do
                     if key ~= "Name" and key ~= "Tier" and E[key] == nil then
@@ -2689,6 +2813,203 @@ local aa = {
         end
         x.AddCustomTheme = x.RegisterCustomTheme
 
+        function x.AddTheme(_, cfg)
+            if type(cfg) ~= "table" then return false end
+            local name = cfg.Name
+            if type(name) ~= "string" or name == "" then return false end
+            local themeCfg = {}
+            for k, v in next, cfg do
+                if k ~= "Name" then
+                    themeCfg[k] = _resolveThemeColor(v)
+                end
+            end
+            return x.RegisterCustomTheme(x, name, themeCfg)
+        end
+
+        function x.CreateMinimizer(_, cfg)
+            cfg = type(cfg) == "table" and cfg or {}
+            local mIcon        = cfg.Icon or ""
+            local mSize        = cfg.Size or UDim2.fromOffset(64, 42)
+            local mPosition    = cfg.Position or UDim2.new(0.05, 0, 0.10, 0)
+            local mCorner      = type(cfg.Corner) == "number" and cfg.Corner or 12
+            local mIconCorner  = type(cfg.IconCorner) == "number" and cfg.IconCorner or 0
+            local mBgAlpha     = type(cfg.BackgroundTransparency) == "number" and cfg.BackgroundTransparency or 0
+            local mIconAlpha   = type(cfg.Transparency) == "number" and cfg.Transparency or 0
+            local mLockable    = cfg.Lockable ~= false
+            local mHoldTime    = type(cfg.LockHoldTime) == "number" and cfg.LockHoldTime or 1.0
+            local mDraggable   = cfg.Draggable ~= false
+            local mSounds      = {}
+            if type(cfg.OnClickSound) == "string" then
+                table.insert(mSounds, cfg.OnClickSound)
+            elseif type(cfg.OnClickSound) == "table" then
+                for _, sv in ipairs(cfg.OnClickSound) do
+                    if type(sv) == "string" then table.insert(mSounds, sv) end
+                end
+            end
+            local function resolveId(raw)
+                local id = tostring(raw):match("^rbxassetid://(%d+)$") or tostring(raw):match("^(%d+)$")
+                return id and ("rbxassetid://" .. id) or nil
+            end
+            local mCr = e(o.Creator)
+            local mS  = mCr.New
+            local mGui = Instance.new("ScreenGui")
+            mGui.Name = "FluentMinimizerGui"
+            mGui.ResetOnSpawn = false
+            mGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+            mGui.DisplayOrder = 99998
+            mGui.Enabled = false
+            pcall(function() v(mGui) end)
+            mGui.Parent = i:IsStudio()
+                and game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+                or game:GetService("CoreGui")
+            local mBtn = mS("TextButton", {
+                Name = "FluentMinimizerBtn",
+                Size = mSize,
+                Position = mPosition,
+                BackgroundTransparency = mBgAlpha,
+                Text = "",
+                AutoButtonColor = false,
+                ClipsDescendants = true,
+                Parent = mGui,
+            }, {
+                mS("UICorner", { CornerRadius = UDim.new(0, mCorner) }),
+                mS("UIStroke", {
+                    Transparency = 0.45,
+                    Thickness = 1.2,
+                    ThemeTag = { Color = "InElementBorder" },
+                }),
+            })
+            if mBgAlpha > 0 then
+                mBtn.BackgroundTransparency = mBgAlpha
+            else
+                mBtn.BackgroundTransparency = 0
+                mCr.AddThemeObject(mBtn, { BackgroundColor3 = "Element" })
+            end
+            if mIcon ~= "" then
+                local mPad = 6
+                local mImg = mS("ImageLabel", {
+                    Size = UDim2.new(1, -(mPad * 2), 1, -(mPad * 2)),
+                    Position = UDim2.fromScale(0.5, 0.5),
+                    AnchorPoint = Vector2.new(0.5, 0.5),
+                    BackgroundTransparency = 1,
+                    ImageTransparency = mIconAlpha,
+                    ScaleType = Enum.ScaleType.Fit,
+                    Parent = mBtn,
+                })
+                if mIconCorner > 0 then
+                    mS("UICorner", { CornerRadius = UDim.new(0, mIconCorner), Parent = mImg })
+                end
+                local directId = resolveId(mIcon)
+                if directId then
+                    mImg.Image = directId
+                else
+                    task.defer(function()
+                        local ic = x:GetIcon(mIcon)
+                        if ic and type(ic) == "table" then
+                            mImg.Image = ic.Image or ""
+                            mImg.ImageRectOffset = ic.ImageRectOffset or Vector2.new()
+                            mImg.ImageRectSize = ic.ImageRectSize or Vector2.new()
+                        end
+                    end)
+                end
+            end
+            local mLockDot = mS("Frame", {
+                Size = UDim2.fromOffset(7, 7),
+                Position = UDim2.new(1, -3, 0, 3),
+                AnchorPoint = Vector2.new(1, 0),
+                BackgroundColor3 = Color3.fromRGB(255, 185, 50),
+                BorderSizePixel = 0,
+                Visible = false,
+                ZIndex = 5,
+                Parent = mBtn,
+            }, { mS("UICorner", { CornerRadius = UDim.new(1, 0) }) })
+            mBtn:SetAttribute("Locked", false)
+            local function playSound()
+                if #mSounds == 0 then return end
+                local id = resolveId(mSounds[math.random(#mSounds)])
+                if not id then return end
+                local snd = Instance.new("Sound")
+                snd.SoundId = id
+                snd.Volume = 0.6
+                snd.RollOffMaxDistance = 0
+                snd.Parent = game:GetService("SoundService")
+                snd:Play()
+                snd.Ended:Connect(function() snd:Destroy() end)
+            end
+            if mDraggable then
+                local mDragging, mHolding = false, false
+                local mDragInput, mDragStart, mStartPos
+                local mHoldToken = 0
+                local mCancelThreshold = 6
+                local function doUpdate(inp)
+                    if mBtn:GetAttribute("Locked") then return end
+                    local delta = inp.Position - mDragStart
+                    mBtn.Position = UDim2.new(
+                        mStartPos.X.Scale, mStartPos.X.Offset + delta.X,
+                        mStartPos.Y.Scale, mStartPos.Y.Offset + delta.Y
+                    )
+                end
+                local function toggleLock()
+                    local newState = not mBtn:GetAttribute("Locked")
+                    mBtn:SetAttribute("Locked", newState)
+                    mLockDot.Visible = newState
+                    x:Notify({
+                        Title = newState and "Minimizer Locked" or "Minimizer Unlocked",
+                        Content = newState and "Minimizer is now locked in place." or "Minimizer can now be moved.",
+                        Duration = 2,
+                    })
+                end
+                mBtn.InputBegan:Connect(function(inp)
+                    if inp.UserInputType ~= Enum.UserInputType.MouseButton1 and inp.UserInputType ~= Enum.UserInputType.Touch then return end
+                    mDragging = not mBtn:GetAttribute("Locked")
+                    mHolding = true
+                    mDragStart = inp.Position
+                    mStartPos = mBtn.Position
+                    mHoldToken += 1
+                    local token = mHoldToken
+                    if mLockable then
+                        task.delay(mHoldTime, function()
+                            if mHolding and token == mHoldToken then toggleLock() end
+                        end)
+                    end
+                    inp.Changed:Connect(function()
+                        if inp.UserInputState == Enum.UserInputState.End then
+                            mDragging = false
+                            mHolding = false
+                        end
+                    end)
+                end)
+                mBtn.InputChanged:Connect(function(inp)
+                    if not mDragStart then return end
+                    if inp.UserInputType == Enum.UserInputType.MouseMovement or inp.UserInputType == Enum.UserInputType.Touch then
+                        if (inp.Position - mDragStart).Magnitude > mCancelThreshold then mHolding = false end
+                        mDragInput = inp
+                    end
+                end)
+                k.InputChanged:Connect(function(inp)
+                    if inp == mDragInput and mDragging then doUpdate(inp) end
+                end)
+            end
+            local mClickGuard = false
+            mBtn.MouseButton1Click:Connect(function()
+                if mClickGuard then return end
+                mClickGuard = true
+                task.delay(0.15, function() mClickGuard = false end)
+                playSound()
+                if x.Window then x.Window:Minimize() end
+            end)
+            local mObj = {}
+            return setmetatable({}, {
+                __index = function(_, key)
+                    if key == "Visible" then return mGui.Enabled end
+                    return mObj[key]
+                end,
+                __newindex = function(_, key, val)
+                    if key == "Visible" then mGui.Enabled = val
+                    else mObj[key] = val end
+                end,
+            })
+        end
 
         if getgenv then
             pcall(function() getgenv().Fluent_Themes = e(o.Themes) end)
@@ -2701,6 +3022,150 @@ local aa = {
                 getgenv().MediaManager          = x.MediaManager
             end)
         end
+        function x.CreateDialog(_, cfg)
+            cfg = cfg or {}
+            local title     = cfg.Title or "Dialog"
+            local desc      = cfg.Description or ""
+            local inputHint = cfg.InputHint or "Enter key..."
+            local buttons   = cfg.Buttons or {}
+            local onClose   = cfg.OnClose
+            local mCr       = e(o.Creator)
+            local mS        = mCr.New
+            local win = x.Window
+            if not win or not win.AcrylicPaint then return end
+            local rootFrame = win.AcrylicPaint.Frame
+            local overlay = mS("Frame", {
+                Size = UDim2.fromScale(1, 1),
+                BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+                BackgroundTransparency = 0.45,
+                ZIndex = 99990,
+                Parent = rootFrame,
+            })
+            local card = mS("Frame", {
+                Size = UDim2.fromOffset(300, 0),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                Position = UDim2.fromScale(0.5, 0.5),
+                BackgroundTransparency = 0,
+                ZIndex = 99991,
+                Parent = overlay,
+                ThemeTag = { BackgroundColor3 = "AcrylicMain" },
+            }, {
+                mS("UICorner", { CornerRadius = UDim.new(0, 8) }),
+                mS("UIStroke", { Transparency = 0.5, Thickness = 1, ThemeTag = { Color = "ElementBorder" } }),
+                mS("UIPadding", { PaddingTop = UDim.new(0, 14), PaddingBottom = UDim.new(0, 14), PaddingLeft = UDim.new(0, 14), PaddingRight = UDim.new(0, 14) }),
+                mS("UIListLayout", { FillDirection = Enum.FillDirection.Vertical, HorizontalAlignment = Enum.HorizontalAlignment.Left, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 8) }),
+            })
+            mS("TextLabel", {
+                Size = UDim2.new(1, 0, 0, 20),
+                BackgroundTransparency = 1,
+                Text = title,
+                TextSize = 15,
+                FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
+                TextXAlignment = Enum.TextXAlignment.Left,
+                LayoutOrder = 1,
+                ZIndex = 99992,
+                ThemeTag = { TextColor3 = "Text" },
+                Parent = card,
+            })
+            if desc ~= "" then
+                mS("TextLabel", {
+                    Size = UDim2.new(1, 0, 0, 0),
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    BackgroundTransparency = 1,
+                    Text = desc,
+                    TextSize = 12,
+                    TextWrapped = true,
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    LayoutOrder = 2,
+                    ZIndex = 99992,
+                    ThemeTag = { TextColor3 = "SubText" },
+                    Parent = card,
+                })
+            end
+            local inputBox = nil
+            local inputValue = ""
+            if cfg.Input ~= false then
+                local inputWrap = mS("Frame", {
+                    Size = UDim2.new(1, 0, 0, 34),
+                    BackgroundTransparency = 0.85,
+                    LayoutOrder = 3,
+                    ZIndex = 99992,
+                    ThemeTag = { BackgroundColor3 = "Element" },
+                    Parent = card,
+                }, {
+                    mS("UICorner", { CornerRadius = UDim.new(0, 6) }),
+                    mS("UIStroke", { Transparency = 0.6, ThemeTag = { Color = "ElementBorder" } }),
+                })
+                inputBox = mS("TextBox", {
+                    Size = UDim2.new(1, -16, 1, 0),
+                    Position = UDim2.new(0, 8, 0, 0),
+                    BackgroundTransparency = 1,
+                    PlaceholderText = inputHint,
+                    Text = "",
+                    TextSize = 13,
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ClearTextOnFocus = false,
+                    ZIndex = 99993,
+                    ThemeTag = { TextColor3 = "Text", PlaceholderColor3 = "SubText" },
+                    Parent = inputWrap,
+                })
+                inputBox:GetPropertyChangedSignal("Text"):Connect(function()
+                    inputValue = inputBox.Text
+                end)
+            end
+            local btnRow = mS("Frame", {
+                Size = UDim2.new(1, 0, 0, 32),
+                BackgroundTransparency = 1,
+                LayoutOrder = 4,
+                ZIndex = 99992,
+                Parent = card,
+            }, {
+                mS("UIListLayout", {
+                    FillDirection = Enum.FillDirection.Horizontal,
+                    HorizontalAlignment = Enum.HorizontalAlignment.Right,
+                    VerticalAlignment = Enum.VerticalAlignment.Center,
+                    Padding = UDim.new(0, 8),
+                }),
+            })
+            local dialogObj = {}
+            local function closeDialog()
+                overlay:Destroy()
+                if type(onClose) == "function" then pcall(onClose) end
+            end
+            dialogObj.Close = closeDialog
+            dialogObj.GetInput = function() return inputValue end
+            dialogObj.Overlay = overlay
+            for _, btnCfg in ipairs(buttons) do
+                local btnLabel  = btnCfg.Title or "OK"
+                local btnCb     = btnCfg.Callback
+                local isAccent  = btnCfg.Accent == true
+                local btn = mS("TextButton", {
+                    Size = UDim2.fromOffset(0, 28),
+                    AutomaticSize = Enum.AutomaticSize.X,
+                    BackgroundTransparency = isAccent and 0 or 0.85,
+                    Text = btnLabel,
+                    TextSize = 13,
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
+                    ZIndex = 99993,
+                    AutoButtonColor = false,
+                    ThemeTag = { BackgroundColor3 = isAccent and "Accent" or "Element", TextColor3 = isAccent and "AccentText" or "Text" },
+                    Parent = btnRow,
+                }, {
+                    mS("UICorner", { CornerRadius = UDim.new(0, 6) }),
+                    mS("UIPadding", { PaddingLeft = UDim.new(0, 14), PaddingRight = UDim.new(0, 14) }),
+                })
+                btn.MouseButton1Click:Connect(function()
+                    if type(btnCb) == "function" then
+                        pcall(btnCb, inputValue, dialogObj)
+                    end
+                end)
+            end
+            return dialogObj
+        end
+
         return x
     end,
     function()
@@ -2999,7 +3464,7 @@ local aa = {
         end
         return {i, j}
     end,
-    [8] = function() --[[ Assets ]]
+    [8] = function()
         local c, d, e, f, g = b(8)
         return {
             Close = "rbxassetid://9886659671",
@@ -3008,7 +3473,7 @@ local aa = {
             Restore = "rbxassetid://9886659001"
         }
     end,
-    [9] = function() --[[ Button_Comp ]]
+    [9] = function()
         local c, d, e, f, g = b(9)
         local h = d.Parent.Parent
         local i, j = e(h.Packages.Flipper), e(h.Creator)
@@ -3085,7 +3550,7 @@ local aa = {
             return p
         end
     end,
-    [10] = function() --[[ Dialog_Comp ]]
+    [10] = function()
         local c, d, e, f, g = b(10)
         local h, i, j, k =
             game:GetService "UserInputService",
@@ -3267,7 +3732,7 @@ local aa = {
         end
         return q
     end,
-    [11] = function() --[[ Element_Base ]]
+    [11] = function()
         local c, d, e, f, g = b(11)
         local h = d.Parent.Parent
         local i, j = e(h.Packages.Flipper), e(h.Creator)
@@ -3300,7 +3765,8 @@ local aa = {
             local function tryStart(attempt)
                 attempt = attempt or 0
                 if not label or not label.Parent then return end
-                local avail = label.AbsoluteSize.X
+                local clipFrame = label.Parent
+                local avail = clipFrame.AbsoluteSize.X
                 if avail <= 2 then
                     if attempt < 30 then
                         task.delay(0.2, function() tryStart(attempt + 1) end)
@@ -3314,6 +3780,7 @@ local aa = {
                     end
                     return
                 end
+                label.Size = UDim2.new(1, 0, 0, 14)
                 local baseY = label.Position.Y
                 local baseXS = label.Position.X.Scale
                 if fullW <= avail + 2 then
@@ -3357,7 +3824,8 @@ local aa = {
             task.delay(0.3, function() tryStart(0) end)
             if not _marqueeResizeConns[label] then
                 local rconn
-                rconn = label:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+                local watchTarget = label.Parent or label
+                rconn = watchTarget:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
                     if not label or not label.Parent then
                         rconn:Disconnect()
                         _marqueeResizeConns[label] = nil
@@ -3512,12 +3980,13 @@ local aa = {
             return q
         end
     end,
-    [12] = function() --[[ Notification ]]
+    [12] = function()
         local c, d, e, f, g = b(12)
         local h = d.Parent.Parent
         local i, j, k = e(h.Packages.Flipper), e(h.Creator), e(h.Acrylic)
         local l, m, n, o = i.Spring.new, i.Instant.new, j.New, {}
         function o.Init(p, q)
+            o._screenGui = q
             o.Holder =
                 n(
                 "Frame",
@@ -3540,6 +4009,33 @@ local aa = {
                     )
                 }
             )
+            o._insideHolder = nil
+        end
+        local function _getNotifyParent()
+            local lib = e(h)
+            if not lib then return o.Holder end
+            if not lib.NotifyInsideWindow then return o.Holder end
+            local win = lib.Window
+            if not win or not win.AcrylicPaint or not win.AcrylicPaint.Frame then return o.Holder end
+            if win.Minimized then return o.Holder end
+            if not o._insideHolder then
+                o._insideHolder = n("Frame", {
+                    Position = UDim2.new(1, -10, 1, -10),
+                    Size = UDim2.new(0, 280, 1, -52),
+                    AnchorPoint = Vector2.new(1, 1),
+                    BackgroundTransparency = 1,
+                    ZIndex = 9999,
+                    Parent = win.AcrylicPaint.Frame,
+                }, {
+                    n("UIListLayout", {
+                        HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                        SortOrder = Enum.SortOrder.LayoutOrder,
+                        VerticalAlignment = Enum.VerticalAlignment.Bottom,
+                        Padding = UDim.new(0, 10),
+                    })
+                })
+            end
+            return o._insideHolder
         end
         function o.New(p, q)
             q.Title = q.Title or "Title"
@@ -3731,8 +4227,11 @@ local aa = {
             if q.SubContent == "" then
                 r.SubContentLabel.Visible = false
             end
+            local _notifyTargetHolder = _getNotifyParent()
+            local _isInsideWin = _notifyTargetHolder ~= o.Holder
+            local _notifW = _isInsideWin and UDim2.new(1, 0, 0, 200) or UDim2.new(1, 0, 0, 200)
             r.Holder =
-                n("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 200), Parent = o.Holder}, {r.Root})
+                n("Frame", {BackgroundTransparency = 1, Size = _notifW, Parent = _notifyTargetHolder}, {r.Root})
             local s = i.GroupMotor.new {Scale = 1, Offset = 60}
             s:onStep(
                 function(t)
@@ -3781,7 +4280,7 @@ local aa = {
         end
         return o
     end,
-    [13] = function() --[[ Section ]]
+    [13] = function()
         local c, d, e, f, g = b(13)
         local h = d.Parent.Parent
         local i = e(h.Creator)
@@ -3797,14 +4296,14 @@ local aa = {
                 {m.Layout}
             )
             local secHeaderChildren = {}
-            if iconKey then
+            if iconKey and iconKey ~= "" then
                 local secIco = j("ImageLabel", {
                     Name = "_SecIcon",
                     Size = UDim2.fromOffset(14, 14),
                     Position = UDim2.fromOffset(0, 3),
                     BackgroundTransparency = 1,
-                    ImageColor3 = Color3.fromRGB(255, 255, 255),
                     ImageTransparency = 0.25,
+                    ThemeTag = {ImageColor3 = "IconColor"},
                 })
                 table.insert(secHeaderChildren, secIco)
                 task.defer(function()
@@ -3821,9 +4320,9 @@ local aa = {
                     end
                 end)
             end
-            local titleOffX = iconKey and 22 or 0
+            local titleOffX = (iconKey and iconKey ~= "") and 22 or 0
             local titleRightPad = favoriteable and 34 or 16
-            table.insert(secHeaderChildren, j("TextLabel", {RichText=true,Text=k,TextTransparency=0,FontFace=Font.new("rbxassetid://12187365364",Enum.FontWeight.SemiBold,Enum.FontStyle.Normal),TextSize=18,TextXAlignment="Left",TextYAlignment="Center",Size=UDim2.new(1,-titleRightPad,0,18),Position=UDim2.fromOffset(titleOffX,2),ThemeTag={TextColor3="Text"}}))
+            table.insert(secHeaderChildren, j("TextLabel", {RichText=true,Text=k,TextTransparency=0,FontFace=Font.new("rbxassetid://12187365364",Enum.FontWeight.SemiBold,Enum.FontStyle.Normal),TextSize=18,TextXAlignment="Left",TextYAlignment="Center",Size=UDim2.new(1,-titleRightPad,0,18),Position=UDim2.fromOffset(titleOffX,2),TextColor3=Color3.fromRGB(255,255,255),ThemeTag={TextColor3="Text"}}))
             if favoriteable then
                 local _secFavStar = j("TextButton", {
                     Size = UDim2.fromOffset(18, 18),
@@ -3887,7 +4386,7 @@ local aa = {
             return m
         end
     end,
-    [14] = function() --[[ Tab ]]
+    [14] = function()
         local c, d, e, f, g = b(14)
         local h = d.Parent.Parent
         local i, j = e(h.Packages.Flipper), e(h.Creator)
@@ -3952,6 +4451,7 @@ local aa = {
                 {
                     Size = UDim2.new(1, 0, 0, 34),
                     BackgroundTransparency = 1,
+                    LayoutOrder = o.ListOrderCounter,
                     Parent = s,
                     ThemeTag = {BackgroundColor3 = "Tab"}
                 },
@@ -3988,13 +4488,13 @@ local aa = {
                                 Size = UDim2.fromOffset(16, 16),
                                 Position = UDim2.new(0, 8, 0.5, 0),
                                 BackgroundTransparency = 1,
-                                Image = r and (type(r) == "table" and r.Image or r) or nil,
+                                Visible = r ~= nil,
+                                Image = r and (type(r) == "table" and r.Image or r) or "",
                                 ImageRectOffset = (r and type(r) == "table") and r.ImageRectOffset or Vector2.new(0,0),
                                 ImageRectSize = (r and type(r) == "table") and r.ImageRectSize or Vector2.new(0,0),
-                                ThemeTag = {ImageColor3 = "Text"}
+                                ThemeTag = {ImageColor3 = "IconColor"}
                             }
                         )
-                        _tabIco:SetAttribute("IsThemeIcon", true)
                         return _tabIco
                     end)()
                 }
@@ -4169,6 +4669,24 @@ local aa = {
                     x.ContainerFrame.CanvasSize = UDim2.new(0, 0, 0, y.AbsoluteContentSize.Y + 2)
                 end
             )
+            x.ContainerFrame.ChildAdded:Connect(function()
+                task.defer(function()
+                    if y.AbsoluteContentSize.Y > 0 then
+                        x.ContainerFrame.CanvasSize = UDim2.new(0, 0, 0, y.AbsoluteContentSize.Y + 2)
+                    else
+                        local children = x.ContainerFrame:GetChildren()
+                        local totalH = 0
+                        for _, child in ipairs(children) do
+                            if child:IsA("GuiObject") and child.Visible then
+                                totalH = totalH + child.AbsoluteSize.Y
+                            end
+                        end
+                        if totalH > 0 then
+                            x.ContainerFrame.CanvasSize = UDim2.new(0, 0, 0, totalH + 20)
+                        end
+                    end
+                end)
+            end)
             x.Motor, x.SetTransparency = j.SpringMotor(1, x.Frame, "BackgroundTransparency")
             j.AddSignal(
                 x.Frame.MouseEnter,
@@ -4260,6 +4778,107 @@ local aa = {
             o.Tabs[w] = x
             x.Container = x.ContainerFrame
             x.ScrollFrame = x.Container
+            do
+                local emptyOverlay = k("Frame", {
+                    Size = UDim2.fromScale(1, 1),
+                    BackgroundTransparency = 1,
+                    ZIndex = 3,
+                    Visible = false,
+                    Parent = u.ContainerClip,
+                })
+                local emptyInner = k("Frame", {
+                    Size = UDim2.fromScale(1, 1),
+                    BackgroundTransparency = 1,
+                    Parent = emptyOverlay,
+                })
+                k("UIListLayout", {
+                    FillDirection = Enum.FillDirection.Vertical,
+                    HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                    VerticalAlignment = Enum.VerticalAlignment.Center,
+                    Padding = UDim.new(0, 6),
+                    Parent = emptyInner,
+                })
+                local emptyIcon = k("ImageLabel", {
+                    Size = UDim2.fromOffset(48, 48),
+                    BackgroundTransparency = 1,
+                    ImageTransparency = 0.45,
+                    ThemeTag = { ImageColor3 = "SubText" },
+                    Parent = emptyInner,
+                })
+                local emptyTitle = k("TextLabel", {
+                    Size = UDim2.new(1, -32, 0, 20),
+                    BackgroundTransparency = 1,
+                    Text = "Nothing here sucker",
+                    TextSize = 15,
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+                    TextXAlignment = Enum.TextXAlignment.Center,
+                    ThemeTag = { TextColor3 = "Text" },
+                    Parent = emptyInner,
+                })
+                local emptySub = k("TextLabel", {
+                    Size = UDim2.new(1, -48, 0, 36),
+                    BackgroundTransparency = 1,
+                    Text = "This tab is empty\nAsk the developer why the tabs are empty",
+                    TextSize = 12,
+                    TextWrapped = true,
+                    LineHeight = 1.3,
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+                    TextXAlignment = Enum.TextXAlignment.Center,
+                    ThemeTag = { TextColor3 = "SubText" },
+                    Parent = emptyInner,
+                })
+                task.defer(function()
+                    local _lib2 = e(h)
+                    if _lib2 and _lib2.GetIcon then
+                        local ic = _lib2:GetIcon("solar/sad-circle-bold-duotone")
+                        if ic and type(ic) == "table" then
+                            emptyIcon.Image = ic.Image or ""
+                            emptyIcon.ImageRectOffset = ic.ImageRectOffset or Vector2.new()
+                            emptyIcon.ImageRectSize = ic.ImageRectSize or Vector2.new()
+                        elseif ic then
+                            emptyIcon.Image = tostring(ic)
+                        end
+                    end
+                end)
+                local function syncEmptyOverlay()
+                    local tabVisible = x.ContainerFrame and x.ContainerFrame.Visible
+                    local childCount = 0
+                    if x.ContainerFrame then
+                        for _, child in ipairs(x.ContainerFrame:GetChildren()) do
+                            if child:IsA("Frame") or child:IsA("ScrollingFrame") or child:IsA("TextButton") or child:IsA("CanvasGroup") then
+                                childCount = childCount + 1
+                            end
+                        end
+                    end
+                    emptyOverlay.Visible = tabVisible and (childCount <= 0)
+                end
+                j.AddSignal(x.ContainerFrame:GetPropertyChangedSignal("Visible"), syncEmptyOverlay)
+                j.AddSignal(x.ContainerFrame.ChildAdded, syncEmptyOverlay)
+                j.AddSignal(x.ContainerFrame.ChildRemoved, syncEmptyOverlay)
+                x._emptyOverlay = emptyOverlay
+                x._emptyTitleLbl = emptyTitle
+                x._emptySubLbl = emptySub
+                x._emptyIconImg = emptyIcon
+                x._syncEmptyOverlay = syncEmptyOverlay
+                function x:SetEmptyState(cfg2)
+                    cfg2 = cfg2 or {}
+                    if cfg2.Text then emptyTitle.Text = cfg2.Text end
+                    if cfg2.SubText then emptySub.Text = cfg2.SubText end
+                    if cfg2.Icon then
+                        local _lib3 = e(h)
+                        if _lib3 and _lib3.GetIcon then
+                            local ic2 = _lib3:GetIcon(cfg2.Icon)
+                            if ic2 and type(ic2) == "table" then
+                                emptyIcon.Image = ic2.Image or ""
+                                emptyIcon.ImageRectOffset = ic2.ImageRectOffset or Vector2.new()
+                                emptyIcon.ImageRectSize = ic2.ImageRectSize or Vector2.new()
+                            elseif ic2 then
+                                emptyIcon.Image = tostring(ic2)
+                            end
+                        end
+                    end
+                end
+            end
             function x.AddSection(z, A, iconKey, favoriteable)
                 x._elementCount = (x._elementCount or 0) + 1
                 local _order = x._elementCount
@@ -4309,15 +4928,15 @@ local aa = {
                     Parent = outerWrap2,
                 })
 
-                local titleOffX2 = iconKey2 and 22 or 0
-                if iconKey2 then
+                local titleOffX2 = (iconKey2 and iconKey2 ~= "") and 22 or 0
+                if iconKey2 and iconKey2 ~= "" then
                     local hIco2 = k("ImageLabel", {
                         Name = "_SecIcon",
                         Size = UDim2.fromOffset(14, 14),
                         Position = UDim2.fromOffset(0, 3),
                         BackgroundTransparency = 1,
-                        ImageColor3 = Color3.fromRGB(255, 255, 255),
                         ImageTransparency = 0.25,
+                        ThemeTag = {ImageColor3 = "IconColor"},
                         Parent = header2,
                     })
                     task.defer(function()
@@ -4456,50 +5075,93 @@ local aa = {
             end
             x.Section = x.AddSection
             x.CollapsibleSection = x.AddCollapsibleSection
+            local _tabTitleLbl = x.Frame and x.Frame:FindFirstChildWhichIsA("TextLabel")
+            function x:SetTitle(s)
+                x.Name = tostring(s or "")
+                if _tabTitleLbl then _tabTitleLbl.Text = tostring(s or "") end
+            end
+            function x:SetDesc(s) end
+            function x:Destroy()
+                if x.Frame then x.Frame:Destroy() end
+                if x.ContainerFrame then x.ContainerFrame:Destroy() end
+                if x._emptyOverlay then x._emptyOverlay:Destroy() end
+            end
             setmetatable(x, v)
             return x
+        end
+        local ts = game:GetService("TweenService")
+        local function twHt(inst, goal, dur)
+            ts:Create(inst, TweenInfo.new(dur or 0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), goal):Play()
         end
         function o.SelectTab(p, q)
             local r = o.Window
             if not r then return end
             if not o.Tabs[q] then return end
             o.SelectedTab = q
+            local isHeaderTab = o.Tabs[q].IsHeaderTab == true
             for s, t in next, o.Tabs do
                 t.SetTransparency(1)
                 t.Selected = false
             end
             o.Tabs[q].SetTransparency(0.89)
             o.Tabs[q].Selected = true
-            r.TabDisplay.Text = o.Tabs[q].Name or ""
-            if r.TabDisplayIcon then
-                local iconVal = o.Tabs[q].Icon
-                if iconVal then
-                    if type(iconVal) == "table" then
-                        r.TabDisplayIcon.Image = iconVal.Image or ""
-                        r.TabDisplayIcon.ImageRectOffset = iconVal.ImageRectOffset or Vector2.new()
-                        r.TabDisplayIcon.ImageRectSize = iconVal.ImageRectSize or Vector2.new()
-                    else
-                        r.TabDisplayIcon.Image = tostring(iconVal)
-                    end
-                    r.TabDisplayIcon.Visible = true
-                    r.TabDisplay.Position = UDim2.fromOffset(r.TabDisplayIcon.Position.X.Offset + 32, 56)
-                else
-                    r.TabDisplayIcon.Visible = false
-                    r.TabDisplay.Position = UDim2.fromOffset(r.TabDisplayIcon.Position.X.Offset, 56)
-                end
-            end
-            local tabPos = o:GetCurrentTabPos()
+
             if r.RefreshSearchFilter then
                 task.defer(r.RefreshSearchFilter)
             end
-            if tabPos then
-                if r.SelectorFrame then r.SelectorFrame.Visible = true end
-                r.SelectorPosMotor:setGoal(l(tabPos, {frequency = 6}))
+            if isHeaderTab then
+                if r.SelectorFrame then r.SelectorFrame.Visible = false end
+                if r._headerSelectorFrame then
+                    local ht = o.Tabs[q]._htRef
+                    if ht and ht.BgFrame then
+                        local targetW = ht._fullW
+                        local sel = r._headerSelectorFrame
+                        local titleBar = r.TitleBar
+                        local elapsed = 0
+                        local _rs = game:GetService("RunService")
+                        local _conn
+                        _conn = _rs.Heartbeat:Connect(function(dt)
+                            elapsed = elapsed + dt
+                            if not ht.BgFrame or not ht.BgFrame.Parent or not titleBar or not titleBar.Frame then
+                                _conn:Disconnect(); return
+                            end
+                            local bw = ht.BgFrame.AbsoluteSize.X
+                            if bw >= targetW - 2 or elapsed > 0.4 then
+                                _conn:Disconnect()
+                                local holderAp = r._headerTabHolder.AbsolutePosition
+                                local holderW  = r._headerTabHolder.AbsoluteSize.X
+                                local tabAp    = ht.BgFrame.AbsolutePosition
+                                local tabCx    = tabAp.X + bw * 0.5
+                                local holderCx = holderAp.X + holderW * 0.5
+                                local offsetFromCenter = tabCx - holderCx
+                                local selW = math.max(targetW - 16, 20)
+                                local _selY = (r._headerSelY and r._headerSelY > 0)
+                                    and UDim2.new(0.5, offsetFromCenter, 0, r._headerSelY)
+                                    or  UDim2.new(0.5, offsetFromCenter, 1, -4)
+                                twHt(sel, {
+                                    Size     = UDim2.fromOffset(selW, 2),
+                                    Position = _selY,
+                                    BackgroundTransparency = 0,
+                                }, 0.12)
+                            end
+                        end)
+                    end
+                end
+            else
+
+                if r._headerSelectorFrame then
+                    twHt(r._headerSelectorFrame, {BackgroundTransparency = 1}, 0.15)
+                end
+                local tabPos = o:GetCurrentTabPos()
+                if tabPos then
+                    if r.SelectorFrame then r.SelectorFrame.Visible = true end
+                    r.SelectorPosMotor:setGoal(l(tabPos, {frequency = 6}))
+                end
             end
             task.spawn(
                 function()
                     r.ContainerBackMotor:setGoal(l(1, {frequency = 12}))
-                    r.ContainerPosMotor:setGoal(l(104, {frequency = 12}))
+                    r.ContainerPosMotor:setGoal(l(64, {frequency = 12}))
                     task.wait(0.12)
                     for u, v in next, o.Containers do
                         v.Visible = false
@@ -4517,14 +5179,480 @@ local aa = {
                             pcall(function() _vf.Volume = _vf:GetAttribute("BFVolume") or 0 end)
                         end
                     end
-                    r.ContainerPosMotor:setGoal(l(90, {frequency = 7}))
+                    r.ContainerPosMotor:setGoal(l(54, {frequency = 7}))
                     r.ContainerBackMotor:setGoal(l(0, {frequency = 9}))
                 end
             )
         end
+        function o.NewHeader(p, q, r, s)
+            local t2 = e(h)
+            local elemMeta = t2.Elements
+            local win = o.Window
+            local holder = win and win._headerTabHolder
+            if not holder then return end
+            if t2:GetIcon(r) then r = t2:GetIcon(r) end
+            if r == "" then r = nil end
+            local txtService = game:GetService("TextService")
+            local txtW = 0
+            pcall(function()
+                local params = Instance.new("GetTextBoundsParams")
+                params.Text = q
+                params.Size = 12
+                params.Font = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium)
+                params.Width = math.huge
+                txtW = txtService:GetTextBoundsAsync(params).X
+            end)
+            local fullW = 36 + txtW + 10
+
+            o.TabCount = o.TabCount + 1
+            o.ListOrderCounter = (o.ListOrderCounter or 0) + 1
+            local tabIdx = o.TabCount
+            local ht = {
+                Selected    = false,
+                Name        = q,
+                Icon        = r,
+                _fullW      = fullW,
+                _hovering   = false,
+                Type        = "Tab",
+                IsHeaderTab = true,
+            }
+
+            ht.SetTransparency = function(alpha)
+                twHt(ht.BgFrame, {BackgroundTransparency = alpha >= 1 and 1 or 0.82}, 0.18)
+                twHt(ht.IconImg, {ImageTransparency = alpha >= 1 and 0.5 or 0}, 0.18)
+                twHt(ht.Label, {TextTransparency = alpha >= 1 and 1 or 0}, 0.18)
+                if alpha >= 1 and not ht._hovering then
+                    twHt(ht.BgFrame, {Size = UDim2.fromOffset(36, 28)}, 0.18)
+                    twHt(ht.IconImg, {Position = UDim2.new(0.5, 0, 0.5, 0), AnchorPoint = Vector2.new(0.5, 0.5)}, 0.18)
+                elseif alpha < 1 then
+                    twHt(ht.BgFrame, {Size = UDim2.fromOffset(fullW, 28)}, 0.18)
+                    twHt(ht.IconImg, {Position = UDim2.new(0, 8, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5)}, 0.18)
+                end
+            end
+            ht._htRef = ht
+            o.Tabs[tabIdx] = ht
+            ht.BgFrame = k("Frame", {
+                Name = "_HTab_"..tabIdx,
+                Size = UDim2.fromOffset(36, 28),
+                BackgroundTransparency = 1,
+                LayoutOrder = tabIdx,
+                ClipsDescendants = true,
+                Parent = holder,
+            }, {k("UICorner", {CornerRadius = UDim.new(0, 6)})})
+            j.AddThemeObject(ht.BgFrame, {BackgroundColor3 = "Tab"})
+            ht.IconImg = k("ImageLabel", {
+                Name = "_HTIcon",
+                Size = UDim2.fromOffset(16, 16),
+                Position = UDim2.new(0.5, 0, 0.5, 0),
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                BackgroundTransparency = 1,
+                ImageTransparency = 0.5,
+                ZIndex = 2,
+                Parent = ht.BgFrame,
+            })
+            j.AddThemeObject(ht.IconImg, {ImageColor3 = "IconColor"})
+            if r then
+                if type(r) == "table" then
+                    ht.IconImg.Image = r.Image or ""
+                    ht.IconImg.ImageRectOffset = r.ImageRectOffset or Vector2.new()
+                    ht.IconImg.ImageRectSize = r.ImageRectSize or Vector2.new()
+                else
+                    ht.IconImg.Image = tostring(r)
+                end
+            end
+            ht.Label = k("TextLabel", {
+                Name = "_HTLabel",
+                Text = q,
+                TextSize = 12,
+                FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
+                TextTransparency = 1,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                TextYAlignment = Enum.TextYAlignment.Center,
+                BackgroundTransparency = 1,
+                Size = UDim2.new(1, -(16 + 12), 1, 0),
+                Position = UDim2.fromOffset(16 + 10, 0),
+                ZIndex = 2,
+                Parent = ht.BgFrame,
+            })
+            j.AddThemeObject(ht.Label, {TextColor3 = "Text"})
+            local hitBox = k("TextButton", {
+                Name = "_HTHit",
+                Size = UDim2.fromScale(1, 1),
+                BackgroundTransparency = 1,
+                Text = "",
+                ZIndex = 6,
+                Parent = ht.BgFrame,
+            })
+            local listLayout2 = k("UIListLayout", {Padding = UDim.new(0, 5), SortOrder = Enum.SortOrder.LayoutOrder})
+            ht.ContainerFrame = k("ScrollingFrame", {
+                Size = UDim2.fromScale(1, 1),
+                BackgroundTransparency = 1,
+                Visible = false,
+                BottomImage = "rbxassetid://6889812791",
+                MidImage = "rbxassetid://6889812721",
+                TopImage = "rbxassetid://6276641225",
+                ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255),
+                ScrollBarImageTransparency = 1,
+                ScrollBarThickness = 0,
+                ElasticBehavior = Enum.ElasticBehavior.Never,
+                BorderSizePixel = 0,
+                CanvasSize = UDim2.fromScale(0, 0),
+                ScrollingDirection = Enum.ScrollingDirection.Y,
+                Parent = win.ContainerClip,
+            }, {
+                listLayout2,
+                k("UIPadding", {
+                    PaddingRight = UDim.new(0, 8),
+                    PaddingLeft = UDim.new(0, 4),
+                    PaddingTop = UDim.new(0, 4),
+                    PaddingBottom = UDim.new(0, 4),
+                }),
+            })
+            j.AddSignal(listLayout2:GetPropertyChangedSignal("AbsoluteContentSize"), function()
+                ht.ContainerFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout2.AbsoluteContentSize.Y + 2)
+            end)
+            ht.ContainerFrame.ChildAdded:Connect(function()
+                task.defer(function()
+                    if listLayout2.AbsoluteContentSize.Y > 0 then
+                        ht.ContainerFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout2.AbsoluteContentSize.Y + 2)
+                    else
+                        local totalH = 0
+                        for _, child in ipairs(ht.ContainerFrame:GetChildren()) do
+                            if child:IsA("GuiObject") and child.Visible then
+                                totalH = totalH + child.AbsoluteSize.Y
+                            end
+                        end
+                        if totalH > 0 then
+                            ht.ContainerFrame.CanvasSize = UDim2.new(0, 0, 0, totalH + 20)
+                        end
+                    end
+                end)
+            end)
+            o.Containers[tabIdx] = ht.ContainerFrame
+            ht.Container = ht.ContainerFrame
+            ht.ScrollFrame = ht.ContainerFrame
+            ht.Type = "Tab"
+            ht._elementCount = 0
+            do
+                local htEmptyOverlay = k("Frame", {
+                    Size = UDim2.fromScale(1, 1),
+                    BackgroundTransparency = 1,
+                    ZIndex = 3,
+                    Visible = false,
+                    Parent = win.ContainerClip,
+                })
+                local htEmptyInner = k("Frame", {
+                    Size = UDim2.fromScale(1, 1),
+                    BackgroundTransparency = 1,
+                    Parent = htEmptyOverlay,
+                })
+                k("UIListLayout", {
+                    FillDirection = Enum.FillDirection.Vertical,
+                    HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                    VerticalAlignment = Enum.VerticalAlignment.Center,
+                    Padding = UDim.new(0, 6),
+                    Parent = htEmptyInner,
+                })
+                local htEmptyIcon = k("ImageLabel", {
+                    Size = UDim2.fromOffset(48, 48),
+                    BackgroundTransparency = 1,
+                    ImageTransparency = 0.45,
+                    ThemeTag = { ImageColor3 = "SubText" },
+                    Parent = htEmptyInner,
+                })
+                local htEmptyTitle = k("TextLabel", {
+                    Size = UDim2.new(1, -32, 0, 20),
+                    BackgroundTransparency = 1,
+                    Text = "Nothing here sucker",
+                    TextSize = 15,
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+                    TextXAlignment = Enum.TextXAlignment.Center,
+                    ThemeTag = { TextColor3 = "Text" },
+                    Parent = htEmptyInner,
+                })
+                local htEmptySub = k("TextLabel", {
+                    Size = UDim2.new(1, -48, 0, 36),
+                    BackgroundTransparency = 1,
+                    Text = "This tab is empty\nAsk the developer why the tabs are empty",
+                    TextSize = 12,
+                    TextWrapped = true,
+                    LineHeight = 1.3,
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+                    TextXAlignment = Enum.TextXAlignment.Center,
+                    ThemeTag = { TextColor3 = "SubText" },
+                    Parent = htEmptyInner,
+                })
+                task.defer(function()
+                    if t2 and t2.GetIcon then
+                        local ic = t2:GetIcon("solar/sad-circle-bold-duotone")
+                        if ic and type(ic) == "table" then
+                            htEmptyIcon.Image = ic.Image or ""
+                            htEmptyIcon.ImageRectOffset = ic.ImageRectOffset or Vector2.new()
+                            htEmptyIcon.ImageRectSize = ic.ImageRectSize or Vector2.new()
+                        elseif ic then
+                            htEmptyIcon.Image = tostring(ic)
+                        end
+                    end
+                end)
+                local function htSyncEmpty()
+                    local tabVisible = ht.ContainerFrame and ht.ContainerFrame.Visible
+                    local childCount = 0
+                    if ht.ContainerFrame then
+                        for _, child in ipairs(ht.ContainerFrame:GetChildren()) do
+                            if child:IsA("Frame") or child:IsA("ScrollingFrame") or child:IsA("TextButton") or child:IsA("CanvasGroup") then
+                                childCount = childCount + 1
+                            end
+                        end
+                    end
+                    htEmptyOverlay.Visible = tabVisible and (childCount <= 0)
+                end
+                j.AddSignal(ht.ContainerFrame:GetPropertyChangedSignal("Visible"), htSyncEmpty)
+                j.AddSignal(ht.ContainerFrame.ChildAdded, htSyncEmpty)
+                j.AddSignal(ht.ContainerFrame.ChildRemoved, htSyncEmpty)
+                ht._emptyOverlay = htEmptyOverlay
+                ht._emptyTitleLbl = htEmptyTitle
+                ht._emptySubLbl = htEmptySub
+                ht._emptyIconImg = htEmptyIcon
+                function ht:SetEmptyState(cfg2)
+                    cfg2 = cfg2 or {}
+                    if cfg2.Text then htEmptyTitle.Text = cfg2.Text end
+                    if cfg2.SubText then htEmptySub.Text = cfg2.SubText end
+                    if cfg2.Icon and t2 and t2.GetIcon then
+                        local ic2 = t2:GetIcon(cfg2.Icon)
+                        if ic2 and type(ic2) == "table" then
+                            htEmptyIcon.Image = ic2.Image or ""
+                            htEmptyIcon.ImageRectOffset = ic2.ImageRectOffset or Vector2.new()
+                            htEmptyIcon.ImageRectSize = ic2.ImageRectSize or Vector2.new()
+                        elseif ic2 then
+                            htEmptyIcon.Image = tostring(ic2)
+                        end
+                    end
+                end
+            end
+            function ht.AddSection(self2, title2, iconKey2, favoriteable2)
+                ht._elementCount = ht._elementCount + 1
+                local _order = ht._elementCount
+                local built = e(n.Section)(title2, iconKey2, ht.ContainerFrame, favoriteable2, tostring(ht.Name) .. "_Section_" .. tostring(title2))
+                local secObj = {Type = "Section", Container = built.Container, ScrollFrame = ht.ContainerFrame}
+                built.Root.LayoutOrder = _order
+                setmetatable(secObj, elemMeta)
+                return secObj
+            end
+            function ht.AddCollapsibleSection(self2, A, iconKey2, openState)
+                local cfg = {}
+                if type(A) == "table" then
+                    cfg = A
+                else
+                    cfg.Title = A
+                    if type(iconKey2) == "boolean" then
+                        cfg.Open = iconKey2
+                    else
+                        cfg.Icon = iconKey2
+                        if openState ~= nil then cfg.Open = openState end
+                    end
+                end
+                local saveIdx = cfg.Idx
+                ht._elementCount = ht._elementCount + 1
+                local _order = ht._elementCount
+                local tabLib2 = t2
+                local title3 = tostring(cfg.Title or "Section")
+                local iconKey3 = cfg.Icon
+                local startOpen3 = cfg.Open ~= false
+                local pad3 = 5
+                local ts3 = game:GetService("TweenService")
+                local outerWrap3 = k("Frame", {
+                    Size = UDim2.new(1, 0, 0, 26),
+                    BackgroundTransparency = 1,
+                    LayoutOrder = _order,
+                    Parent = ht.ContainerFrame,
+                })
+                local header3 = k("TextButton", {
+                    Size = UDim2.new(1, 0, 0, 26),
+                    BackgroundTransparency = 1,
+                    Text = "",
+                    AutoButtonColor = false,
+                    Parent = outerWrap3,
+                })
+                local titleOffX3 = (iconKey3 and iconKey3 ~= "") and 22 or 0
+                if iconKey3 and iconKey3 ~= "" then
+                    local hIco3 = k("ImageLabel", {
+                        Name = "_SecIcon",
+                        Size = UDim2.fromOffset(14, 14),
+                        Position = UDim2.fromOffset(0, 3),
+                        BackgroundTransparency = 1,
+                        ImageTransparency = 0.25,
+                        ThemeTag = {ImageColor3 = "IconColor"},
+                        Parent = header3,
+                    })
+                    task.defer(function()
+                        local ic3 = tabLib2.GetIcon and tabLib2:GetIcon(iconKey3)
+                        if ic3 then
+                            if type(ic3) == "table" then
+                                hIco3.Image = ic3.Image or ""
+                                hIco3.ImageRectOffset = ic3.ImageRectOffset or Vector2.new()
+                                hIco3.ImageRectSize = ic3.ImageRectSize or Vector2.new()
+                            else
+                                hIco3.Image = tostring(ic3)
+                            end
+                        end
+                    end)
+                end
+                local titleLbl3 = k("TextLabel", {
+                    RichText = true,
+                    Text = title3,
+                    TextTransparency = 0,
+                    FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+                    TextSize = 18,
+                    TextXAlignment = "Left",
+                    TextYAlignment = "Center",
+                    Size = UDim2.new(1, -36, 0, 18),
+                    Position = UDim2.fromOffset(titleOffX3, 2),
+                    BackgroundTransparency = 1,
+                    ThemeTag = {TextColor3 = "Text"},
+                    Parent = header3,
+                })
+                local arrowIco3 = k("ImageLabel", {
+                    Name = "_SecChevron",
+                    Size = UDim2.fromOffset(16, 16),
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    Position = UDim2.new(1, 0, 0, 11),
+                    BackgroundTransparency = 1,
+                    ImageColor3 = Color3.fromRGB(255, 255, 255),
+                    ImageTransparency = 0.25,
+                    ThemeTag = {ImageColor3 = "Text"},
+                    Parent = header3,
+                })
+                do
+                    local arIc3 = tabLib2.GetIcon and tabLib2:GetIcon("chevron-right")
+                    if type(arIc3) == "table" then
+                        arrowIco3.Image = arIc3.Image or ""
+                        arrowIco3.ImageRectOffset = arIc3.ImageRectOffset or Vector2.new()
+                        arrowIco3.ImageRectSize = arIc3.ImageRectSize or Vector2.new()
+                    elseif arIc3 then
+                        arrowIco3.Image = tostring(arIc3)
+                    else
+                        arrowIco3.Image = "rbxassetid://10709791437"
+                    end
+                end
+                local contentBg3 = k("Frame", {
+                    Size = UDim2.new(1, 0, 0, 0),
+                    Position = UDim2.fromOffset(0, 26),
+                    BackgroundTransparency = 1,
+                    ClipsDescendants = true,
+                    LayoutOrder = 2,
+                    Parent = outerWrap3,
+                })
+                local innerLayout3 = k("UIListLayout", {
+                    Padding = UDim.new(0, pad3),
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                    Parent = contentBg3,
+                })
+                k("UIPadding", {
+                    PaddingTop = UDim.new(0, pad3),
+                    PaddingBottom = UDim.new(0, pad3),
+                    PaddingLeft = UDim.new(0, 4),
+                    PaddingRight = UDim.new(0, 4),
+                    Parent = contentBg3,
+                })
+                local isOpen3 = false
+                local innerH3 = 0
+                local dur3 = 0.22
+                local ti3 = TweenInfo.new(dur3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+                local colMod3 = {
+                    Type = "Section",
+                    SaveType = "CollapsibleSection",
+                    Container = contentBg3,
+                    ScrollFrame = ht.ContainerFrame,
+                    _elementCount = 0,
+                    Value = startOpen3,
+                }
+                local function applyArrow3(open, anim)
+                    local rot = open and 90 or 0
+                    if anim then
+                        ts3:Create(arrowIco3, TweenInfo.new(dur3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Rotation = rot}):Play()
+                    else
+                        arrowIco3.Rotation = rot
+                    end
+                end
+                local function setOpen3(open, anim)
+                    isOpen3 = open
+                    colMod3.Value = open
+                    applyArrow3(open, anim)
+                    local ch = open and (innerH3 + pad3 * 2) or 0
+                    local oh = 26 + ch
+                    if anim then
+                        ts3:Create(contentBg3, ti3, {Size = UDim2.new(1, 0, 0, ch)}):Play()
+                        ts3:Create(outerWrap3, ti3, {Size = UDim2.new(1, 0, 0, oh)}):Play()
+                    else
+                        contentBg3.Size = UDim2.new(1, 0, 0, ch)
+                        outerWrap3.Size = UDim2.new(1, 0, 0, oh)
+                    end
+                end
+                innerLayout3:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+                    local newH = innerLayout3.AbsoluteContentSize.Y
+                    innerH3 = newH
+                    if isOpen3 then
+                        local ch = newH + pad3 * 2
+                        contentBg3.Size = UDim2.new(1, 0, 0, ch)
+                        outerWrap3.Size = UDim2.new(1, 0, 0, 26 + ch)
+                    end
+                end)
+                header3.MouseButton1Click:Connect(function()
+                    setOpen3(not isOpen3, true)
+                end)
+                task.defer(function()
+                    innerH3 = innerLayout3.AbsoluteContentSize.Y
+                    setOpen3(startOpen3, false)
+                end)
+                function colMod3:Open(anim)   setOpen3(true,  anim ~= false) end
+                function colMod3:Close(anim)  setOpen3(false, anim ~= false) end
+                function colMod3:Toggle(anim) setOpen3(not isOpen3, anim ~= false) end
+                function colMod3:IsOpen()     return isOpen3 end
+                function colMod3:SetValue(v)  setOpen3(v and true or false, true) end
+                function colMod3:SetTitle(s)  titleLbl3.Text = tostring(s or "") end
+                setmetatable(colMod3, elemMeta)
+                if saveIdx and tabLib2.Options then tabLib2.Options[saveIdx] = colMod3 end
+                return colMod3
+            end
+            ht.Section = ht.AddSection
+            ht.CollapsibleSection = ht.AddCollapsibleSection
+            function ht:SetTitle(s)
+                ht.Name = tostring(s or "")
+                if ht.Label then ht.Label.Text = tostring(s or "") end
+            end
+            function ht:SetDesc(s) end
+            function ht:Destroy()
+                if ht.BgFrame then ht.BgFrame:Destroy() end
+                if ht.ContainerFrame then ht.ContainerFrame:Destroy() end
+                if ht._emptyOverlay then ht._emptyOverlay:Destroy() end
+            end
+            setmetatable(ht, elemMeta)
+            j.AddSignal(hitBox.MouseEnter, function()
+                ht._hovering = true
+                twHt(ht.BgFrame, {Size = UDim2.fromOffset(fullW, 28)}, 0.18)
+                twHt(ht.IconImg, {Position = UDim2.new(0, 8, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5)}, 0.18)
+                twHt(ht.Label, {TextTransparency = ht.Selected and 0 or 0.35}, 0.18)
+                twHt(ht.IconImg, {ImageTransparency = 0}, 0.18)
+            end)
+            j.AddSignal(hitBox.MouseLeave, function()
+                ht._hovering = false
+                if ht.Selected then return end
+                twHt(ht.BgFrame, {Size = UDim2.fromOffset(36, 28)}, 0.2)
+                twHt(ht.IconImg, {Position = UDim2.new(0.5, 0, 0.5, 0), AnchorPoint = Vector2.new(0.5, 0.5)}, 0.2)
+                twHt(ht.Label, {TextTransparency = 1}, 0.18)
+                twHt(ht.IconImg, {ImageTransparency = 0.5}, 0.18)
+            end)
+            j.AddSignal(hitBox.MouseButton1Click, function()
+                o:SelectTab(tabIdx)
+            end)
+            if o.TabCount == 1 then
+                task.defer(function() o:SelectTab(tabIdx) end)
+            end
+            return ht
+        end
         return o
     end,
-    [15] = function() --[[ Textbox ]]
+    [15] = function()
         local c, d, e, f, g = b(15)
         local h, i = game:GetService "TextService", d.Parent.Parent
         local j, k = e(i.Packages.Flipper), e(i.Creator)
@@ -4640,7 +5768,7 @@ local aa = {
             return o
         end
     end,
-    [16] = function() --[[ TitleBar ]]
+    [16] = function()
         local c, d, e, f, g = b(16)
         local h, i = d.Parent.Parent, e(d.Parent.Assets)
         local j, k = e(h.Creator), e(h.Packages.Flipper)
@@ -4714,11 +5842,12 @@ local aa = {
                     return s
                 end
             local _rightReserved = 114
-            if n.SearchInHeader then _rightReserved = _rightReserved + 180 end
+
+
             o.Frame =
                 l(
                 "Frame",
-                {Size = UDim2.new(1, 0, 0, 42), BackgroundTransparency = 1, Parent = n.Parent},
+                {Size = UDim2.new(1, 0, 0, 42), BackgroundTransparency = 1, ZIndex = 5, Parent = n.Parent},
                 {
                     l(
                         "Frame",
@@ -4748,10 +5877,9 @@ local aa = {
                                         BackgroundTransparency = 1,
                                         Visible = n.Icon ~= nil,
                                         LayoutOrder = 0,
-                                        ThemeTag = {ImageColor3 = "Text"}
+                                        ThemeTag = {ImageColor3 = "IconColor"}
                                     }
                                 )
-                                _titleIco:SetAttribute("IsThemeIcon", true)
                                 return _titleIco
                             end)(),
                             l(
@@ -5081,7 +6209,7 @@ local aa = {
             return o
         end
     end,
-    [17] = function() --[[ Window ]]
+    [17] = function()
         local c, d, e, f, g = b(17)
         local h, i, j, k =
             game:GetService "UserInputService",
@@ -5133,7 +6261,6 @@ local aa = {
             local function mkCorner(r) return s("UICorner",{CornerRadius=UDim.new(0,r)}) end
             local function mkStroke(t2,thk) return s("UIStroke",{Transparency=t2,Thickness=thk or tonumber(m.GetThemeProperty("ElementBorderThickness")) or 1,ThemeTag={Color="InElementBorder"}}) end
 
-
             if t.TabLogo then
                 local logoH = 110
                 local logoFrame = s("Frame",{
@@ -5171,7 +6298,6 @@ local aa = {
                 topOffset = topOffset + logoH + 4
                 table.insert(sidebarChildren, logoFrame)
             end
-
 
             if t.UserInfoTop then
                 local lp = game:GetService("Players").LocalPlayer
@@ -5326,9 +6452,7 @@ local aa = {
                 table.insert(sidebarChildren, panel)
             end
 
-
             local showSearch = not (t.Search == false)
-            local searchInHeader = t.SearchInHeader == true
             local searchH = 30
             local searchBox = nil
             local searchBarFrame = nil
@@ -5343,12 +6467,13 @@ local aa = {
                     ThemeTag={BackgroundColor3="Element"},
                 },{
                     mkCorner(6), mkStroke(0.6),
-                    s("ImageLabel",{
-                        Size=UDim2.fromOffset(13,13),
-                        Position=UDim2.new(0,8,0.5,0), AnchorPoint=Vector2.new(0,0.5),
-                        BackgroundTransparency=1, Image="rbxassetid://10734943674",
-                        ImageTransparency=0.4, ThemeTag={ImageColor3="SubText"},
-                    }),
+                })
+                local _searchIco = s("ImageLabel",{
+                    Size=UDim2.fromOffset(13,13),
+                    Position=UDim2.new(0,8,0.5,0), AnchorPoint=Vector2.new(0,0.5),
+                    BackgroundTransparency=1, Image="rbxassetid://10734943674",
+                    ImageTransparency=0.4, ThemeTag={ImageColor3="SubText"},
+                    Parent=sb,
                 })
                 searchBox = s("TextBox",{
                     FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json"),
@@ -5362,17 +6487,12 @@ local aa = {
                     Parent=sb,
                 })
                 searchBarFrame = sb
-                if searchInHeader then
-                    sb.Visible = false
-                else
-                    topOffset = topOffset + searchH + 4
-                    table.insert(sidebarChildren, sb)
-                end
+                topOffset = topOffset + searchH + 4
+                table.insert(sidebarChildren, sb)
                 end)
             end
 
             v._tabTopOffset = topOffset
-
 
             if t.UserInfo then
                 local lp2 = game:GetService("Players").LocalPlayer
@@ -5513,7 +6633,6 @@ local aa = {
                 table.insert(sidebarChildren, bot)
             end
 
-
             local _tabListLayout = s("UIListLayout", {Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder})
             v.TabListContainer = s(
                 "Frame",
@@ -5544,7 +6663,6 @@ local aa = {
             )
             table.insert(sidebarChildren, v.TabHolder)
 
-
             local listLayout = _tabListLayout
             if listLayout then
                 listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
@@ -5552,12 +6670,11 @@ local aa = {
                 end)
             end
 
-
             if searchBox then
                 local allElements = {}
                 v.AllElements = allElements
                 v.SearchBox = searchBox
-                
+
 
                 local function findSectionContainer(sec)
                     for _, ch in pairs(sec:GetChildren()) do
@@ -5597,7 +6714,7 @@ local aa = {
                         end
                     end
                 end
-                
+
                 local function getSearchableText(obj, depth)
                     depth = depth or 0
                     if depth > 6 then return "" end
@@ -5741,45 +6858,19 @@ local aa = {
                     Size = UDim2.new(0, t.TabWidth, 1, -66),
                     Position = UDim2.new(0, 12, 0, 54),
                     BackgroundTransparency = 1,
-                    ClipsDescendants = true
+                    ClipsDescendants = true,
+                    Name = "_SidebarFrame"
                 },
                 sidebarChildren
             )
-            v.TabDisplayIcon =
-                s(
-                "ImageLabel",
-                {
-                    Name = "TabDisplayIcon",
-                    Size = UDim2.fromOffset(24, 24),
-                    Position = UDim2.fromOffset(t.TabWidth + 26, 60),
-                    BackgroundTransparency = 1,
-                    Visible = false,
-                    ThemeTag = {ImageColor3 = "Text"}
-                }
-            )
-            v.TabDisplay =
-                s(
-                "TextLabel",
-                {
-                    RichText = true,
-                    Text = "Tab",
-                    TextTransparency = 0,
-                    FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
-                    TextSize = 28,
-                    TextXAlignment = "Left",
-                    TextYAlignment = "Center",
-                    Size = UDim2.new(1, -16, 0, 28),
-                    Position = UDim2.fromOffset(t.TabWidth + 26, 56),
-                    BackgroundTransparency = 1,
-                    ThemeTag = {TextColor3 = "Text"}
-                }
-            )
+            v.TabDisplayIcon = nil
+            v.TabDisplay = nil
             v.ContainerHolder =
                 s(
                 "CanvasGroup",
                 {
-                    Size = UDim2.new(1, -t.TabWidth - 32, 1, -102),
-                    Position = UDim2.fromOffset(t.TabWidth + 26, 90),
+                    Size = UDim2.new(1, -t.TabWidth - 32, 1, -66),
+                    Position = UDim2.fromOffset(t.TabWidth + 26, 54),
                     BackgroundTransparency = 1,
                     ClipsDescendants = true,
                 }
@@ -5799,19 +6890,33 @@ local aa = {
                 s(
                 "Frame",
                 {BackgroundTransparency = 1, Size = v.Size, Position = v.Position, Parent = t.Parent},
-                {v.AcrylicPaint.Frame, v.TabDisplayIcon, v.TabDisplay, v.ContainerHolder, F, E}
+                {v.AcrylicPaint.Frame, v.ContainerHolder, F, E}
             )
-            v.TitleBar = e(d.Parent.TitleBar) {Title = t.Title, SubTitle = t.SubTitle, Parent = v.Root, Window = v, Icon = t.TitleIcon, Version = t.Version, Tags = t.Tags, SearchInHeader = searchInHeader}
-            if searchInHeader and searchBarFrame then
-                pcall(function()
-                    searchBarFrame.AnchorPoint = Vector2.new(1, 0)
-                    searchBarFrame.Size = UDim2.new(0, 170, 0, 28)
-                    searchBarFrame.Position = UDim2.new(1, -124, 0, 7)
-                    searchBarFrame.ZIndex = 3
-                    searchBarFrame.Parent = v.TitleBar.Frame
-                    searchBarFrame.Visible = true
-                end)
+            v.TitleBar = e(d.Parent.TitleBar) {Title = t.Title, SubTitle = t.SubTitle, Parent = v.Root, Window = v, Icon = t.TitleIcon, Version = t.Version, Tags = t.Tags}
+            local _tbExpandedForTabs = false
+            local function _expandTitleBarForTabsSearch()
+                if _tbExpandedForTabs then return end
+                _tbExpandedForTabs = true
+
+
+
+                local tabRow1CY = 21
+                v.TitleBar.Frame.Size = UDim2.new(1, 0, 0, 42)
+                v._headerTabHolder.AnchorPoint = Vector2.new(0.5, 0.5)
+                v._headerTabHolder.Position    = UDim2.new(0.5, 0, 0, tabRow1CY)
+                local _selAbsY = 40
+                v._headerSelY  = _selAbsY
+                v._headerSelectorFrame.AnchorPoint = Vector2.new(0.5, 0)
+                v._headerSelectorFrame.Position    = UDim2.new(0, 0, 0, _selAbsY)
+                local F2 = v.Root:FindFirstChild("_SidebarFrame")
+                if F2 then
+                    F2.Position = UDim2.new(0, 12, 0, 54)
+                    F2.Size     = UDim2.new(0, t.TabWidth, 1, -66)
+                end
+                v.ContainerHolder.Position = UDim2.fromOffset(t.TabWidth + 26, 54)
+                v.ContainerHolder.Size     = UDim2.new(1, -t.TabWidth - 32, 1, -66)
             end
+            v._expandTitleBarForTabsSearch = _expandTitleBarForTabsSearch
             if e(k).UseAcrylic then
                 v.AcrylicPaint.AddParent(v.Root)
             end
@@ -5821,7 +6926,7 @@ local aa = {
             v.SelectorPosMotor = l.SingleMotor.new(17)
             v.SelectorSizeMotor = l.SingleMotor.new(0)
             v.ContainerBackMotor = l.SingleMotor.new(0)
-            v.ContainerPosMotor = l.SingleMotor.new(94)
+            v.ContainerPosMotor = l.SingleMotor.new(54)
             G:onStep(
                 function(I)
                     v.Root.Size = UDim2.new(0, math.round(I.X), 0, math.round(I.Y))
@@ -6005,7 +7110,7 @@ local aa = {
                 end)
                 if not C then
                     C = true
-                    local N = u.MinimizeKeybind and u.MinimizeKeybind.Value or u.MinimizeKey.Name
+                    local N = (u.MinimizeKeybind and u.MinimizeKeybind.Value) or (u.MinimizeKey and u.MinimizeKey.Name) or "RightControl"
                     u:Notify {Title = "Interface", Content = "Press " .. N .. " to toggle the interface.", Duration = 6}
                 end
             end
@@ -6095,6 +7200,100 @@ local aa = {
                     end
                 end)
             end
+            local _htLayout = s("UIListLayout", {
+                FillDirection = Enum.FillDirection.Horizontal,
+                HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                VerticalAlignment = Enum.VerticalAlignment.Center,
+                Padding = UDim.new(0, 5),
+                SortOrder = Enum.SortOrder.LayoutOrder,
+            })
+            v._headerTabHolder = s("Frame", {
+                Name = "_HeaderTabHolder",
+                Size = UDim2.fromOffset(0, 28),
+                Position = UDim2.new(0.5, 0, 0.5, 0),
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                BackgroundTransparency = 1,
+                ZIndex = 8,
+                Visible = false,
+                ClipsDescendants = false,
+                Parent = v.TitleBar.Frame,
+            }, {_htLayout})
+            _htLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+                v._headerTabHolder.Size = UDim2.fromOffset(_htLayout.AbsoluteContentSize.X, 28)
+            end)
+            v._headerSelectorFrame = s("Frame", {
+                Name = "_HeaderSel",
+                Size = UDim2.fromOffset(24, 2),
+                Position = UDim2.new(0, 0, 1, -4),
+                AnchorPoint = Vector2.new(0.5, 0),
+                BackgroundTransparency = 1,
+                ZIndex = 10,
+                Parent = v.TitleBar.Frame,
+            }, {s("UICorner", {CornerRadius = UDim.new(1, 0)})})
+            v._headerSelY = 0
+            m.AddThemeObject(v._headerSelectorFrame, {BackgroundColor3 = "Accent"})
+            function v.AddSpaceTabs(O, cfg)
+                cfg = type(cfg) == "table" and cfg or {}
+                N.ListOrderCounter = (N.ListOrderCounter or 0) + 1
+                return s("Frame", {
+                    Size = UDim2.new(1, 0, 0, tonumber(cfg.Height) or 8),
+                    BackgroundTransparency = 1,
+                    LayoutOrder = N.ListOrderCounter,
+                    Parent = v.TabListContainer,
+                })
+            end
+            function v.AddDividerTabs(O)
+                N.ListOrderCounter = (N.ListOrderCounter or 0) + 1
+                local wrapper = s("Frame", {
+                    Size = UDim2.new(1, 0, 0, 12),
+                    BackgroundTransparency = 1,
+                    LayoutOrder = N.ListOrderCounter,
+                    Parent = v.TabListContainer,
+                })
+                s("Frame", {
+                    Size = UDim2.new(1, -20, 0, 2),
+                    Position = UDim2.new(0, 10, 0.5, 0),
+                    AnchorPoint = Vector2.new(0, 0.5),
+                    BackgroundTransparency = 0.55,
+                    BorderSizePixel = 0,
+                    Parent = wrapper,
+                    ThemeTag = { BackgroundColor3 = "Accent" },
+                }, {
+                    s("UICorner", { CornerRadius = UDim.new(1, 0) })
+                })
+                return wrapper
+            end
+            function v.AddSpaceTabsHead(O, cfg)
+                cfg = type(cfg) == "table" and cfg or {}
+                N.TabCount = (N.TabCount or 0) + 1
+                local sp = s("Frame", {
+                    Size = UDim2.new(0, tonumber(cfg.Height) or 8, 1, 0),
+                    BackgroundTransparency = 1,
+                    LayoutOrder = N.TabCount,
+                    Parent = v._headerTabHolder,
+                })
+                task.defer(function()
+                    v._headerTabHolder.Size = UDim2.fromOffset(_htLayout.AbsoluteContentSize.X, 28)
+                end)
+                return sp
+            end
+            function v.AddDividerTabsHead(O)
+                N.TabCount = (N.TabCount or 0) + 1
+                local div = s("Frame", {
+                    Size = UDim2.new(0, 2, 0, 14),
+                    AnchorPoint = Vector2.new(0, 0.5),
+                    BackgroundTransparency = 0.55,
+                    LayoutOrder = N.TabCount,
+                    Parent = v._headerTabHolder,
+                    ThemeTag = { BackgroundColor3 = "Accent" },
+                }, {
+                    s("UICorner", { CornerRadius = UDim.new(0, 2) })
+                })
+                task.defer(function()
+                    v._headerTabHolder.Size = UDim2.fromOffset(_htLayout.AbsoluteContentSize.X, 28)
+                end)
+                return div
+            end
             function v.AddTab(O, P)
                 local _tab = N:New(P.Title, P.Icon, v.TabListContainer, P.Favoriteable == true)
                 N:ReapplyFavoriteOrder()
@@ -6103,7 +7302,18 @@ local aa = {
                         N:SelectTab(1)
                     end)
                 end
+                if P.EmptyState and _tab.SetEmptyState then
+                    _tab:SetEmptyState(P.EmptyState)
+                end
                 return _tab
+            end
+            function v.AddTabsInHeader(O, P)
+                v._headerTabHolder.Visible = true
+                if v._expandTitleBarForTabsSearch then
+                    v._expandTitleBarForTabsSearch()
+                end
+                local _ht = N:NewHeader(P.Title, P.Icon, v.TabListContainer)
+                return _ht
             end
             function v.AddTabDivider(O)
                 N.ListOrderCounter = (N.ListOrderCounter or 0) + 1
@@ -6170,10 +7380,50 @@ local aa = {
                     end
                 end
             )
+            local windowMeta = {}
+            windowMeta.__index = windowMeta
+            windowMeta.__namecall = function(self, methodName, ...)
+                local fn = v[methodName]
+                if not fn and type(methodName) == "string" and not methodName:match("^Add") then
+                    fn = v["Add" .. methodName]
+                end
+                if fn then return fn(self, ...) end
+            end
+            function v.SetUserInfo(_, cfg)
+                cfg = cfg or {}
+                local sidebar = v.Root and v.Root:FindFirstChild("SidebarFrame", true)
+                local uiTop   = sidebar and sidebar:FindFirstChild("UserInfoTop", true)
+                local uiBot   = sidebar and sidebar:FindFirstChild("UserInfoBottom", true)
+                local target  = uiTop or uiBot
+                if not target then return end
+                if cfg.Title then
+                    local lbl = target:FindFirstChild("DisplayName")
+                    if lbl then lbl.Text = cfg.Title end
+                end
+                if cfg.Subtitle then
+                    local lbl = target:FindFirstChild("Username")
+                    if lbl then lbl.Text = cfg.Subtitle end
+                end
+                if cfg.Icon then
+                    local img = target:FindFirstChild("AvatarIcon")
+                    if img then
+                        if cfg.Icon:match("^rbxassetid://") or cfg.Icon:match("^%d+$") then
+                            img.Image = cfg.Icon:match("^%d+$") and ("rbxassetid://" .. cfg.Icon) or cfg.Icon
+                        end
+                    end
+                end
+            end
+
+            function v.SetSearch(_, enabled)
+                local sb = v.Root and v.Root:FindFirstChild("SearchBox", true)
+                if sb then sb.Visible = enabled ~= false end
+            end
+
+            setmetatable(v, windowMeta)
             return v
         end
     end,
-    [18] = function() --[[ Creator ]]
+    [18] = function()
         local c, d, e, f, g = b(18)
         local h = d.Parent
         local i, j, k =
@@ -6263,14 +7513,142 @@ local aa = {
             if _noInheritFallbackKeys[m] then
                 return false
             end
-            local fallback = i["Ash Gray"]
+            local fallback = i["Dark"]
             if fallback then return fallback[m] end
             return nil
         end
+        local csEntries = {}
+        local csPendingConns = {}
+        local csSharedConn = nil
+        local function csKey(inst, prop) return tostring(inst) .. "_" .. prop end
+
+        local function ensureCsLoop()
+            if csSharedConn then return end
+            csSharedConn = game:GetService("RunService").Heartbeat:Connect(function(dt)
+                local hasAny = false
+                local dead = {}
+                for key, data in next, csEntries do
+                    local inst = data.inst
+                    if inst and inst.Parent then
+                        hasAny = true
+                        data.t = (data.t + dt * data.speed) % 1
+                        local t = data.t
+                        local kps = data.kps
+                        local col = kps[#kps].Value
+                        for i = 1, #kps - 1 do
+                            if t >= kps[i].Time and t <= kps[i + 1].Time then
+                                local alpha = kps[i + 1].Time - kps[i].Time
+                                local blend = alpha > 0 and (t - kps[i].Time) / alpha or 0
+                                col = kps[i].Value:Lerp(kps[i + 1].Value, blend)
+                                break
+                            end
+                        end
+                        local ok = pcall(function() inst[data.prop] = col end)
+                        if not ok then dead[key] = true end
+                    else
+                        dead[key] = true
+                    end
+                end
+                for key in next, dead do
+                    csEntries[key] = nil
+                end
+                if not hasAny then
+                    csSharedConn:Disconnect()
+                    csSharedConn = nil
+                end
+            end)
+        end
+
+        local function stopCs(inst, prop)
+            if prop then
+                local key = csKey(inst, prop)
+                csEntries[key] = nil
+                local pconn = csPendingConns[key]
+                if pconn then pcall(function() pconn:Disconnect() end) end
+                csPendingConns[key] = nil
+            else
+                local prefix = tostring(inst) .. "_"
+                for key, data in next, csEntries do
+                    if key:sub(1, #prefix) == prefix then
+                            csEntries[key] = nil
+                    end
+                end
+                for key, conn in next, csPendingConns do
+                    if key:sub(1, #prefix) == prefix then
+                        pcall(function() conn:Disconnect() end)
+                        csPendingConns[key] = nil
+                    end
+                end
+            end
+        end
+
+        local function startCs(inst, prop, colorSeq, opts)
+            stopCs(inst, prop)
+            if not colorSeq or typeof(colorSeq) ~= "ColorSequence" then return end
+            local kps = colorSeq.Keypoints
+            if #kps == 0 then return end
+            if #kps == 1 then pcall(function() inst[prop] = kps[1].Value end); return end
+
+            opts = opts or {}
+            local speed = opts.speed or 0.28
+
+            local function doStart()
+                if not inst or not inst.Parent then return end
+                stopCs(inst, prop)
+
+                pcall(function() inst[prop] = kps[1].Value end)
+
+                local key = csKey(inst, prop)
+                csEntries[key] = {
+                    inst  = inst,
+                    prop  = prop,
+                    kps   = kps,
+                    t     = 0,
+                    speed = speed,
+                }
+                ensureCsLoop()
+            end
+
+            if inst.Parent then
+                doStart()
+            else
+                local pendingKey = csKey(inst, prop)
+                local conn
+                conn = inst:GetPropertyChangedSignal("Parent"):Connect(function()
+                    if inst.Parent then
+                        pcall(function() conn:Disconnect() end)
+                        csPendingConns[pendingKey] = nil
+                        local currentVal = k.GetThemeProperty(
+                            k.Registry[inst] and k.Registry[inst].Properties[prop] or ""
+                        )
+                        local seqToUse = (typeof(currentVal) == "ColorSequence") and currentVal or colorSeq
+                        startCs(inst, prop, seqToUse, opts)
+                    end
+                end)
+                csPendingConns[pendingKey] = conn
+            end
+        end
+
         function k.UpdateTheme()
             for m, n in next, k.Registry do
-                for o, p in next, n.Properties do
-                    m[o] = k.GetThemeProperty(p)
+                if m and m.Parent then
+                    for o, _ in next, n.Properties do
+                        stopCs(m, o)
+                    end
+                end
+            end
+            for m, n in next, k.Registry do
+                if m and m.Parent then
+                    for o, p in next, n.Properties do
+                        local val = k.GetThemeProperty(p)
+                        if typeof(val) == "ColorSequence" then
+                            startCs(m, o, val)
+                        elseif val ~= nil then
+                            pcall(function() m[o] = val end)
+                        end
+                    end
+                else
+                    k.Registry[m] = nil
                 end
             end
             for o, p in next, k.TransparencyMotors do
@@ -6333,17 +7711,32 @@ local aa = {
                         end
                         if bgVid:GetAttribute("_srcUrl") ~= bgValStr then
                             bgVid:SetAttribute("_srcUrl", bgValStr)
+                            bgVid.Video = ""
                             task.spawn(function()
-                                local custom = x.MediaManager and x.MediaManager:Video(bgValStr)
-                                if custom and custom ~= "" and bgVid.Parent and x._bgGeneration == myGeneration then
+                                local custom
+                                for attempt = 1, 4 do
+                                    local ok2, res2 = pcall(function()
+                                        return x.MediaManager and x.MediaManager:Video(bgValStr)
+                                    end)
+                                    custom = ok2 and res2 or nil
+                                    if custom and custom ~= "" then break end
+                                    if attempt < 4 then task.wait(2) end
+                                end
+                                if custom and custom ~= "" and bgVid and bgVid.Parent and x._bgGeneration == myGeneration then
                                     bgVid.Video = custom
                                     bgVid.Looped = true
-                                    bgVid.Playing = true
+                                    local timeout2 = 0
+                                    repeat task.wait(0.15); timeout2 = timeout2 + 0.15 until (bgVid.TimeLength and bgVid.TimeLength > 0) or timeout2 > 20
+                                    if bgVid and bgVid.Parent and bgVid.TimeLength and bgVid.TimeLength > 0 and x._bgGeneration == myGeneration then
+                                        pcall(function() bgVid:Play() end)
+                                    end
                                 end
                             end)
+                        elseif bgVid.Video ~= "" and bgVid.TimeLength > 0 then
+
+                            bgVid.Looped = true
+                            pcall(function() bgVid:Play() end)
                         end
-                        bgVid.Looped = true
-                        bgVid.Playing = true
                         local im = x.InterfaceManager
                         bgVid.Visible = not (im and im.Settings and im.Settings.DisableBG)
                     elseif bgValStr ~= "" then
@@ -6388,17 +7781,31 @@ local aa = {
                 end
             end
         end
+        local function _applyThemeToObject(inst, props)
+            for prop, key in next, props do
+                local val = k.GetThemeProperty(key)
+                if typeof(val) == "ColorSequence" then
+                    startCs(inst, prop, val)
+                elseif val ~= nil then
+                    stopCs(inst, prop)
+                    pcall(function() inst[prop] = val end)
+                end
+            end
+        end
         function k.AddThemeObject(m, n)
-            local o = #k.Registry + 1
-            local p = {Object = m, Properties = n, Idx = o}
-            k.Registry[m] = p
-            k.UpdateTheme()
+            k.Registry[m] = {Object = m, Properties = n}
+            _applyThemeToObject(m, n)
             return m
         end
         function k.OverrideTag(m, n)
-            k.Registry[m].Properties = n
-            k.UpdateTheme()
+            if k.Registry[m] then
+                k.Registry[m].Properties = n
+            else
+                k.Registry[m] = {Object = m, Properties = n}
+            end
+            _applyThemeToObject(m, n)
         end
+
         function k.New(m, n, o)
             local p = Instance.new(m)
             for q, r in next, k.DefaultProperties[m] or {} do
@@ -6442,7 +7849,7 @@ local aa = {
         end
         return k
     end,
-    [19] = function() --[[ Module19 ]]
+    [19] = function()
         local c, d, e, f, g = b(19)
         local h = {}
         for i, j in next, d:GetChildren() do
@@ -6450,7 +7857,7 @@ local aa = {
         end
         return h
     end,
-    [20] = function() --[[ Button_El ]]
+    [20] = function()
         local c, d, e, f, g = b(20)
         local h = d.Parent.Parent
         local i = e(h.Creator)
@@ -6492,7 +7899,7 @@ local aa = {
         end
         return l
     end,
-    [21] = function() --[[ Colorpicker_El ]]
+    [21] = function()
         local c, d, e, f, g = b(21)
         local h, i, j, k =
             game:GetService "UserInputService",
@@ -6509,6 +7916,271 @@ local aa = {
             local y = v.Library
             assert(x.Title, "Colorpicker - Missing Title")
             assert(x.Default ~= nil, "AddColorPicker: Missing default value.")
+            if x.Gradient then
+                local initialColor = x.Default or Color3.fromRGB(100, 149, 237)
+                local gradientKeypoints = {
+                    { pos = 0, color = initialColor },
+                    { pos = 1, color = Color3.fromRGB(237, 100, 100) },
+                }
+                local activeSlot = 1
+                local function buildColorSequence()
+                    local sorted = {}
+                    for _, kp in ipairs(gradientKeypoints) do
+                        table.insert(sorted, { pos = math.clamp(kp.pos, 0, 1), color = kp.color })
+                    end
+                    table.sort(sorted, function(a, b) return a.pos < b.pos end)
+                    if sorted[1].pos > 0 then table.insert(sorted, 1, { pos = 0, color = sorted[1].color }) end
+                    if sorted[#sorted].pos < 1 then table.insert(sorted, { pos = 1, color = sorted[#sorted].color }) end
+                    local kps = {}
+                    for _, kp in ipairs(sorted) do
+                        table.insert(kps, ColorSequenceKeypoint.new(kp.pos, kp.color))
+                    end
+                    return ColorSequence.new(kps)
+                end
+                local gz = {
+                    Value    = buildColorSequence(),
+                    Type     = "Colorpicker",
+                    SaveType = "GradientPicker",
+                    Title    = tostring(x.Title),
+                    Callback = x.Callback or function() end,
+                }
+                local gA = e(t.Element)(x.Title, x.Description, v.Container, true)
+                gz.SetTitle = gA.SetTitle
+                gz.SetDesc  = gA.SetDesc
+                gz.Frame    = gA.Frame
+                local gPreviewBg = s("ImageLabel", {
+                    Size = UDim2.fromOffset(26, 26),
+                    Position = UDim2.new(1, -10, 0.5, 0),
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    Image = "http://www.roblox.com/asset/?id=14204231522",
+                    ImageTransparency = 0.45,
+                    ScaleType = Enum.ScaleType.Tile,
+                    TileSize = UDim2.fromOffset(40, 40),
+                    Parent = gA.Frame,
+                }, { s("UICorner", { CornerRadius = UDim.new(0, 4) }) })
+                local gPreviewFill = s("Frame", {
+                    Size = UDim2.fromScale(1, 1),
+                    BackgroundColor3 = Color3.new(1, 1, 1),
+                    BorderSizePixel = 0,
+                    Parent = gPreviewBg,
+                }, { s("UICorner", { CornerRadius = UDim.new(0, 4) }) })
+                local gPreviewGradient = s("UIGradient", {
+                    Color = buildColorSequence(),
+                    Parent = gPreviewFill,
+                })
+                local function refreshPreview()
+                    gPreviewGradient.Color = buildColorSequence()
+                end
+                function gz.SetValue(_, newCs)
+                    gz.Value = newCs
+                    y:SafeCallback(gz.Callback, newCs)
+                    y:SafeCallback(gz.Changed, newCs)
+                end
+                function gz.OnChanged(_, cb) gz.Changed = cb; cb(gz.Value) end
+                function gz.SetValueRGB(_, col, _2)
+                    gz:SetValue(ColorSequence.new({ ColorSequenceKeypoint.new(0, col), ColorSequenceKeypoint.new(1, col) }))
+                end
+                function gz.Destroy(_)
+                    gA.Frame:Destroy()
+                    y.Options[w] = nil
+                end
+                local function openGradientDialog()
+                    local gC = e(t.Dialog):Create()
+                    gC.Title.Text = gz.Title
+                    gC.Root.Size = UDim2.fromOffset(430, 340)
+                    local curH, curS2, curV = Color3.toHSV(gradientKeypoints[activeSlot].color)
+                    local hsvHandle = s("ImageLabel", {
+                        Size = UDim2.fromOffset(18, 18),
+                        ScaleType = Enum.ScaleType.Fit,
+                        AnchorPoint = Vector2.new(0.5, 0.5),
+                        BackgroundTransparency = 1,
+                        Image = "http://www.roblox.com/asset/?id=4805639000",
+                    })
+                    local hsvPicker = s("ImageLabel", {
+                        Size = UDim2.fromOffset(180, 160),
+                        Position = UDim2.fromOffset(20, 55),
+                        Image = "rbxassetid://4155801252",
+                        BackgroundColor3 = Color3.fromHSV(curH, 1, 1),
+                        BackgroundTransparency = 0,
+                        Parent = gC.Root,
+                    }, { s("UICorner", { CornerRadius = UDim.new(0, 4) }) })
+                    hsvHandle.Parent = hsvPicker
+                    local hueKps = {}
+                    for qi = 0, 1, 0.1 do table.insert(hueKps, ColorSequenceKeypoint.new(qi, Color3.fromHSV(qi, 1, 1))) end
+                    local hueSliderInner = s("Frame", {
+                        Size = UDim2.new(1, 0, 1, -10),
+                        Position = UDim2.fromOffset(0, 5),
+                        BackgroundTransparency = 1,
+                    })
+                    local hueHandle = s("ImageLabel", {
+                        Size = UDim2.fromOffset(14, 14),
+                        Image = "http://www.roblox.com/asset/?id=12266946128",
+                        Parent = hueSliderInner,
+                        ThemeTag = { ImageColor3 = "DialogInput" },
+                    })
+                    local hueBar = s("Frame", {
+                        Size = UDim2.fromOffset(12, 190),
+                        Position = UDim2.fromOffset(210, 55),
+                        Parent = gC.Root,
+                    }, {
+                        s("UICorner", { CornerRadius = UDim.new(1, 0) }),
+                        s("UIGradient", { Color = ColorSequence.new(hueKps), Rotation = 90 }),
+                        hueSliderInner,
+                    })
+                    local hexInput = e(t.Textbox)()
+                    hexInput.Frame.Parent = gC.Root
+                    hexInput.Frame.Size = UDim2.new(0, 90, 0, 32)
+                    hexInput.Frame.Position = UDim2.fromOffset(240, 55)
+                    s("TextLabel", {
+                        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
+                        Text = "Hex", TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left,
+                        Size = UDim2.new(1, 0, 0, 32), Position = UDim2.fromOffset(340, 55),
+                        BackgroundTransparency = 1, Parent = gC.Root,
+                        ThemeTag = { TextColor3 = "Text" },
+                    })
+                    local slot2Bg = s("ImageLabel", {
+                        Image = "http://www.roblox.com/asset/?id=14204231522",
+                        ImageTransparency = 0.45,
+                        ScaleType = Enum.ScaleType.Tile,
+                        TileSize = UDim2.fromOffset(40, 40),
+                        BackgroundTransparency = 1,
+                        Position = UDim2.fromOffset(112, 220),
+                        Size = UDim2.fromOffset(88, 24),
+                        Parent = gC.Root,
+                    }, {
+                        s("UICorner", { CornerRadius = UDim.new(0, 4) }),
+                        s("UIStroke", { Thickness = 2, Transparency = 0.75 }),
+                    })
+                    local slot2Fill = s("Frame", {
+                        BackgroundColor3 = gradientKeypoints[2].color,
+                        Size = UDim2.fromScale(1, 1),
+                    }, { s("UICorner", { CornerRadius = UDim.new(0, 4) }) })
+                    slot2Fill.Parent = slot2Bg
+                    local slot2Stroke = slot2Bg:FindFirstChildOfClass("UIStroke")
+                    local slot1Bg = s("ImageLabel", {
+                        Image = "http://www.roblox.com/asset/?id=14204231522",
+                        ImageTransparency = 0.45,
+                        ScaleType = Enum.ScaleType.Tile,
+                        TileSize = UDim2.fromOffset(40, 40),
+                        BackgroundTransparency = 1,
+                        Position = UDim2.fromOffset(20, 220),
+                        Size = UDim2.fromOffset(88, 24),
+                        Parent = gC.Root,
+                    }, {
+                        s("UICorner", { CornerRadius = UDim.new(0, 4) }),
+                        s("UIStroke", { Thickness = 2, Transparency = 0.75 }),
+                    })
+                    local slot1Fill = s("Frame", {
+                        BackgroundColor3 = gradientKeypoints[1].color,
+                        Size = UDim2.fromScale(1, 1),
+                    }, { s("UICorner", { CornerRadius = UDim.new(0, 4) }) })
+                    slot1Fill.Parent = slot1Bg
+                    local slot1Stroke = slot1Bg:FindFirstChildOfClass("UIStroke")
+                    local slot1Lbl = s("TextLabel", {
+                        Text = "#" .. gradientKeypoints[1].color:ToHex(),
+                        TextSize = 9,
+                        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+                        Position = UDim2.fromOffset(20, 247),
+                        Size = UDim2.fromOffset(88, 14),
+                        BackgroundTransparency = 1,
+                        TextColor3 = gradientKeypoints[1].color,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = gC.Root,
+                    })
+                    local slot2Lbl = s("TextLabel", {
+                        Text = "#" .. gradientKeypoints[2].color:ToHex(),
+                        TextSize = 9,
+                        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+                        Position = UDim2.fromOffset(112, 247),
+                        Size = UDim2.fromOffset(88, 14),
+                        BackgroundTransparency = 1,
+                        TextColor3 = gradientKeypoints[2].color,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = gC.Root,
+                    })
+                    local function updateSlotHighlight()
+                        slot1Stroke.Transparency = activeSlot == 1 and 0.2 or 0.75
+                        slot1Stroke.Color = activeSlot == 1 and Color3.new(1,1,1) or Color3.new(0.5,0.5,0.5)
+                        slot2Stroke.Transparency = activeSlot == 2 and 0.2 or 0.75
+                        slot2Stroke.Color = activeSlot == 2 and Color3.new(1,1,1) or Color3.new(0.5,0.5,0.5)
+                    end
+                    local function applyHSV(writeToSlot)
+                        local col = Color3.fromHSV(curH, curS2, curV)
+                        hsvPicker.BackgroundColor3 = Color3.fromHSV(curH, 1, 1)
+                        hueHandle.Position = UDim2.new(0, -1, curH, -6)
+                        hsvHandle.Position = UDim2.new(curS2, 0, 1 - curV, 0)
+                        if writeToSlot then
+                            gradientKeypoints[activeSlot].color = col
+                        end
+                        slot1Fill.BackgroundColor3 = gradientKeypoints[1].color
+                        slot1Lbl.Text = "#" .. gradientKeypoints[1].color:ToHex()
+                        slot1Lbl.TextColor3 = gradientKeypoints[1].color
+                        slot2Fill.BackgroundColor3 = gradientKeypoints[2].color
+                        slot2Lbl.Text = "#" .. gradientKeypoints[2].color:ToHex()
+                        slot2Lbl.TextColor3 = gradientKeypoints[2].color
+                        hexInput.Input.Text = "#" .. col:ToHex()
+                        refreshPreview()
+                    end
+                    local function switchSlot(idx)
+                        activeSlot = idx
+                        curH, curS2, curV = Color3.toHSV(gradientKeypoints[idx].color)
+                        updateSlotHighlight()
+                        applyHSV(false)
+                    end
+                    local slot1TouchBtn = s("TextButton", {
+                        Text = "", BackgroundTransparency = 1, ZIndex = 5,
+                        Size = UDim2.fromOffset(88, 24), Position = UDim2.fromOffset(20, 220),
+                        Parent = gC.Root,
+                    })
+                    local slot2TouchBtn = s("TextButton", {
+                        Text = "", BackgroundTransparency = 1, ZIndex = 5,
+                        Size = UDim2.fromOffset(88, 24), Position = UDim2.fromOffset(112, 220),
+                        Parent = gC.Root,
+                    })
+                    slot1TouchBtn.MouseButton1Click:Connect(function() switchSlot(1) end)
+                    slot2TouchBtn.MouseButton1Click:Connect(function() switchSlot(2) end)
+                    p.AddSignal(hexInput.Input.FocusLost, function(entered)
+                        if entered then
+                            local ok, col = pcall(Color3.fromHex, hexInput.Input.Text)
+                            if ok and typeof(col) == "Color3" then
+                                curH, curS2, curV = Color3.toHSV(col)
+                            end
+                        end
+                        applyHSV(true)
+                    end)
+                    p.AddSignal(hsvPicker.InputBegan, function(inp)
+                        if inp.UserInputType ~= Enum.UserInputType.MouseButton1 and inp.UserInputType ~= Enum.UserInputType.Touch then return end
+                        while h:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
+                            local ap = hsvPicker.AbsolutePosition
+                            local as2 = hsvPicker.AbsoluteSize
+                            curS2 = math.clamp((n.X - ap.X) / as2.X, 0, 1)
+                            curV = 1 - math.clamp((n.Y - ap.Y) / as2.Y, 0, 1)
+                            applyHSV(true)
+                            l:Wait()
+                        end
+                    end)
+                    p.AddSignal(hueBar.InputBegan, function(inp)
+                        if inp.UserInputType ~= Enum.UserInputType.MouseButton1 and inp.UserInputType ~= Enum.UserInputType.Touch then return end
+                        while h:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
+                            local ap = hueBar.AbsolutePosition
+                            local as2 = hueBar.AbsoluteSize
+                            curH = math.clamp((n.Y - ap.Y) / as2.Y, 0, 1)
+                            applyHSV(true)
+                            l:Wait()
+                        end
+                    end)
+                    updateSlotHighlight()
+                    applyHSV(false)
+                    gC:Button("Done", function()
+                        gz:SetValue(buildColorSequence())
+                    end)
+                    gC:Button("Cancel")
+                    gC:Open()
+                end
+                gA.Frame.MouseButton1Click:Connect(function() openGradientDialog() end)
+                y.Options[w] = gz
+                return gz
+            end
             local z = {
                 Value = x.Default,
                 Transparency = x.Transparency or 0,
@@ -7007,7 +8679,8 @@ local aa = {
         end
         return u
     end,
-    [22] = function() --[[ Dropdown_El ]]
+
+    [22] = function()
         local aa, ab, ac, ad, ae = b(22)
         local af, ag, ah, ai, aj =
             game:GetService "TweenService",
@@ -7016,6 +8689,7 @@ local aa = {
             game:GetService "Workspace".CurrentCamera,
             ab.Parent.Parent
         local c, d = ac(aj.Creator), ac(aj.Packages.Flipper)
+        local _acrylicMod = ac(aj.Acrylic)
         local e, f, g = c.New, aj.Components, {}
         local _RS_dd = game:GetService("RunService")
         local function _clearDropShine(state)
@@ -7176,6 +8850,8 @@ local aa = {
                 Size = UDim2.new(1, -10, 0, 24), Position = UDim2.fromOffset(5, 5),
                 PlaceholderText = "Search options...", ClearTextOnFocus = false, Text = "",
                 ThemeTag = {TextColor3 = "Text", BackgroundColor3 = "Input", PlaceholderColor3 = "SubText"},
+                -- ZIndex 2 agar di atas AcrylicPaint.Frame (ZIndex 1) dan backgroundImage (ZIndex 0)
+                ZIndex = 2,
             }) or nil
             if ddSearchBox then
                 e("UICorner", {CornerRadius = UDim.new(0, 4)}).Parent = ddSearchBox
@@ -7196,7 +8872,9 @@ local aa = {
                     ElasticBehavior = Enum.ElasticBehavior.Never,
                     BorderSizePixel = 0,
                     ClipsDescendants = true,
-                    CanvasSize = UDim2.fromScale(0, 0)
+                    CanvasSize = UDim2.fromScale(0, 0),
+                    -- ZIndex 2 agar di atas AcrylicPaint.Frame (ZIndex 1) dan backgroundImage (ZIndex 0)
+                    ZIndex = 2,
                 },
                 {s}
             )
@@ -7212,8 +8890,27 @@ local aa = {
             local _ddBgTransp= j.DropdownBackgroundTransparency
             if _ddBgTransp == nil then _ddBgTransp = 0.4 end
             local _ddBgChild
+            local _globalBgRaw = nil
+            pcall(function()
+                local _thm2 = e(h.Themes)[h.Library.Theme]
+                if _thm2 and _thm2.GlobalDropdownBackgroundImages and tostring(_thm2.GlobalDropdownBackgroundImages) ~= "" then
+                    _globalBgRaw = tostring(_thm2.GlobalDropdownBackgroundImages)
+                end
+            end)
+            if _globalBgRaw then _ddBgImgRaw = _globalBgRaw; _ddBgImg = _globalBgRaw end
             if _ddBgImg ~= "" then
-                _ddBgChild = e("ImageLabel",{BackgroundTransparency=1,Image=_ddBgImg,ScaleType=Enum.ScaleType.Stretch,Size=UDim2.fromScale(1,1),ImageTransparency=_ddBgTransp,ZIndex=0})
+                local _imgUrl = _ddBgImg
+                if _imgUrl:match("^https?://") then
+                    task.spawn(function()
+                        local lib = h.Library
+                        local resolved = lib and lib.MediaManager and lib.MediaManager:Image(_imgUrl)
+                        if resolved and resolved ~= "" and _ddBgChild and _ddBgChild.Parent then
+                            _ddBgChild.Image = resolved
+                        end
+                    end)
+                end
+                _ddBgChild = e("ImageLabel",{BackgroundTransparency=1,Image=_ddBgImg,ScaleType=Enum.ScaleType.Crop,Size=UDim2.fromScale(1,1),ImageTransparency=_ddBgTransp,ZIndex=0,ClipsDescendants=false})
+                e("UICorner",{CornerRadius=UDim.new(0,7)}).Parent = _ddBgChild
             else
                 local _themeBgVal, _themeBgTransp
                 pcall(function()
@@ -7224,7 +8921,18 @@ local aa = {
                     end
                 end)
                 if ((j.OutsideWindow or j.DropdownOutsideWindow) == true) and _themeBgVal then
+                    local _bgUrlResolved = _themeBgVal
+                    if _bgUrlResolved:match("^https?://") then
+                        task.spawn(function()
+                            local lib = h.Library
+                            local resolved = lib and lib.MediaManager and lib.MediaManager:Image(_bgUrlResolved)
+                            if resolved and resolved ~= "" and _ddBgChild and _ddBgChild.Parent then
+                                _ddBgChild.Image = resolved
+                            end
+                        end)
+                    end
                     _ddBgChild = e("ImageLabel",{BackgroundTransparency=1,Image=_themeBgVal,ScaleType=Enum.ScaleType.Crop,Size=UDim2.fromScale(1,1),ImageTransparency=_themeBgTransp,ZIndex=0})
+                    e("UICorner",{CornerRadius=UDim.new(0,7)}).Parent = _ddBgChild
                 else
                     _ddBgChild = e("ImageLabel",{BackgroundTransparency=1,Image="http://www.roblox.com/asset/?id=5554236805",ScaleType=Enum.ScaleType.Slice,SliceCenter=Rect.new(23,23,277,277),Size=UDim2.fromScale(1,1)+UDim2.fromOffset(30,30),Position=UDim2.fromOffset(-15,-15),ImageColor3=Color3.fromRGB(0,0,0),ImageTransparency=0.1,Visible=false})
                 end
@@ -7235,7 +8943,8 @@ local aa = {
                 BackgroundColor3 = Color3.fromRGB(255, 255, 255),
                 BackgroundTransparency = 0.4,
                 Size = UDim2.fromScale(1, 1),
-                ZIndex = 0,
+                -- ZIndex 1: lebih tinggi dari backgroundImage (ZIndex 0) seperti di window
+                ZIndex = 1,
                 Visible = false,
             }, {
                 e("UICorner", {CornerRadius = UDim.new(0, 7)}),
@@ -7247,7 +8956,7 @@ local aa = {
                 _ddBgChild
             }
             if ddSearchBox then table.insert(uChildren, 1, ddSearchBox) end
-            local u = e("Frame", {Size = UDim2.fromScale(1, 0.6), ThemeTag = {BackgroundColor3 = "DropdownHolder"}}, uChildren)
+            local u = e("Frame", {Size = UDim2.fromScale(1, 0.6), ClipsDescendants = true, ThemeTag = {BackgroundColor3 = "DropdownHolder"}}, uChildren)
             local _isManagerDD = j.IsManagerDropdown == true or j.ThemedDropdown == true
             if _isManagerDD then
                 local function _syncManagerTransparency()
@@ -7268,6 +8977,32 @@ local aa = {
                 ddGradient.Visible = true
                 local acrylicBorder = c.GetThemeProperty("AcrylicBorder")
                 if acrylicBorder then ddStroke.Color = acrylicBorder end
+            end
+            local _ddAcrylicPaint = nil
+            local function _isDDAcrylicActive()
+                local lib = h.Library
+                if not lib or not lib.UseAcrylic then return false end
+                local im = lib.InterfaceManager
+                if im and im.Settings and im.Settings.Acrylic == false then return false end
+                return true
+            end
+            -- UseAcrylic / UseArcylic adalah property per-dropdown (tidak inherit dari Library).
+            -- Aktifkan acrylic hanya jika dropdown sendiri yang minta via salah satu key ini.
+            local _ddWantsAcrylic = (j.UseAcrylic == true or j.UseArcylic == true)
+            if _ddWantsAcrylic and _isDDAcrylicActive() and not j.ThemedDropdown and not j.IsManagerDropdown then
+                local ok2, paint2 = pcall(function() return _acrylicMod.AcrylicPaint() end)
+                if ok2 and paint2 then
+                    _ddAcrylicPaint = paint2
+                    paint2.Frame.Size = UDim2.fromScale(1, 1)
+                    -- Acrylic frame harus di atas backgroundImage (ZIndex=0),
+                    -- tapi di bawah konten scroll/search (ZIndex default)
+                    paint2.Frame.ZIndex = 1
+                    paint2.Frame.Parent = u
+                    u.BackgroundTransparency = 1
+                    u.ClipsDescendants = false
+                    ddGradient.Visible = false
+                    if paint2.SetVisibility then paint2.SetVisibility(false) end
+                end
             end
             local v =
                 e(
@@ -7444,6 +9179,9 @@ local aa = {
                 v.Visible = true
                 _openDropdowns[l] = true
                 l._refreshShine()
+                if _ddAcrylicPaint and _ddAcrylicPaint.SetVisibility then
+                    _ddAcrylicPaint.SetVisibility(_isDDAcrylicActive())
+                end
                 af:Create(
                     u,
                     TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
@@ -7461,6 +9199,9 @@ local aa = {
                 u.Size = UDim2.fromScale(1, 0.6)
                 _openDropdowns[l] = nil
                 v.Visible = false
+                if _ddAcrylicPaint and _ddAcrylicPaint.SetVisibility then
+                    _ddAcrylicPaint.SetVisibility(false)
+                end
                 _clearDropShine(l)
                 af:Create(
                     o,
@@ -7496,7 +9237,7 @@ local aa = {
                     return l.Value and 1 or 0
                 end
             end
-            
+
 
             local filterTimer = nil
             local function updateDropdownFilter()
@@ -7523,7 +9264,7 @@ local aa = {
                     end)
                 end)
             end
-            
+
             function l.BuildDropdownList(B)
                 local C, D = l.Values, {}
                 l.Buttons = {}
@@ -7809,7 +9550,7 @@ local aa = {
         end
         return g
     end,
-    [23] = function() --[[ Input_El ]]
+    [23] = function()
         local aa, ab, ac, ad, ae = b(23)
         local af = ab.Parent.Parent
         local ag = ac(af.Creator)
@@ -7894,7 +9635,7 @@ local aa = {
         end
         return c
     end,
-    [24] = function() --[[ Keybind_El ]]
+    [24] = function()
         local aa, ab, ac, ad, ae = b(24)
         local af, ag = game:GetService "UserInputService", ab.Parent.Parent
         local ah = ac(ag.Creator)
@@ -8128,7 +9869,7 @@ local aa = {
         end
         return c
     end,
-    [25] = function() --[[ Paragraph_El ]]
+    [25] = function()
         local aa, ab, ac, ad, ae = b(25)
         local af = ab.Parent.Parent
         local ag, ah, ai, aj = af.Components, ac(af.Packages.Flipper), ac(af.Creator), {}
@@ -8145,13 +9886,27 @@ local aa = {
         end
         return aj
     end,
-    [26] = function() --[[ Slider_El ]]
+    [26] = function()
         local aa, ab, ac, ad, ae = b(26)
         local af, ag = game:GetService "UserInputService", ab.Parent.Parent
         local ah = ac(ag.Creator)
         local ai, aj, c = ah.New, ag.Components, {}
         c.__index = c
         c.__type = "Slider"
+
+        local function applySliderIcon(imgLabel, iconKey, lib)
+            if not iconKey or not lib or not lib.GetIcon then return end
+            local ic = lib:GetIcon(iconKey)
+            if not ic then return end
+            if type(ic) == "table" then
+                imgLabel.Image = ic.Image or ""
+                imgLabel.ImageRectOffset = ic.ImageRectOffset or Vector2.new(0, 0)
+                imgLabel.ImageRectSize = ic.ImageRectSize or Vector2.new(0, 0)
+            else
+                imgLabel.Image = tostring(ic)
+            end
+        end
+
         function c.New(d, e, f)
             local g = d.Library
             assert(f.Title, "Slider - Missing Title.")
@@ -8159,14 +9914,22 @@ local aa = {
             assert(f.Min ~= nil, "Slider - Missing minimum value.")
             assert(f.Max ~= nil, "Slider - Missing maximum value.")
             assert(f.Rounding ~= nil, "Slider - Missing rounding value.")
+
+            local leftIconKey  = type(f.LeftIcons)  == "string" and f.LeftIcons  or nil
+            local rightIconKey = type(f.RightIcons) == "string" and f.RightIcons or nil
+            local iconSize = 16
+            -- LeftIcon sekarang berada di KIRI rail (antara value label dan rail),
+            -- sehingga layout: [Value] [LeftIcon] [-----rail-----] [RightIcon]
+            local leftW  = leftIconKey  and (iconSize + 4) or 0
+            local rightW = rightIconKey and (iconSize + 6) or 0
+
             local h, i, j =
                 {
                     Value = nil,
                     Min = f.Min,
                     Max = f.Max,
                     Rounding = f.Rounding,
-                    Callback = f.Callback or function(h)
-                        end,
+                    Callback = f.Callback or function(h) end,
                     Type = "Slider"
                 },
                 false,
@@ -8175,6 +9938,12 @@ local aa = {
             h.SetTitle = j.SetTitle
             h.SetDesc = j.SetDesc
             h.Frame = j.Frame
+
+            local totalSideW = leftW + rightW
+            local railRightOffset = -(10 + rightW)
+            local railSize = UDim2.new(1, -(20 + totalSideW), 0, 6)
+            local railPos  = UDim2.new(1, railRightOffset - leftW, 0.5, 0)
+
             local k =
                 ai(
                 "ImageLabel",
@@ -8185,22 +9954,23 @@ local aa = {
                     Image = "http://www.roblox.com/asset/?id=12266946128",
                     ThemeTag = {ImageColor3 = "Accent"},
                     ZIndex = 3,
-                },
-                {
-
                 }
             )
-            local l, m, n =
+            local trackFrame =
                 ai(
                     "Frame",
                     {BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 0), Size = UDim2.new(1, -20, 1, 0)},
                     {k}
-                ),
+                )
+            local fillFrame =
                 ai(
                     "Frame",
                     {Size = UDim2.new(0, 0, 1, 0), ThemeTag = {BackgroundColor3 = "Accent"}},
                     {ai("UICorner", {CornerRadius = UDim.new(1, 0)})}
-                ),
+                )
+
+            local valLabelOffsetX = leftIconKey and -(4 + leftW) or -4
+            local valueLabel =
                 ai(
                     "TextLabel",
                     {
@@ -8212,18 +9982,19 @@ local aa = {
                         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
                         BackgroundTransparency = 1,
                         Size = UDim2.new(0, 100, 0, 14),
-                        Position = UDim2.new(0, -4, 0.5, 0),
+                        Position = UDim2.new(0, valLabelOffsetX, 0.5, 0),
                         AnchorPoint = Vector2.new(1, 0.5),
                         ThemeTag = {TextColor3 = "SubText"}
                     }
                 )
-            local o =
+
+            local railContainer =
                 ai(
                 "Frame",
                 {
-                    Size = UDim2.new(1, 0, 0, 6),
+                    Size = railSize,
                     AnchorPoint = Vector2.new(1, 0.5),
-                    Position = UDim2.new(1, -10, 0.5, 0),
+                    Position = railPos,
                     BackgroundTransparency = 0.4,
                     Parent = j.Frame,
                     ThemeTag = {BackgroundColor3 = "SliderRail"}
@@ -8231,11 +10002,183 @@ local aa = {
                 {
                     ai("UICorner", {CornerRadius = UDim.new(1, 0)}),
                     ai("UISizeConstraint", {MaxSize = Vector2.new(150, math.huge)}),
-                    n,
-                    m,
-                    l
+                    valueLabel,
+                    fillFrame,
+                    trackFrame,
                 }
             )
+
+            local stackedRailRow = nil
+            local stackedFill = nil
+            local stackedKnob = nil
+            local stackedTrack = nil
+            local stackedValLabel = nil
+            local isStacked = false
+
+            local function setupStackedRailRow()
+                if stackedRailRow then return end
+
+                local leftW2  = leftIconKey  and 18 or 0
+                local rightW2 = rightIconKey and 18 or 0
+                local valW2   = 36
+                local pad2    = 4
+                local railX2  = valW2 + pad2 + (leftW2 > 0 and leftW2 + pad2 or 0)
+                local railOffR2 = rightW2 > 0 and (rightW2 + pad2) or 0
+
+                stackedRailRow = ai("Frame", {
+                    Size = UDim2.new(1, 0, 0, 24),
+                    BackgroundTransparency = 1,
+                    LayoutOrder = 5,
+                    Parent = j.LabelHolder,
+                })
+
+                stackedValLabel = ai("TextLabel", {
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
+                    Text = valueLabel.Text,
+                    TextSize = 12,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    BackgroundTransparency = 1,
+                    Size = UDim2.fromOffset(valW2, 18),
+                    Position = UDim2.new(0, 0, 0.5, 0),
+                    AnchorPoint = Vector2.new(0, 0.5),
+                    ThemeTag = {TextColor3 = "SubText"},
+                    Parent = stackedRailRow,
+                })
+
+                if leftIconKey then
+                    local sLIco = ai("ImageLabel", {
+                        Size = UDim2.fromOffset(14, 14),
+                        Position = UDim2.new(0, valW2 + pad2, 0.5, 0),
+                        AnchorPoint = Vector2.new(0, 0.5),
+                        BackgroundTransparency = 1,
+                        ThemeTag = {ImageColor3 = "SubText"},
+                        Parent = stackedRailRow,
+                    })
+                    task.defer(function() applySliderIcon(sLIco, leftIconKey, g) end)
+                end
+
+                local sRailContainer = ai("Frame", {
+                    Size = UDim2.new(1, -(railX2 + railOffR2), 0, 6),
+                    Position = UDim2.new(0, railX2, 0.5, 0),
+                    AnchorPoint = Vector2.new(0, 0.5),
+                    BackgroundTransparency = 0.4,
+                    ThemeTag = {BackgroundColor3 = "SliderRail"},
+                    Parent = stackedRailRow,
+                }, {
+                    ai("UICorner", {CornerRadius = UDim.new(1, 0)}),
+                })
+
+                stackedFill = ai("Frame", {
+                    Size = UDim2.new(0, 0, 1, 0),
+                    ThemeTag = {BackgroundColor3 = "Accent"},
+                    Parent = sRailContainer,
+                }, {
+                    ai("UICorner", {CornerRadius = UDim.new(1, 0)}),
+                })
+
+                stackedTrack = ai("TextButton", {
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 0, 28),
+                    Position = UDim2.new(0, 0, 0.5, 0),
+                    AnchorPoint = Vector2.new(0, 0.5),
+                    Text = "",
+                    ZIndex = 4,
+                    Parent = sRailContainer,
+                })
+
+                stackedKnob = ai("ImageLabel", {
+                    AnchorPoint = Vector2.new(0.5, 0.5),
+                    Position = UDim2.new(0, 0, 0.5, 0),
+                    Size = UDim2.fromOffset(18, 18),
+                    Image = "http://www.roblox.com/asset/?id=12266946128",
+                    ThemeTag = {ImageColor3 = "Accent"},
+                    ZIndex = 5,
+                    Parent = stackedTrack,
+                })
+
+                if rightIconKey then
+                    local sRIco = ai("ImageLabel", {
+                        Size = UDim2.fromOffset(14, 14),
+                        Position = UDim2.new(1, rightW2 > 0 and pad2 or 0, 0.5, 0),
+                        AnchorPoint = Vector2.new(0, 0.5),
+                        BackgroundTransparency = 1,
+                        ThemeTag = {ImageColor3 = "SubText"},
+                        Parent = stackedRailRow,
+                    })
+                    task.defer(function() applySliderIcon(sRIco, rightIconKey, g) end)
+                end
+
+                local sDragging = false
+                stackedTrack.InputBegan:Connect(function(p2)
+                    if p2.UserInputType == Enum.UserInputType.MouseButton1 or p2.UserInputType == Enum.UserInputType.Touch then
+                        sDragging = true
+                        local pct = math.clamp((p2.Position.X - stackedTrack.AbsolutePosition.X) / stackedTrack.AbsoluteSize.X, 0, 1)
+                        h:SetValue(h.Min + ((h.Max - h.Min) * pct))
+                    end
+                end)
+                stackedTrack.InputEnded:Connect(function(p2)
+                    if p2.UserInputType == Enum.UserInputType.MouseButton1 or p2.UserInputType == Enum.UserInputType.Touch then
+                        sDragging = false
+                    end
+                end)
+                ah.AddSignal(af.InputChanged, function(p2)
+                    if sDragging and (p2.UserInputType == Enum.UserInputType.MouseMovement or p2.UserInputType == Enum.UserInputType.Touch) then
+                        local pct = math.clamp((p2.Position.X - stackedTrack.AbsolutePosition.X) / stackedTrack.AbsoluteSize.X, 0, 1)
+                        h:SetValue(h.Min + ((h.Max - h.Min) * pct))
+                    end
+                end)
+
+                stackedRailRow.Visible = false
+            end
+
+            local stackThreshold = 280
+            local function updateSliderLayout()
+                local w = j.LabelHolder.AbsoluteSize.X
+                if w <= 0 then
+                    task.defer(updateSliderLayout)
+                    return
+                end
+                local shouldStack = w < stackThreshold
+                if shouldStack == isStacked then return end
+                isStacked = shouldStack
+                if shouldStack then
+                    setupStackedRailRow()
+                    railContainer.Visible = false
+                    stackedRailRow.Visible = true
+                    h:SetValue(h.Value or f.Default)
+                else
+                    railContainer.Visible = true
+                    if stackedRailRow then stackedRailRow.Visible = false end
+                end
+            end
+
+            ah.AddSignal(j.LabelHolder:GetPropertyChangedSignal("AbsoluteSize"), updateSliderLayout)
+            task.defer(updateSliderLayout)
+
+            if leftIconKey then
+                local leftIco = ai("ImageLabel", {
+                    Size = UDim2.fromOffset(iconSize, iconSize),
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    Position = UDim2.new(0, -(2), 0.5, 0),
+                    BackgroundTransparency = 1,
+                    ThemeTag = {ImageColor3 = "SubText"},
+                    Parent = railContainer,
+                })
+                task.defer(function() applySliderIcon(leftIco, leftIconKey, g) end)
+            end
+
+            if rightIconKey then
+                local rightIco = ai("ImageLabel", {
+                    Size = UDim2.fromOffset(iconSize, iconSize),
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    Position = UDim2.new(1, -10, 0.5, 0),
+                    BackgroundTransparency = 1,
+                    ThemeTag = {ImageColor3 = "SubText"},
+                    Parent = j.Frame,
+                })
+                task.defer(function() applySliderIcon(rightIco, rightIconKey, g) end)
+            end
+
             ah.AddSignal(
                 k.InputBegan,
                 function(p)
@@ -8260,7 +10203,7 @@ local aa = {
                             (p.UserInputType == Enum.UserInputType.MouseMovement or
                                 p.UserInputType == Enum.UserInputType.Touch)
                      then
-                        local s = math.clamp((p.Position.X - l.AbsolutePosition.X) / l.AbsoluteSize.X, 0, 1)
+                        local s = math.clamp((p.Position.X - trackFrame.AbsolutePosition.X) / trackFrame.AbsoluteSize.X, 0, 1)
                         h:SetValue(h.Min + ((h.Max - h.Min) * s))
                     end
                 end
@@ -8272,10 +10215,20 @@ local aa = {
             function h.SetValue(p, s)
                 p.Value = g:Round(math.clamp(s, h.Min, h.Max), h.Rounding)
                 k.Position = UDim2.new((p.Value - h.Min) / (h.Max - h.Min), -10, 0.5, 0)
-                m.Size = UDim2.fromScale((p.Value - h.Min) / (h.Max - h.Min), 1)
-                n.Text = tostring(p.Value)
+                fillFrame.Size = UDim2.fromScale((p.Value - h.Min) / (h.Max - h.Min), 1)
+                valueLabel.Text = tostring(p.Value)
                 g:SafeCallback(h.Callback, p.Value)
                 g:SafeCallback(h.Changed, p.Value)
+                if stackedValLabel then
+                    stackedValLabel.Text = tostring(p.Value)
+                end
+                local pct = (h.Max ~= h.Min) and ((p.Value - h.Min) / (h.Max - h.Min)) or 0
+                if stackedKnob then
+                    stackedKnob.Position = UDim2.new(pct, 0, 0.5, 0)
+                end
+                if stackedFill then
+                    stackedFill.Size = UDim2.fromScale(pct, 1)
+                end
             end
             function h.Destroy(p)
                 j:Destroy()
@@ -8287,7 +10240,7 @@ local aa = {
         end
         return c
     end,
-    [27] = function() --[[ Toggle_El ]]
+    [27] = function()
         local aa, ab, ac, ad, ae = b(27)
         local af, ag = game:GetService "TweenService", ab.Parent.Parent
         local ah = ac(ag.Creator)
@@ -8374,7 +10327,7 @@ local aa = {
         end
         return c
     end,
-    [59] = function() --[[ Image_El ]]
+    [59] = function()
         local aa, ab, ac, ad, ae = b(59)
         local af = ab.Parent.Parent
         local c = {}
@@ -8436,7 +10389,7 @@ local aa = {
         end
         return c
     end,
-    [60] = function() --[[ Video_El ]]
+    [60] = function()
         local aa, ab, ac, ad, ae = b(60)
         local af = ab.Parent.Parent
         local c = {}
@@ -8507,12 +10460,39 @@ local aa = {
                 elseif isCustomUrl then
                     task.spawn(function()
                         local lib = d.Library
-                        local custom = lib and lib.MediaManager and lib.MediaManager:Video(src)
-                        if custom and custom ~= "" and vid.Parent then
+                        local custom
+                        for attempt = 1, 4 do
+                            local ok, res = pcall(function()
+                                return lib and lib.MediaManager and lib.MediaManager:Video(src)
+                            end)
+                            custom = ok and res or nil
+                            if custom and custom ~= "" then break end
+                            if attempt < 4 then task.wait(2) end
+                        end
+                        if custom and custom ~= "" and vid and vid.Parent then
                             vid.Video = custom
+                            vid:SetAttribute("_pendingAutoPlay", auto)
                         end
                     end)
                 end
+                local _loopProtectConn; _loopProtectConn = game:GetService("RunService").Heartbeat:Connect(function()
+                    if not vid or not vid.Parent then
+                        pcall(function() _loopProtectConn:Disconnect() end)
+                        return
+                    end
+                    local tl = vid.TimeLength
+                    if looped and tl and tl > 0.1 then
+                        local pos = 0; pcall(function() pos = vid.TimePosition end)
+                        if pos >= tl - 0.12 and playing then
+                            pcall(function() vid.TimePosition = 0 end)
+                            task.delay(0.05, function()
+                                if vid and vid.Parent and playing then
+                                    pcall(function() vid:Play() end)
+                                end
+                            end)
+                        end
+                    end
+                end)
                 vid.Parent=wrap
             end
             local placeholder = u("Frame",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Visible=not hasVideo,ZIndex=2,Parent=wrap})
@@ -8620,12 +10600,28 @@ local aa = {
                 end
                 timeCur.Text=fmtT(pos); timeDur.Text=fmtT(dur)
             end)
-            if auto and syncResolved~="" then
-                task.spawn(function()
-                    task.wait(0.08)
-                    if vid and vid.Parent then pcall(function() vid:Play() end); playing=true end
-                end)
-            end
+
+            task.spawn(function()
+                local timeout = 0
+                repeat
+                    task.wait(0.1); timeout = timeout + 0.1
+
+                    if vid and vid:GetAttribute("_pendingAutoPlay") ~= nil then
+                        local shouldPlay = vid:GetAttribute("_pendingAutoPlay")
+                        vid:SetAttribute("_pendingAutoPlay", nil)
+                        if not shouldPlay then return end
+
+                    end
+                until (vid and vid.TimeLength and vid.TimeLength > 0) or timeout > 15
+                if vid and vid.Parent and vid.TimeLength and vid.TimeLength > 0 then
+                    if auto or (vid.Video ~= "" and vid:GetAttribute("BFAutoPlay")) then
+                        pcall(function() vid:Play() end)
+                        playing = true
+                        playBtn.Visible = false
+                        pauseBtn.Visible = true
+                    end
+                end
+            end)
             local mod={Frame=wrap,Type="Video",VideoFrame=vid}
             function mod:Play()  if vid then pcall(function() vid:Play()  end); playing=true;  playBtn.Visible=false; pauseBtn.Visible=true  end end
             function mod:Pause() if vid then pcall(function() vid:Pause() end); playing=false; playBtn.Visible=true;  pauseBtn.Visible=false end end
@@ -8645,13 +10641,15 @@ local aa = {
                 _recalcAspect2()
             end
             function mod:Destroy()
-                pcall(function() hbConn:Disconnect() end); wrap:Destroy()
+                pcall(function() hbConn:Disconnect() end)
+                pcall(function() if _loopProtectConn then _loopProtectConn:Disconnect() end end)
+                wrap:Destroy()
             end
             return mod
         end
         return c
     end,
-    [61] = function() --[[ Code_El ]]
+    [61] = function()
         local aa, ab, ac, ad, ae = b(61)
         local af = ab.Parent.Parent
         local c = {}
@@ -8700,7 +10698,7 @@ local aa = {
         end
         return c
     end,
-    [62] = function() --[[ Group_El ]]
+    [62] = function()
         local aa, ab, ac, ad, ae = b(62)
         local af = ab.Parent.Parent
         local c = {}
@@ -8731,6 +10729,7 @@ local aa = {
                     Container    = el,
                     Type         = sec and sec.Type or nil,
                     ScrollFrame  = sec and sec.ScrollFrame or nil,
+                    Library      = sec and sec.Library or nil,
                     _elementCount = 0,
                 }, getmetatable(sec))
                 table.insert(mod.Elements, {Frame=el, ColObj=colObj})
@@ -8741,7 +10740,7 @@ local aa = {
         end
         return c
     end,
-    [63] = function() --[[ Space_El ]]
+    [63] = function()
         local aa, ab, ac, ad, ae = b(63)
         local af = ab.Parent.Parent
         local c = {}
@@ -8760,7 +10759,7 @@ local aa = {
         end
         return c
     end,
-    [64] = function() --[[ Divider_El ]]
+    [64] = function()
         local aa, ab, ac, ad, ae = b(64)
         local af = ab.Parent.Parent
         local c = {}
@@ -8769,15 +10768,30 @@ local aa = {
         function c.New(d, e, f)
             local parent = d.Container
             if not parent then return end
-            local u   = ac(af.Creator).New
-            local dv = u("Frame",{Size=UDim2.new(1,-10,0,1),BackgroundTransparency=0.5,BorderSizePixel=0,Parent=parent,ThemeTag={BackgroundColor3="TitleBarLine"}})
-            local mod = {Frame=dv, Type="Divider"}
-            function mod:Destroy() dv:Destroy() end
+            local u = ac(af.Creator).New
+            local wrapper = u("Frame", {
+                Size = UDim2.new(1, 0, 0, 12),
+                BackgroundTransparency = 1,
+                BorderSizePixel = 0,
+                Parent = parent,
+            })
+            local line = u("Frame", {
+                Size = UDim2.new(1, -20, 0, 2),
+                Position = UDim2.new(0, 10, 0.5, 0),
+                AnchorPoint = Vector2.new(0, 0.5),
+                BackgroundTransparency = 0.55,
+                BorderSizePixel = 0,
+                Parent = wrapper,
+                ThemeTag = { BackgroundColor3 = "Accent" },
+            })
+            u("UICorner", { CornerRadius = UDim.new(1, 0), Parent = line })
+            local mod = { Frame = wrapper, Type = "Divider" }
+            function mod:Destroy() wrapper:Destroy() end
             return mod
         end
         return c
     end,
-    [65] = function() --[[ Audio_El ]]
+    [65] = function()
         local aa, ab, ac, ad, ae = b(65)
         local af = ab.Parent.Parent
         local c = {}
@@ -9197,7 +11211,7 @@ local aa = {
         return c
     end,
 
-    [30] = function() --[[ Amethyst_Theme ]]
+    [30] = function()
         local aa, ab, ac, ad, ae = b(30)
         local af = {
             SingleMotor = ac(ab.SingleMotor),
@@ -9209,7 +11223,7 @@ local aa = {
         }
         return af
     end,
-    [31] = function() --[[ BaseMotor ]]
+    [31] = function()
         local aa, ab, ac, ad, ae = b(31)
         local af, ag, ah, ai = game:GetService "RunService", ac(ab.Parent.Signal), function()
             end, {}
@@ -9251,7 +11265,7 @@ local aa = {
         end
         return ai
     end,
-    [32] = function() --[[ Module32 ]]
+    [32] = function()
         local aa, ab, ac, ad, ae = b(32)
         return function()
             local af, ag = game:GetService "RunService", ac(ab.Parent.BaseMotor)
@@ -9292,7 +11306,7 @@ local aa = {
             )
         end
     end,
-    [33] = function() --[[ GroupMotor ]]
+    [33] = function()
         local aa, ab, ac, ad, ae = b(33)
         local af, ag, ah = ac(ab.Parent.BaseMotor), ac(ab.Parent.SingleMotor), ac(ab.Parent.isMotor)
         local ai = setmetatable({}, af)
@@ -9377,7 +11391,7 @@ local aa = {
         end
         return ai
     end,
-    [34] = function() --[[ Module34 ]]
+    [34] = function()
         local aa, ab, ac, ad, ae = b(34)
         return function()
             local af, ag, ah = ac(ab.Parent.GroupMotor), ac(ab.Parent.Instant), ac(ab.Parent.Spring)
@@ -9446,7 +11460,7 @@ local aa = {
             )
         end
     end,
-    [35] = function() --[[ Instant ]]
+    [35] = function()
         local aa, ab, ac, ad, ae = b(35)
         local af = {}
         af.__index = af
@@ -9458,7 +11472,7 @@ local aa = {
         end
         return af
     end,
-    [36] = function() --[[ Module36 ]]
+    [36] = function()
         local aa, ab, ac, ad, ae = b(36)
         return function()
             local af = ac(ab.Parent.Instant)
@@ -9473,7 +11487,7 @@ local aa = {
             )
         end
     end,
-    [37] = function() --[[ Linear ]]
+    [37] = function()
         local aa, ab, ac, ad, ae = b(37)
         local af = {}
         af.__index = af
@@ -9495,7 +11509,7 @@ local aa = {
         end
         return af
     end,
-    [38] = function() --[[ Module38 ]]
+    [38] = function()
         local aa, ab, ac, ad, ae = b(38)
         return function()
             local af, ag = ac(ab.Parent.SingleMotor), ac(ab.Parent.Linear)
@@ -9561,7 +11575,7 @@ local aa = {
             )
         end
     end,
-    [39] = function() --[[ Signal ]]
+    [39] = function()
         local aa, ab, ac, ad, ae = b(39)
         local af = {}
         af.__index = af
@@ -9604,7 +11618,7 @@ local aa = {
         end
         return ag
     end,
-    [40] = function() --[[ Module40 ]]
+    [40] = function()
         local aa, ab, ac, ad, ae = b(40)
         return function()
             local af = ac(ab.Parent.Signal)
@@ -9658,7 +11672,7 @@ local aa = {
             )
         end
     end,
-    [41] = function() --[[ SingleMotor ]]
+    [41] = function()
         local aa, ab, ac, ad, ae = b(41)
         local af = ac(ab.Parent.BaseMotor)
         local ag = setmetatable({}, af)
@@ -9707,7 +11721,7 @@ local aa = {
         end
         return ag
     end,
-    [42] = function() --[[ Module42 ]]
+    [42] = function()
         local aa, ab, ac, ad, ae = b(42)
         return function()
             local af, ag = ac(ab.Parent.SingleMotor), ac(ab.Parent.Instant)
@@ -9752,7 +11766,7 @@ local aa = {
             )
         end
     end,
-    [43] = function() --[[ Spring ]]
+    [43] = function()
         local aa, ab, ac, ad, ae = b(43)
         local af, ag, ah, aj = 0.001, 0.001, 0.0001, {}
         aj.__index = aj
@@ -9802,7 +11816,7 @@ local aa = {
         end
         return aj
     end,
-    [44] = function() --[[ Module44 ]]
+    [44] = function()
         local aa, ab, ac, ad, ae = b(44)
         return function()
             local af, ag = ac(ab.Parent.SingleMotor), ac(ab.Parent.Spring)
@@ -9841,7 +11855,7 @@ local aa = {
             )
         end
     end,
-    [45] = function() --[[ isMotor ]]
+    [45] = function()
         local aa, ab, ac, ad, ae = b(45)
         local af = function(af)
             local ag = tostring(af):match "^Motor%((.+)%)$"
@@ -9853,7 +11867,7 @@ local aa = {
         end
         return af
     end,
-    [46] = function() --[[ Module46 ]]
+    [46] = function()
         local aa, ab, ac, ad, ae = b(46)
         return function()
             local af, ag, ah = ac(ab.Parent.isMotor), ac(ab.Parent.SingleMotor), ac(ab.Parent.GroupMotor)
@@ -9882,11 +11896,11 @@ local aa = {
             )
         end
     end,
-    [47] = function() --[[ isMotor_spec ]]
+    [47] = function()
         local aa, ab, ac, ad, ae = b(47)
         local af = {
             Names = {
-                "AMOLED", "Ash Gray", "Blood Red", "Cyanic", "Amber Glow", "Deep Violet", "Neon Cyber", "Neon Purple", "Royal Blue", "Deep Ocean", "Rose", "Orange", "Charcoal", "Pearl White", "Midnight Blue", "Galaxy Purple", "Cosmic Violet", "Cotton Candy", "Arctic Frost", "Bloomings", "Crimson", "Gold"
+                "Dark", "Blood Red", "Cyanic", "Amber Glow", "Deep Violet", "Neon Cyber", "Neon Purple", "Royal Blue", "Deep Ocean", "Rose", "Charcoal", "Pearl White", "Midnight Blue", "Cotton Candy", "Arctic Frost", "Bloomings", "Crimson", "Gold", "Lavender Pink"
             }
         }
         for ag, ah in next, ab:GetChildren() do
@@ -9902,7 +11916,7 @@ local aa = {
 
         return af
     end,
-    [48] = function() --[[ Amethyst ]]
+    [48] = function()
         b(48)
         return {
             Name = "Deep Violet",
@@ -9941,8 +11955,9 @@ local aa = {
             DialogBorder = Color3.fromRGB(85, 70, 100),
             DialogInput = Color3.fromRGB(70, 55, 85),
             DialogInputLine = Color3.fromRGB(175, 160, 190),
-            Text = Color3.fromRGB(240, 240, 240),
-            SubText = Color3.fromRGB(170, 170, 170),
+            Text = Color3.fromRGB(255, 250, 255),
+            SubText = Color3.fromRGB(215, 195, 250),
+            IconColor = Color3.fromRGB(215, 195, 250),
             Hover = Color3.fromRGB(140, 120, 160),
             HoverChange = 0.04,
             ShineEnabled = true,
@@ -9978,14 +11993,14 @@ local aa = {
             BackgroundTransparency = 0.15,
         }
     end,
-    [49] = function() --[[ Dark ]]
+    [49] = function()
         b(49)
         return {
-            Name = "Ash Gray",
+            Name = "Dark",
             Accent = Color3.fromRGB(150, 150, 150),
             AcrylicMain = Color3.fromRGB(60, 60, 60),
             AcrylicBorder = Color3.fromRGB(90, 90, 90),
-            AcrylicGradient = ColorSequence.new(Color3.fromRGB(75, 75, 75), Color3.fromRGB(35, 35, 35)),
+            AcrylicGradient = ColorSequence.new(Color3.fromRGB(40, 40, 40), Color3.fromRGB(40, 40, 40)),
             AcrylicNoise = 0.9,
             TitleBarLine = Color3.fromRGB(75, 75, 75),
             Tab = Color3.fromRGB(120, 120, 120),
@@ -10017,8 +12032,9 @@ local aa = {
             DialogBorder = Color3.fromRGB(70, 70, 70),
             DialogInput = Color3.fromRGB(55, 55, 55),
             DialogInputLine = Color3.fromRGB(160, 160, 160),
-            Text = Color3.fromRGB(240, 240, 240),
-            SubText = Color3.fromRGB(170, 170, 170),
+            Text = Color3.fromRGB(255, 255, 255),
+            SubText = Color3.fromRGB(185, 185, 185),
+            IconColor = Color3.fromRGB(185, 185, 185),
             Hover = Color3.fromRGB(120, 120, 120),
             HoverChange = 0.07,
             ShineEnabled = true,
@@ -10063,7 +12079,7 @@ local aa = {
             InfoNotifyColor = Color3.fromRGB(76, 194, 255),
         }
     end,
-    [50] = function() --[[ Darker ]]
+    [50] = function()
         b(50)
         return {
             Name = "Charcoal",
@@ -10102,8 +12118,9 @@ local aa = {
             DialogBorder = Color3.fromRGB(60, 60, 60),
             DialogInput = Color3.fromRGB(30, 30, 30),
             DialogInputLine = Color3.fromRGB(120, 180, 255),
-            Text = Color3.fromRGB(240, 240, 240),
-            SubText = Color3.fromRGB(170, 170, 170),
+            Text = Color3.fromRGB(255, 255, 255),
+            SubText = Color3.fromRGB(185, 205, 225),
+            IconColor = Color3.fromRGB(185, 205, 225),
             Hover = Color3.fromRGB(90, 160, 255),
             HoverChange = 0.05,
             ShineEnabled = true,
@@ -10137,7 +12154,7 @@ local aa = {
             },
         }
     end,
-    [51] = function() --[[ Light ]]
+    [51] = function()
         b(51)
         return {
             Name = "Pearl White",
@@ -10178,6 +12195,7 @@ local aa = {
             DialogInputLine = Color3.fromRGB(60, 160, 255),
             Text = Color3.fromRGB(20, 20, 20),
             SubText = Color3.fromRGB(90, 90, 90),
+            IconColor = Color3.fromRGB(90, 90, 90),
             Hover = Color3.fromRGB(60, 160, 255),
             HoverChange = 0.05,
             ShineEnabled = true,
@@ -10211,7 +12229,7 @@ local aa = {
             },
         }
     end,
-    [52] = function() --[[ BloodRed ]]
+    [52] = function()
         b(52)
         return {
             Name = "Blood Red",
@@ -10250,8 +12268,9 @@ local aa = {
             DialogBorder = Color3.fromRGB(85, 8, 14),
             DialogInput = Color3.fromRGB(50, 10, 14),
             DialogInputLine = Color3.fromRGB(220, 50, 70),
-            Text = Color3.fromRGB(255, 230, 230),
-            SubText = Color3.fromRGB(210, 175, 178),
+            Text = Color3.fromRGB(255, 180, 180),
+            SubText = Color3.fromRGB(240, 100, 100),
+            IconColor = Color3.fromRGB(240, 100, 100),
             Hover = Color3.fromRGB(180, 10, 20),
             HoverChange = 0.05,
             ShineEnabled = true,
@@ -10288,7 +12307,7 @@ local aa = {
             ThemeAccentColors = {Color3.fromRGB(180, 10, 20)},
         }
     end,
-    [53] = function() --[[ Neon ]]
+    [53] = function()
         b(53)
         return {
             Name = "Neon Purple",
@@ -10327,8 +12346,9 @@ local aa = {
             DialogBorder = Color3.fromRGB(50, 0, 120),
             DialogInput = Color3.fromRGB(25, 0, 60),
             DialogInputLine = Color3.fromRGB(200, 0, 255),
-            Text = Color3.fromRGB(252, 245, 255),
-            SubText = Color3.fromRGB(210, 185, 255),
+            Text = Color3.fromRGB(235, 200, 255),
+            SubText = Color3.fromRGB(190, 145, 255),
+            IconColor = Color3.fromRGB(190, 145, 255),
             Hover = Color3.fromRGB(150, 0, 255),
             HoverChange = 0.07,
             ShineEnabled = true,
@@ -10362,7 +12382,7 @@ local aa = {
             },
         }
     end,
-    [54] = function() --[[ Ocean ]]
+    [54] = function()
         b(54)
         return {
             Name = "Deep Ocean",
@@ -10401,8 +12421,9 @@ local aa = {
             DialogBorder = Color3.fromRGB(0, 70, 105),
             DialogInput = Color3.fromRGB(15, 35, 55),
             DialogInputLine = Color3.fromRGB(0, 200, 255),
-            Text = Color3.fromRGB(240, 248, 255),
-            SubText = Color3.fromRGB(180, 210, 230),
+            Text = Color3.fromRGB(200, 230, 252),
+            SubText = Color3.fromRGB(95, 195, 240),
+            IconColor = Color3.fromRGB(95, 195, 240),
             Hover = Color3.fromRGB(0, 150, 200),
             HoverChange = 0.05,
             ShineEnabled = true,
@@ -10436,7 +12457,7 @@ local aa = {
             },
         }
     end,
-    [55] = function() --[[ Midnight ]]
+    [55] = function()
         b(55)
         return {
             Name = "Midnight Blue",
@@ -10475,8 +12496,9 @@ local aa = {
             DialogBorder = Color3.fromRGB(40, 30, 90),
             DialogInput = Color3.fromRGB(15, 10, 35),
             DialogInputLine = Color3.fromRGB(140, 120, 240),
-            Text = Color3.fromRGB(220, 220, 255),
-            SubText = Color3.fromRGB(170, 170, 210),
+            Text = Color3.fromRGB(195, 195, 248),
+            SubText = Color3.fromRGB(130, 130, 240),
+            IconColor = Color3.fromRGB(130, 130, 240),
             Hover = Color3.fromRGB(100, 80, 200),
             HoverChange = 0.05,
             ShineEnabled = true,
@@ -10510,7 +12532,7 @@ local aa = {
             },
         }
     end,
-    [56] = function() --[[ Sapphire ]]
+    [56] = function()
         b(56)
         return {
             Name = "Royal Blue",
@@ -10549,8 +12571,9 @@ local aa = {
             DialogBorder = Color3.fromRGB(6, 40, 95),
             DialogInput = Color3.fromRGB(12, 30, 65),
             DialogInputLine = Color3.fromRGB(50, 120, 230),
-            Text = Color3.fromRGB(220, 235, 255),
-            SubText = Color3.fromRGB(170, 190, 220),
+            Text = Color3.fromRGB(185, 215, 255),
+            SubText = Color3.fromRGB(110, 165, 240),
+            IconColor = Color3.fromRGB(110, 165, 240),
             Hover = Color3.fromRGB(15, 82, 186),
             HoverChange = 0.05,
             ShineEnabled = true,
@@ -10583,227 +12606,6 @@ local aa = {
                 ),
             },
         }
-    end,
-    [57] = function() --[[ Galaxy ]]
-        b(57)
-        return {
-            Name = "Galaxy Purple",
-            Accent = Color3.fromRGB(160, 60, 220),
-            AcrylicMain = Color3.fromRGB(12, 5, 25),
-            AcrylicBorder = Color3.fromRGB(120, 40, 185),
-            AcrylicGradient = ColorSequence.new(Color3.fromRGB(110, 35, 175), Color3.fromRGB(8, 3, 20)),
-            AcrylicNoise = 0.9,
-            TitleBarLine = Color3.fromRGB(130, 50, 195),
-            Tab = Color3.fromRGB(125, 45, 190),
-            Element = Color3.fromRGB(112, 40, 170),
-            ElementBorder = Color3.fromRGB(75, 25, 115),
-            InElementBorder = Color3.fromRGB(130, 50, 195),
-            ElementTransparency = 0.87,
-            ToggleSlider = Color3.fromRGB(160, 60, 220),
-            ToggleToggled = Color3.fromRGB(255, 255, 255),
-            SliderRail = Color3.fromRGB(125, 45, 190),
-            CheckboxUnchecked = Color3.fromRGB(125, 45, 190),
-            CheckboxChecked = Color3.fromRGB(160, 60, 220),
-            CheckboxCheck = Color3.fromRGB(255, 255, 255),
-            ProgressBarRail = Color3.fromRGB(125, 45, 190),
-            ProgressBarFill = Color3.fromRGB(160, 60, 220),
-            DropdownFrame = Color3.fromRGB(100, 35, 152),
-            DropdownHolder = Color3.fromRGB(8, 3, 20),
-            DropdownBorder = Color3.fromRGB(72, 24, 108),
-            DropdownOption = Color3.fromRGB(160, 60, 220),
-            Keybind = Color3.fromRGB(112, 40, 170),
-            Input = Color3.fromRGB(100, 35, 152),
-            InputFocused = Color3.fromRGB(5, 2, 14),
-            InputIndicator = Color3.fromRGB(195, 100, 255),
-            Dialog = Color3.fromRGB(8, 3, 20),
-            DialogHolder = Color3.fromRGB(5, 2, 14),
-            DialogHolderLine = Color3.fromRGB(3, 1, 9),
-            DialogButton = Color3.fromRGB(8, 3, 20),
-            DialogButtonBorder = Color3.fromRGB(125, 45, 190),
-            DialogBorder = Color3.fromRGB(75, 25, 115),
-            DialogInput = Color3.fromRGB(22, 10, 50),
-            DialogInputLine = Color3.fromRGB(195, 100, 255),
-            Text = Color3.fromRGB(242, 232, 255),
-            SubText = Color3.fromRGB(200, 178, 228),
-            Hover = Color3.fromRGB(160, 60, 220),
-            HoverChange = 0.05,
-            ShineEnabled = true,
-            Shine = {
-                Speed = 0.5,
-                RotationSpeed = 25,
-                ColorSequence = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(48, 18, 85)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(195, 100, 255)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(48, 18, 85)),
-                    }
-                ),
-            },
-            StrokeShine = true,
-            StrokeDark = Color3.fromRGB(125, 45, 190),
-            ButtonGradient = {
-                Background = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(130, 50, 195)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(48, 18, 85)),
-                    }
-                ),
-                Stroke = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(125, 45, 190)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(195, 100, 255)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(125, 45, 190)),
-                    }
-                ),
-            },
-        }
-    end,
-
-    [58] = function() --[[ Cosmic ]]
-        b(58)
-        return {
-            Name = "Cosmic Violet",
-            Accent = Color3.fromRGB(80, 60, 140),
-            AcrylicMain = Color3.fromRGB(12, 10, 22),
-            AcrylicBorder = Color3.fromRGB(50, 35, 110),
-            AcrylicGradient = ColorSequence.new(Color3.fromRGB(45, 30, 100), Color3.fromRGB(8, 6, 16)),
-            AcrylicNoise = 0.9,
-            TitleBarLine = Color3.fromRGB(60, 42, 120),
-            Tab = Color3.fromRGB(55, 38, 115),
-            Element = Color3.fromRGB(50, 34, 104),
-            ElementBorder = Color3.fromRGB(34, 23, 70),
-            InElementBorder = Color3.fromRGB(60, 42, 120),
-            ElementTransparency = 0.87,
-            ToggleSlider = Color3.fromRGB(80, 60, 140),
-            ToggleToggled = Color3.fromRGB(255, 255, 255),
-            SliderRail = Color3.fromRGB(55, 38, 115),
-            CheckboxUnchecked = Color3.fromRGB(55, 38, 115),
-            CheckboxChecked = Color3.fromRGB(80, 60, 140),
-            CheckboxCheck = Color3.fromRGB(255, 255, 255),
-            ProgressBarRail = Color3.fromRGB(55, 38, 115),
-            ProgressBarFill = Color3.fromRGB(80, 60, 140),
-            DropdownFrame = Color3.fromRGB(44, 30, 92),
-            DropdownHolder = Color3.fromRGB(8, 6, 16),
-            DropdownBorder = Color3.fromRGB(32, 22, 68),
-            DropdownOption = Color3.fromRGB(80, 60, 140),
-            Keybind = Color3.fromRGB(50, 34, 104),
-            Input = Color3.fromRGB(44, 30, 92),
-            InputFocused = Color3.fromRGB(5, 3, 10),
-            InputIndicator = Color3.fromRGB(115, 90, 175),
-            Dialog = Color3.fromRGB(8, 6, 16),
-            DialogHolder = Color3.fromRGB(5, 3, 10),
-            DialogHolderLine = Color3.fromRGB(3, 2, 6),
-            DialogButton = Color3.fromRGB(8, 6, 16),
-            DialogButtonBorder = Color3.fromRGB(55, 38, 115),
-            DialogBorder = Color3.fromRGB(34, 23, 70),
-            DialogInput = Color3.fromRGB(22, 16, 45),
-            DialogInputLine = Color3.fromRGB(115, 90, 175),
-            Text = Color3.fromRGB(230, 225, 245),
-            SubText = Color3.fromRGB(185, 175, 210),
-            Hover = Color3.fromRGB(80, 60, 140),
-            HoverChange = 0.05,
-            ShineEnabled = true,
-            Shine = {
-                Speed = 0.5,
-                RotationSpeed = 25,
-                ColorSequence = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 25, 65)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(115, 90, 175)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 25, 65)),
-                    }
-                ),
-            },
-            StrokeShine = true,
-            StrokeDark = Color3.fromRGB(55, 38, 115),
-            ButtonGradient = {
-                Background = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 42, 120)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 25, 65)),
-                    }
-                ),
-                Stroke = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(55, 38, 115)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(115, 90, 175)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(55, 38, 115)),
-                    }
-                ),
-            },
-        }
-    end,
-    [70] = function() --[[ AMOLED ]]
-        b(70)
-                return {
-            Name = "AMOLED",
-            Accent = Color3.fromRGB(255, 255, 255),
-            AcrylicMain = Color3.fromRGB(0, 0, 0),
-            AcrylicBorder = Color3.fromRGB(20, 20, 20),
-            AcrylicGradient = ColorSequence.new(Color3.fromRGB(0, 0, 0), Color3.fromRGB(0, 0, 0)),
-            AcrylicNoise = 1,
-            TitleBarLine = Color3.fromRGB(22, 22, 22),
-            Tab = Color3.fromRGB(28, 28, 28),
-            Element = Color3.fromRGB(10, 10, 10),
-            ElementBorder = Color3.fromRGB(0, 0, 0),
-            InElementBorder = Color3.fromRGB(30, 30, 30),
-            ElementTransparency = 0.96,
-            ToggleSlider = Color3.fromRGB(30, 30, 30),
-            ToggleToggled = Color3.fromRGB(255, 255, 255),
-            SliderRail = Color3.fromRGB(30, 30, 30),
-            CheckboxUnchecked = Color3.fromRGB(30, 30, 30),
-            CheckboxChecked = Color3.fromRGB(255, 255, 255),
-            CheckboxCheck = Color3.fromRGB(255, 255, 255),
-            ProgressBarRail = Color3.fromRGB(30, 30, 30),
-            ProgressBarFill = Color3.fromRGB(255, 255, 255),
-            DropdownFrame = Color3.fromRGB(18, 18, 18),
-            DropdownHolder = Color3.fromRGB(0, 0, 0),
-            DropdownBorder = Color3.fromRGB(0, 0, 0),
-            DropdownOption = Color3.fromRGB(22, 22, 22),
-            Keybind = Color3.fromRGB(22, 22, 22),
-            Input = Color3.fromRGB(12, 12, 12),
-            InputFocused = Color3.fromRGB(0, 0, 0),
-            InputIndicator = Color3.fromRGB(45, 45, 45),
-            InputIndicatorFocus = Color3.fromRGB(255, 255, 255),
-            Dialog = Color3.fromRGB(0, 0, 0),
-            DialogHolder = Color3.fromRGB(0, 0, 0),
-            DialogHolderLine = Color3.fromRGB(18, 18, 18),
-            DialogButton = Color3.fromRGB(10, 10, 10),
-            DialogButtonBorder = Color3.fromRGB(28, 28, 28),
-            DialogBorder = Color3.fromRGB(22, 22, 22),
-            DialogInput = Color3.fromRGB(10, 10, 10),
-            DialogInputLine = Color3.fromRGB(45, 45, 45),
-            Text = Color3.fromRGB(255, 255, 255),
-            SubText = Color3.fromRGB(150, 150, 150),
-            Hover = Color3.fromRGB(22, 22, 22),
-            HoverChange = 0.03,
-            ShineEnabled = false,
-            Shine = {
-                Speed = 0,
-                RotationSpeed = 0,
-                ColorSequence = ColorSequence.new(Color3.fromRGB(0, 0, 0), Color3.fromRGB(0, 0, 0)),
-            },
-            StrokeShine = false,
-            StrokeDark = Color3.fromRGB(18, 18, 18),
-            ButtonGradient = {
-                Background = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 10, 10)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0)),
-                    }
-                ),
-                Stroke = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(60, 60, 60)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 30, 30)),
-                    }
-                ),
-            },
-            Background = "rbxassetid://134736124666311",
-            BackgroundTransparency = 0,
-            ThemeAccentColors = {Color3.fromRGB(255, 255, 255)},
-                }
     end,
 
     [71] = function()
@@ -10851,8 +12653,9 @@ local aa = {
             DialogBorder = Color3.fromRGB(120, 70, 90),
             DialogInput = Color3.fromRGB(60, 35, 45),
             DialogInputLine = Color3.fromRGB(255, 170, 200),
-            Text = Color3.fromRGB(240, 240, 240),
-            SubText = Color3.fromRGB(170, 170, 170),
+            Text = Color3.fromRGB(255, 170, 200),
+            SubText = Color3.fromRGB(240, 120, 160),
+            IconColor = Color3.fromRGB(240, 120, 160),
             Hover = Color3.fromRGB(255, 120, 160),
             HoverChange = 0.05,
             ShineEnabled = true,
@@ -10890,7 +12693,7 @@ local aa = {
                 }
     end,
 
-    [72] = function() --[[ Neon Cyber ]]
+    [72] = function()
         b(72)
                 return {
             Name = "Neon Cyber",
@@ -10930,8 +12733,9 @@ local aa = {
             DialogBorder = Color3.fromRGB(40, 200, 18),
             DialogInput = Color3.fromRGB(10, 22, 10),
             DialogInputLine = Color3.fromRGB(57, 255, 20),
-            Text = Color3.fromRGB(200, 255, 190),
-            SubText = Color3.fromRGB(80, 200, 60),
+            Text = Color3.fromRGB(130, 255, 140),
+            SubText = Color3.fromRGB(60, 245, 40),
+            IconColor = Color3.fromRGB(60, 245, 40),
             Hover = Color3.fromRGB(15, 40, 15),
             HoverChange = 0.05,
             ShineEnabled = true,
@@ -10969,7 +12773,7 @@ local aa = {
                 }
     end,
 
-    [73] = function() --[[ Arctic Frost ]]
+    [73] = function()
         b(73)
                 return {
             Name = "Arctic Frost",
@@ -11011,6 +12815,7 @@ local aa = {
             DialogInputLine = Color3.fromRGB(150, 200, 235),
             Text = Color3.fromRGB(20, 40, 70),
             SubText = Color3.fromRGB(65, 105, 148),
+            IconColor = Color3.fromRGB(65, 105, 148),
             Hover = Color3.fromRGB(170, 210, 238),
             HoverChange = 0.04,
             ShineEnabled = true,
@@ -11048,7 +12853,7 @@ local aa = {
                 }
     end,
 
-    [74] = function() --[[ Cotton Candy ]]
+    [74] = function()
         b(74)
                 return {
             Name = "Cotton Candy",
@@ -11090,6 +12895,7 @@ local aa = {
             DialogInputLine = Color3.fromRGB(228, 172, 215),
             Text = Color3.fromRGB(75, 25, 55),
             SubText = Color3.fromRGB(145, 75, 115),
+            IconColor = Color3.fromRGB(145, 75, 115),
             Hover = Color3.fromRGB(238, 182, 222),
             HoverChange = 0.04,
             ShineEnabled = true,
@@ -11127,92 +12933,7 @@ local aa = {
                 }
     end,
 
-    [75] = function() --[[ Orange ]]
-        b(75)
-                return {
-            Name = "Orange",
-            Accent = Color3.fromRGB(255, 140, 30),
-            AcrylicMain = Color3.fromRGB(4, 4, 4),
-            AcrylicBorder = Color3.fromRGB(200, 90, 10),
-            AcrylicGradient = ColorSequence.new(
-                {
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 10, 0)),
-                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(10, 5, 0)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0)),
-                }
-            ),
-            AcrylicNoise = 0.98,
-            TitleBarLine = Color3.fromRGB(180, 75, 5),
-            Tab = Color3.fromRGB(180, 80, 10),
-            Element = Color3.fromRGB(22, 10, 2),
-            ElementBorder = Color3.fromRGB(80, 35, 5),
-            InElementBorder = Color3.fromRGB(200, 90, 10),
-            ElementTransparency = 0.92,
-            ToggleSlider = Color3.fromRGB(255, 140, 30),
-            ToggleToggled = Color3.fromRGB(0, 0, 0),
-            SliderRail = Color3.fromRGB(180, 80, 10),
-            CheckboxUnchecked = Color3.fromRGB(180, 80, 10),
-            CheckboxChecked = Color3.fromRGB(255, 140, 30),
-            CheckboxCheck = Color3.fromRGB(0, 0, 0),
-            ProgressBarRail = Color3.fromRGB(180, 80, 10),
-            ProgressBarFill = Color3.fromRGB(255, 140, 30),
-            DropdownFrame = Color3.fromRGB(160, 70, 8),
-            DropdownHolder = Color3.fromRGB(4, 2, 0),
-            DropdownBorder = Color3.fromRGB(200, 90, 10),
-            DropdownOption = Color3.fromRGB(255, 140, 30),
-            Keybind = Color3.fromRGB(22, 10, 2),
-            Input = Color3.fromRGB(18, 8, 2),
-            InputFocused = Color3.fromRGB(2, 1, 0),
-            InputIndicator = Color3.fromRGB(255, 160, 60),
-            InputIndicatorFocus = Color3.fromRGB(255, 200, 100),
-            Dialog = Color3.fromRGB(6, 3, 0),
-            DialogHolder = Color3.fromRGB(4, 2, 0),
-            DialogHolderLine = Color3.fromRGB(180, 75, 5),
-            DialogButton = Color3.fromRGB(8, 4, 0),
-            DialogButtonBorder = Color3.fromRGB(180, 80, 10),
-            DialogBorder = Color3.fromRGB(120, 50, 5),
-            DialogInput = Color3.fromRGB(18, 8, 2),
-            DialogInputLine = Color3.fromRGB(255, 160, 60),
-            Text = Color3.fromRGB(255, 240, 220),
-            SubText = Color3.fromRGB(220, 175, 130),
-            Hover = Color3.fromRGB(255, 140, 30),
-            HoverChange = 0.05,
-            ShineEnabled = true,
-            Shine = {
-                Speed = 0.7,
-                RotationSpeed = 30,
-                ColorSequence = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 10, 0)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 140, 30)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 10, 0)),
-                    }
-                ),
-            },
-            StrokeShine = true,
-            StrokeDark = Color3.fromRGB(180, 80, 10),
-            ButtonGradient = {
-                Background = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 18, 4)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 3, 0)),
-                    }
-                ),
-                Stroke = ColorSequence.new(
-                    {
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 80, 10)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 140, 30)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 80, 10)),
-                    }
-                ),
-            },
-            Background = "rbxassetid://122033436660262",
-            BackgroundTransparency = 0.05,
-            ThemeAccentColors = {Color3.fromRGB(255, 140, 30), Color3.fromRGB(200, 90, 10)},
-                }
-    end,
-
-    [76] = function() --[[ Cyanic ]]
+    [76] = function()
         b(76)
                 return {
             Name = "Cyanic",
@@ -11258,8 +12979,9 @@ local aa = {
             DialogBorder = Color3.fromRGB(30, 120, 115),
             DialogInput = Color3.fromRGB(12, 32, 40),
             DialogInputLine = Color3.fromRGB(80, 215, 205),
-            Text = Color3.fromRGB(210, 248, 246),
-            SubText = Color3.fromRGB(130, 210, 205),
+            Text = Color3.fromRGB(130, 235, 228),
+            SubText = Color3.fromRGB(57, 197, 187),
+            IconColor = Color3.fromRGB(57, 197, 187),
             Hover = Color3.fromRGB(57, 197, 187),
             HoverChange = 0.05,
             ShineEnabled = true,
@@ -11297,7 +13019,7 @@ local aa = {
                 }
     end,
 
-    [77] = function() --[[ Amber Glow ]]
+    [77] = function()
         b(77)
                 return {
             Name = "Amber Glow",
@@ -11343,8 +13065,9 @@ local aa = {
             DialogBorder = Color3.fromRGB(140, 88, 18),
             DialogInput = Color3.fromRGB(32, 16, 4),
             DialogInputLine = Color3.fromRGB(255, 195, 80),
-            Text = Color3.fromRGB(255, 245, 225),
-            SubText = Color3.fromRGB(230, 195, 145),
+            Text = Color3.fromRGB(255, 220, 150),
+            SubText = Color3.fromRGB(240, 175, 65),
+            IconColor = Color3.fromRGB(240, 175, 65),
             Hover = Color3.fromRGB(255, 170, 40),
             HoverChange = 0.05,
             ShineEnabled = true,
@@ -11382,7 +13105,7 @@ local aa = {
                 }
     end,
 
-    [78] = function() --[[ Bloomings ]]
+    [78] = function()
         b(78)
                 return {
             Name = "Bloomings",
@@ -11427,8 +13150,9 @@ local aa = {
             DialogBorder = Color3.fromRGB(180, 60, 130),
             DialogInput = Color3.fromRGB(45, 18, 35),
             DialogInputLine = Color3.fromRGB(255, 80, 160),
-            Text = Color3.fromRGB(255, 240, 248),
-            SubText = Color3.fromRGB(230, 190, 215),
+            Text = Color3.fromRGB(255, 205, 230),
+            SubText = Color3.fromRGB(245, 160, 208),
+            IconColor = Color3.fromRGB(245, 160, 208),
             Hover = Color3.fromRGB(255, 255, 255),
             HoverChange = 0.08,
             Background = "rbxassetid://133541508207801",
@@ -11472,7 +13196,7 @@ local aa = {
                 }
     end,
 
-    [79] = function() --[[ Crimson ]]
+    [79] = function()
         b(79)
             local _crimsonBackgrounds = {
                 "rbxassetid://74252111742950",
@@ -11515,8 +13239,9 @@ local aa = {
                 DialogBorder = Color3.fromRGB(100, 10, 25),
                 DialogInput = Color3.fromRGB(10, 6, 10),
                 DialogInputLine = Color3.fromRGB(200, 25, 55),
-                Text = Color3.fromRGB(255, 235, 240),
-                SubText = Color3.fromRGB(180, 100, 115),
+            Text = Color3.fromRGB(255, 200, 210),
+            SubText = Color3.fromRGB(215, 85, 100),
+            IconColor = Color3.fromRGB(215, 85, 100),
                 Hover = Color3.fromRGB(50, 12, 22),
                 HoverChange = 0.05,
                 Background = _crimsonBg,
@@ -11552,7 +13277,7 @@ local aa = {
             }
     end,
 
-    [80] = function() --[[ Gold ]]
+    [80] = function()
         b(80)
                 return {
             Name = "Gold",
@@ -11591,8 +13316,9 @@ local aa = {
             DialogBorder = Color3.fromRGB(120, 90, 30),
             DialogInput = Color3.fromRGB(60, 45, 20),
             DialogInputLine = Color3.fromRGB(255, 220, 140),
-            Text = Color3.fromRGB(240, 240, 240),
-            SubText = Color3.fromRGB(170, 170, 170),
+            Text = Color3.fromRGB(255, 215, 100),
+            SubText = Color3.fromRGB(230, 190, 80),
+            IconColor = Color3.fromRGB(230, 190, 80),
             Hover = Color3.fromRGB(255, 200, 90),
             HoverChange = 0.05,
             ShineEnabled = true,
@@ -11626,6 +13352,86 @@ local aa = {
             },
             ThemeAccentColors = {Color3.fromRGB(255, 200, 90), Color3.fromRGB(120, 90, 30)},
                 }
+    end,
+
+    [81] = function()
+        b(81)
+        return {
+            Name = "Lavender Pink",
+            Accent = Color3.fromRGB(255, 100, 180),
+            AcrylicMain = Color3.fromRGB(13, 14, 14),
+            AcrylicBorder = Color3.fromRGB(131, 93, 93),
+            AcrylicGradient = ColorSequence.new(Color3.fromRGB(255, 100, 160), Color3.fromRGB(40, 15, 35)),
+            AcrylicNoise = 0.9,
+            TitleBarLine = Color3.fromRGB(255, 100, 180),
+            Tab = Color3.fromRGB(20, 12, 20),
+            Element = Color3.fromRGB(25, 15, 25),
+            ElementBorder = Color3.fromRGB(80, 40, 70),
+            InElementBorder = Color3.fromRGB(60, 30, 55),
+            ElementTransparency = 0.9,
+            ElementBorderThickness = 1,
+            ToggleSlider = Color3.fromRGB(50, 30, 50),
+            ToggleToggled = Color3.fromRGB(255, 100, 180),
+            SliderRail = Color3.fromRGB(60, 30, 55),
+            CheckboxUnchecked = Color3.fromRGB(40, 25, 40),
+            CheckboxChecked = Color3.fromRGB(255, 100, 180),
+            CheckboxCheck = Color3.fromRGB(255, 194, 236),
+            ProgressBarRail = Color3.fromRGB(40, 25, 40),
+            ProgressBarFill = Color3.fromRGB(255, 100, 180),
+            DropdownFrame = Color3.fromRGB(18, 10, 18),
+            DropdownHolder = Color3.fromRGB(22, 13, 22),
+            DropdownBorder = Color3.fromRGB(80, 40, 70),
+            DropdownOption = Color3.fromRGB(28, 16, 28),
+            DropdownBorderThickness = 1,
+            Keybind = Color3.fromRGB(30, 18, 30),
+            Input = Color3.fromRGB(22, 13, 22),
+            InputFocused = Color3.fromRGB(35, 20, 35),
+            InputIndicator = Color3.fromRGB(255, 100, 180),
+            Dialog = Color3.fromRGB(18, 10, 18),
+            DialogHolder = Color3.fromRGB(22, 13, 22),
+            DialogHolderLine = Color3.fromRGB(80, 40, 70),
+            DialogButton = Color3.fromRGB(255, 100, 180),
+            DialogButtonBorder = Color3.fromRGB(200, 70, 140),
+            DialogBorder = Color3.fromRGB(80, 40, 70),
+            DialogInput = Color3.fromRGB(25, 15, 25),
+            DialogInputLine = Color3.fromRGB(255, 100, 180),
+            Text = Color3.fromRGB(255, 130, 200),
+            SubText = Color3.fromRGB(220, 100, 170),
+            IconColor = Color3.fromRGB(220, 100, 170),
+            Hover = Color3.fromRGB(255, 100, 180),
+            HoverChange = 0.08,
+            Background = "rbxassetid://126107479485287",
+            BackgroundTransparency = 0,
+            ShineEnabled = true,
+            Shine = {
+                Speed = 2,
+                RotationSpeed = 1.5,
+                ColorSequence = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0,   Color3.fromRGB(0, 0, 0)),
+                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 100, 180)),
+                    ColorSequenceKeypoint.new(1,   Color3.fromRGB(0, 0, 0)),
+                }),
+            },
+            StrokeShine = true,
+            StrokeDark = Color3.fromRGB(10, 5, 10),
+            ButtonGradient = {
+                Background = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 50, 120)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 180)),
+                }),
+                Stroke = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0,   Color3.fromRGB(255, 100, 180)),
+                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(200, 70, 140)),
+                    ColorSequenceKeypoint.new(1,   Color3.fromRGB(255, 100, 180)),
+                }),
+            },
+            DiscordJoinButton = Color3.fromRGB(88, 101, 242),
+            WarningNotifyColor = Color3.fromRGB(255, 200, 80),
+            SuccessNotifyColor = Color3.fromRGB(80, 220, 140),
+            ErrorNotifyColor = Color3.fromRGB(255, 70, 90),
+            InfoNotifyColor = Color3.fromRGB(255, 100, 180),
+            ThemeAccentColors = {Color3.fromRGB(255, 100, 180), Color3.fromRGB(180, 50, 120)},
+        }
     end,
 
 }
