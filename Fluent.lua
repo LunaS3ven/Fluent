@@ -1,3 +1,8 @@
+local __sbSeq = 0
+local function __nextSbName(base)
+    __sbSeq = __sbSeq + 1
+    return base .. '_' .. __sbSeq
+end
 local a, b = {
     {
         1,
@@ -4604,7 +4609,7 @@ local aa = {
                         pcall(function() sbHolder:Destroy() end)
                     end)
                 end
-                local _rsName = "FluentScrollbar_" .. tostring(sf):gsub("[^%w]", "")
+                local _rsName = __nextSbName("FluentScrollbar_" .. tostring(sf):gsub("[^%w]", ""))
                 game:GetService("RunService"):BindToRenderStep(_rsName, Enum.RenderPriority.Last.Value, updateScrollbar)
                 table.insert(_conns, {Disconnect = function()
                     pcall(function() game:GetService("RunService"):UnbindFromRenderStep(_rsName) end)
