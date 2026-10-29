@@ -3171,6 +3171,48 @@ local aa = {
             return dialogObj
         end
 
+        -- imgur resolvido dentro da propria lib (antes o hub fazia esse wrap)
+        do
+            local _mm = x.MediaManager
+            if _mm and _mm._fetch then
+                local _oldFetch = _mm._fetch
+                _mm._fetch = function(self, src, sub, exts, defExt, noDownload)
+                    if type(src) == "string" and src:match("^https?://") and (src:find("imgur%.com") or src:find("i%.imgur%.com")) then
+                        self:_init(sub)
+                        local dir = self:_dir(sub)
+                        local cleanPath = src:match("^[^?#]+") or src
+                        local ext = (cleanPath:match("%.([^%.%/]+)$") or defExt):lower()
+                        if not exts[ext] then ext = defExt end
+                        local key = src:gsub("[^%w]", "_"):sub(-90)
+                        local fname = key .. "." .. ext
+                        local path = self:_join(dir, fname)
+
+                        if isfile and isfile(path) and getcustomasset then
+                            local ok, a = pcall(getcustomasset, path)
+                            if ok and a and a ~= "" then return a end
+                        end
+
+                        local req = (syn and syn.request) or http_request or request
+                        if req and writefile and getcustomasset then
+                            local r = req({
+                                Url = src,
+                                Method = "GET",
+                                Headers = {
+                                    ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36",
+                                    ["Accept"] = "image/png,image/*;q=0.8"
+                                }
+                            })
+                            if r and r.StatusCode == 200 and r.Body and #r.Body > 128 then
+                                writefile(path, r.Body)
+                                local ok2, a = pcall(getcustomasset, path)
+                                if ok2 and a and a ~= "" then return a end
+                            end
+                        end
+                    end
+                    return _oldFetch(self, src, sub, exts, defExt, noDownload)
+                end
+            end
+        end
         return x
     end,
     function()
